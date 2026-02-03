@@ -1,17 +1,14 @@
-import { readFileSync, existsSync } from 'fs'
-import { join } from 'path'
 import { getFileTree, getFileContent } from './files.js'
-import { getGitInfo, getUnifiedDiff, getFileDiff } from './git.js'
+import { getGitInfo, getUnifiedDiff, getFileDiff, getOriginalContent } from './git.js'
+import { embeddedAssets } from './embedded-assets.js'
+import type { FeedbackResult } from '../shared/types.js'
+
+export type { FeedbackResult }
 
 export interface ServerOptions {
   port: number
   workingDirectory: string
   openBrowser: boolean
-}
-
-export interface FeedbackResult {
-  feedback: string
-  cancelled: boolean
 }
 
 export interface Server {
@@ -28,85 +25,13 @@ export async function startServer(options: ServerOptions): Promise<Server> {
     resolveDecision = resolve
   })
 
-  // Try to load built HTML, fallback to dev message
-  let htmlContent = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Canon</title>
-        <style>
-          body {
-            font-family: system-ui, sans-serif;
-            background: #1a1a1a;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            gap: 20px;
-          }
-          h1 { margin: 0; }
-          button {
-            padding: 12px 24px;
-            font-size: 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-          }
-          button:hover { opacity: 0.9; }
-          .submit {
-            background: #3b82f6;
-            color: white;
-          }
-          .cancel {
-            background: #4b5563;
-            color: white;
-          }
-          .buttons { display: flex; gap: 12px; }
-        </style>
-      </head>
-      <body>
-        <h1>Canon</h1>
-        <p>Code Review Tool - Minimal Test UI</p>
-        <div class="buttons">
-          <button class="cancel" onclick="cancel()">Cancel</button>
-          <button class="submit" onclick="submit()">Submit Feedback</button>
-        </div>
-        <script>
-          async function submit() {
-            await fetch('/api/feedback', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                feedback: '## Code Review Feedback\\n\\nTest annotation from minimal UI.',
-                cancelled: false
-              })
-            });
-            document.body.innerHTML = '<h1>Feedback Submitted</h1><p>You can close this tab.</p>';
-          }
-          async function cancel() {
-            await fetch('/api/feedback', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                feedback: 'User cancelled review. Ask what they\\'d like to do next.',
-                cancelled: true
-              })
-            });
-            document.body.innerHTML = '<h1>Review Cancelled</h1><p>You can close this tab.</p>';
-          }
-        </script>
-      </body>
-    </html>
-  `
-
-  // Check for built dist/index.html
-  const distPath = join(import.meta.dir, '../../dist/index.html')
-  if (existsSync(distPath)) {
-    htmlContent = readFileSync(distPath, 'utf-8')
+  // Check if port is already in use
+  const portCheck = await checkPort(port)
+  if (!portCheck.available) {
+    throw new Error(
+      `Port ${port} is already in use. Another Canon session may be running.\n` +
+      `Kill it with: kill $(lsof -t -i:${port})`
+    )
   }
 
   const server = Bun.serve({
@@ -161,23 +86,30 @@ export async function startServer(options: ServerOptions): Promise<Server> {
         return Response.json({ diff, path: filePath })
       }
 
-      // Serve HTML for root
-      if (url.pathname === '/' || url.pathname === '/index.html') {
-        return new Response(htmlContent, {
-          headers: { 'Content-Type': 'text/html' },
-        })
+      // API: Get original (HEAD) content of a file
+      if (url.pathname.startsWith('/api/git/original/') && req.method === 'GET') {
+        const filePath = decodeURIComponent(url.pathname.slice('/api/git/original/'.length))
+        const result = await getOriginalContent(workingDirectory, filePath)
+        if (result.error) {
+          return Response.json({ error: result.error, content: '' })
+        }
+        return Response.json({ content: result.content, path: filePath })
       }
 
-      // Serve static assets from dist
-      if (url.pathname.startsWith('/assets/')) {
-        const assetPath = join(import.meta.dir, '../../dist', url.pathname)
-        if (existsSync(assetPath)) {
-          const content = readFileSync(assetPath)
-          const contentType = getContentType(url.pathname)
-          return new Response(content, {
-            headers: { 'Content-Type': contentType },
-          })
-        }
+      // Serve embedded assets
+      // Try exact path first
+      let assetPath = url.pathname
+      let asset = embeddedAssets[assetPath]
+
+      // For root, serve index.html
+      if (!asset && (url.pathname === '/' || url.pathname === '/index.html')) {
+        asset = embeddedAssets['/index.html']
+      }
+
+      if (asset) {
+        return new Response(asset.content, {
+          headers: { 'Content-Type': asset.contentType },
+        })
       }
 
       // 404 for everything else
@@ -199,18 +131,22 @@ export async function startServer(options: ServerOptions): Promise<Server> {
   }
 }
 
-function getContentType(pathname: string): string {
-  if (pathname.endsWith('.js')) return 'application/javascript'
-  if (pathname.endsWith('.css')) return 'text/css'
-  if (pathname.endsWith('.html')) return 'text/html'
-  if (pathname.endsWith('.json')) return 'application/json'
-  if (pathname.endsWith('.svg')) return 'image/svg+xml'
-  if (pathname.endsWith('.png')) return 'image/png'
-  if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) return 'image/jpeg'
-  return 'application/octet-stream'
+async function checkPort(port: number): Promise<{ available: boolean }> {
+  try {
+    const testServer = Bun.serve({
+      port,
+      fetch() {
+        return new Response('test')
+      },
+    })
+    testServer.stop()
+    return { available: true }
+  } catch {
+    return { available: false }
+  }
 }
 
-function openInBrowser(url: string) {
+function openInBrowser(url: string): void {
   const platform = process.platform
   let cmd: string[]
 

@@ -1,16 +1,8 @@
 import { existsSync } from 'fs'
 import { join } from 'path'
+import type { ChangedFile, GitInfo } from '../shared/types.js'
 
-export interface ChangedFile {
-  path: string
-  status: 'modified' | 'added' | 'deleted' | 'renamed'
-}
-
-export interface GitInfo {
-  isGitRepo: boolean
-  branch?: string
-  changedFiles: ChangedFile[]
-}
+export type { ChangedFile, GitInfo }
 
 // Run a git command and return stdout
 async function runGit(
@@ -45,6 +37,25 @@ export async function getCurrentBranch(workingDirectory: string): Promise<string
   const result = await runGit(workingDirectory, ['branch', '--show-current'])
   if (result.exitCode !== 0) return null
   return result.stdout.trim() || null
+}
+
+// Combine staged and unstaged diff results
+function combineDiffs(
+  stagedResult: { exitCode: number; stdout: string },
+  unstagedResult: { exitCode: number; stdout: string }
+): string {
+  let diff = ''
+
+  if (stagedResult.exitCode === 0 && stagedResult.stdout) {
+    diff += stagedResult.stdout
+  }
+
+  if (unstagedResult.exitCode === 0 && unstagedResult.stdout) {
+    if (diff) diff += '\n'
+    diff += unstagedResult.stdout
+  }
+
+  return diff
 }
 
 // Parse git status porcelain output
@@ -133,24 +144,12 @@ export async function getGitInfo(workingDirectory: string): Promise<GitInfo> {
 
 // Get unified diff for all uncommitted changes
 export async function getUnifiedDiff(workingDirectory: string): Promise<string> {
-  // Get both staged and unstaged changes
   const [stagedResult, unstagedResult] = await Promise.all([
     runGit(workingDirectory, ['diff', '--cached']),
     runGit(workingDirectory, ['diff']),
   ])
 
-  let diff = ''
-
-  if (stagedResult.exitCode === 0 && stagedResult.stdout) {
-    diff += stagedResult.stdout
-  }
-
-  if (unstagedResult.exitCode === 0 && unstagedResult.stdout) {
-    if (diff) diff += '\n'
-    diff += unstagedResult.stdout
-  }
-
-  return diff
+  return combineDiffs(stagedResult, unstagedResult)
 }
 
 // Get diff for a specific file
@@ -158,22 +157,25 @@ export async function getFileDiff(
   workingDirectory: string,
   filePath: string
 ): Promise<string> {
-  // Try both staged and unstaged
   const [stagedResult, unstagedResult] = await Promise.all([
     runGit(workingDirectory, ['diff', '--cached', '--', filePath]),
     runGit(workingDirectory, ['diff', '--', filePath]),
   ])
 
-  let diff = ''
+  return combineDiffs(stagedResult, unstagedResult)
+}
 
-  if (stagedResult.exitCode === 0 && stagedResult.stdout) {
-    diff += stagedResult.stdout
+// Get the original (HEAD) content of a file
+export async function getOriginalContent(
+  workingDirectory: string,
+  filePath: string
+): Promise<{ content: string; error?: string }> {
+  const result = await runGit(workingDirectory, ['show', `HEAD:${filePath}`])
+
+  if (result.exitCode !== 0) {
+    // File might not exist in HEAD (new file)
+    return { content: '', error: 'File not found in HEAD' }
   }
 
-  if (unstagedResult.exitCode === 0 && unstagedResult.stdout) {
-    if (diff) diff += '\n'
-    diff += unstagedResult.stdout
-  }
-
-  return diff
+  return { content: result.stdout }
 }

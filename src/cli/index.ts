@@ -2,7 +2,7 @@ import { startServer } from '../server/index.js'
 
 const DEFAULT_PORT = 9847
 
-async function main() {
+async function main(): Promise<void> {
   const port = process.env.CANON_PORT
     ? parseInt(process.env.CANON_PORT)
     : DEFAULT_PORT
@@ -22,6 +22,9 @@ async function main() {
 
   // Block until user submits or cancels
   const result = await server.waitForDecision()
+
+  // Brief delay to ensure the client receives the response and can update UI
+  await new Promise((resolve) => setTimeout(resolve, 500))
 
   server.stop()
 

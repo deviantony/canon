@@ -1,13 +1,8 @@
 import { readdirSync, readFileSync, statSync, existsSync } from 'fs'
-import { join, relative, basename } from 'path'
+import { join, relative, resolve } from 'path'
+import type { FileNode } from '../shared/types.js'
 
-export interface FileNode {
-  id: string
-  name: string
-  path: string
-  isDirectory: boolean
-  children?: FileNode[]
-}
+export type { FileNode }
 
 // Common patterns to ignore (fallback if no .gitignore)
 const DEFAULT_IGNORE = [
@@ -118,8 +113,8 @@ export function getFileContent(
   try {
     // Prevent directory traversal
     const fullPath = join(workingDirectory, filePath)
-    const resolved = require('path').resolve(fullPath)
-    if (!resolved.startsWith(require('path').resolve(workingDirectory))) {
+    const resolvedPath = resolve(fullPath)
+    if (!resolvedPath.startsWith(resolve(workingDirectory))) {
       return { content: '', error: 'Invalid path' }
     }
 
