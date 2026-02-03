@@ -1,0 +1,216 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0a0a;
+  color: #fafafa;
+  min-height: 100vh;
+}
+
+/* App Layout */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
+}
+
+.header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sidebar {
+  width: 280px;
+  background: #18181b;
+  border-right: 1px solid #27272a;
+  overflow-y: auto;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  background: #0a0a0a;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn.submit {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn.cancel {
+  background: #27272a;
+  color: #fafafa;
+  border: 1px solid #3f3f46;
+}
+
+.btn.cancel:hover {
+  background: #3f3f46;
+}
+
+/* File Tree */
+.file-tree {
+  padding: 8px;
+}
+
+.file-tree-loading,
+.file-tree-error {
+  padding: 20px;
+  color: #a1a1aa;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tree-node:hover {
+  background: #27272a;
+}
+
+.tree-node.selected {
+  background: #3b82f6;
+}
+
+.file-icon {
+  font-size: 14px;
+}
+
+.file-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Code Viewer */
+.code-viewer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-viewer.empty,
+.code-viewer.loading,
+.code-viewer.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #71717a;
+}
+
+.code-header {
+  padding: 12px 16px;
+  background: #18181b;
+  border-bottom: 1px solid #27272a;
+}
+
+.file-path {
+  font-size: 13px;
+  color: #a1a1aa;
+  font-family: 'SF Mono', Menlo, Monaco, monospace;
+}
+
+.code-content {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+}
+
+.code-content pre {
+  margin: 0;
+  font-family: 'SF Mono', Menlo, Monaco, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.code-line {
+  display: flex;
+  min-height: 20px;
+}
+
+.code-line:hover {
+  background: #1f1f23;
+}
+
+.line-number {
+  flex-shrink: 0;
+  width: 50px;
+  padding: 0 12px;
+  text-align: right;
+  color: #52525b;
+  user-select: none;
+  background: #18181b;
+  border-right: 1px solid #27272a;
+}
+
+.line-content {
+  flex: 1;
+  padding: 0 16px;
+  white-space: pre;
+}
+
+/* Submitted State */
+.submitted-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 12px;
+}
+
+.submitted-container h1 {
+  font-size: 1.5rem;
+}
+
+.submitted-container p {
+  color: #a1a1aa;
+}

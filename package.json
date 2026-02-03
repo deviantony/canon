@@ -1,0 +1,23 @@
+{
+  "name": "canon",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/cli/index.ts",
+    "build:web": "vite build",
+    "build": "bun run build:web && bun build --compile --outfile=canon ./src/cli/index.ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-arborist": "^3.4.3",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.3",
+    "vite": "^6.0.7"
+  }
+}
