@@ -1,20 +1,33 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import FileTree from './components/FileTree'
-import CodeViewer from './components/CodeViewer'
-import DiffViewer from './components/DiffViewer'
-import AnnotationPanel from './components/AnnotationPanel'
+
+// Delay to allow file content to load before scrolling
+const NAVIGATION_SCROLL_DELAY_MS = 100
+import CodeViewer, { CodeViewerRef } from './components/CodeViewer'
+import DiffViewer, { DiffViewerRef } from './components/DiffViewer'
+import MarginPanel from './components/MarginPanel'
+import FileAnnotationFooter from './components/FileAnnotationFooter'
+import EditorHeader from './components/EditorHeader'
+import Header from './components/Header'
+import Sidebar from './components/Sidebar'
+import AnnotationSummaryPopover from './components/AnnotationSummaryPopover'
 import CompletionScreen from './components/CompletionScreen'
 import { AnnotationProvider, useAnnotations } from './context/AnnotationContext'
+import { LayoutProvider, useLayout } from './context/LayoutContext'
 import type { FeedbackResult, GitInfo } from '../shared/types'
 
 function AppContent() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [showChangedOnly, setShowChangedOnly] = useState(true)
-  const [viewMode, setViewMode] = useState<'code' | 'diff'>('diff')
+  const [viewMode, setViewMode] = useState<'code' | 'diff'>('code')
   const [gitInfo, setGitInfo] = useState<GitInfo | null>(null)
   const [completionState, setCompletionState] = useState<'submitted' | 'cancelled' | null>(null)
 
-  const { annotations, formatAsMarkdown } = useAnnotations()
+  const { formatAsMarkdown } = useAnnotations()
+  const { clearSelection } = useLayout()
+
+  const codeViewerRef = useRef<CodeViewerRef>(null)
+  const diffViewerRef = useRef<DiffViewerRef>(null)
 
   // Load git info to know which files have changes
   useEffect(() => {
@@ -40,8 +53,52 @@ function AppContent() {
   // Can only show diff for changed files
   const canShowDiff = !!selectedFileStatus
 
-  // Can only submit if there are annotations
-  const canSubmit = annotations.length > 0
+  // Check if file is newly added (no original to compare)
+  const isNewFile = selectedFileStatus === 'added'
+
+  // Has any changes at all
+  const hasChanges = (gitInfo?.changedFiles?.length || 0) > 0
+
+  // Clear selection when changing files
+  useEffect(() => {
+    clearSelection()
+  }, [selectedFile, clearSelection])
+
+  // Auto-switch to 'code' mode for new files
+  useEffect(() => {
+    if (isNewFile && viewMode === 'diff') {
+      setViewMode('code')
+    }
+  }, [isNewFile, selectedFile])
+
+  // Scroll to line in the current viewer
+  const scrollToLine = useCallback((line: number) => {
+    if (viewMode === 'diff' && canShowDiff && !isNewFile) {
+      diffViewerRef.current?.scrollToLine(line)
+    } else {
+      codeViewerRef.current?.scrollToLine(line)
+    }
+  }, [viewMode, canShowDiff, isNewFile])
+
+  // Handle navigation from summary popover
+  const handleNavigate = useCallback((file: string, line?: number) => {
+    setSelectedFile(file)
+    if (line !== undefined && line > 0) {
+      setTimeout(() => {
+        scrollToLine(line)
+      }, NAVIGATION_SCROLL_DELAY_MS)
+    }
+  }, [scrollToLine])
+
+  // Handle line click from margin panel
+  const handleLineClick = useCallback((line: number) => {
+    if (line === 0) {
+      // File-level annotation - scroll to top
+      scrollToLine(1)
+    } else {
+      scrollToLine(line)
+    }
+  }, [scrollToLine])
 
   async function sendFeedback(payload: FeedbackResult): Promise<void> {
     try {
@@ -71,83 +128,71 @@ function AppContent() {
     })
   }
 
+  // Determine which viewer to show
+  const showDiffViewer = viewMode === 'diff' && canShowDiff && !isNewFile
+
   if (completionState) {
     return <CompletionScreen type={completionState} />
   }
 
   return (
     <div className="app">
-      <header className="header">
-        <h1>Canon</h1>
-        <div className="header-center">
-          <div className="view-toggle">
-            <button
-              className={`toggle-btn ${showChangedOnly ? 'active' : ''}`}
-              onClick={() => setShowChangedOnly(true)}
-            >
-              Changed
-            </button>
-            <button
-              className={`toggle-btn ${!showChangedOnly ? 'active' : ''}`}
-              onClick={() => setShowChangedOnly(false)}
-            >
-              All Files
-            </button>
-          </div>
-          {selectedFile && (
-            <div className="view-toggle" style={{ marginLeft: 12 }}>
-              <button
-                className={`toggle-btn ${viewMode === 'diff' ? 'active' : ''}`}
-                onClick={() => setViewMode('diff')}
-                disabled={!canShowDiff}
-                title={!canShowDiff ? 'No changes to show' : undefined}
-              >
-                Diff
-              </button>
-              <button
-                className={`toggle-btn ${viewMode === 'code' ? 'active' : ''}`}
-                onClick={() => setViewMode('code')}
-              >
-                Code
-              </button>
-            </div>
-          )}
-        </div>
-        <div className="header-actions">
-          <button className="btn cancel" onClick={handleCancel}>
-            Cancel
-          </button>
-          <button
-            className="btn submit"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            title={!canSubmit ? 'Add annotations to submit feedback' : undefined}
-          >
-            Submit ({annotations.length})
-          </button>
-        </div>
-      </header>
+      <Header
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+      />
       <main className="main">
-        <aside className="sidebar">
+        <Sidebar
+          showChangedOnly={showChangedOnly}
+          setShowChangedOnly={setShowChangedOnly}
+          hasChanges={hasChanges}
+          changedCount={gitInfo?.changedFiles?.length || 0}
+        >
           <FileTree
             onSelectFile={setSelectedFile}
             selectedFile={selectedFile}
             showChangedOnly={showChangedOnly}
+            gitInfo={gitInfo}
           />
-        </aside>
-        <section className="content">
-          {viewMode === 'diff' && canShowDiff ? (
-            <DiffViewer filePath={selectedFile} status={selectedFileStatus} />
-          ) : (
-            <CodeViewer filePath={selectedFile} />
+        </Sidebar>
+        <div className="content-area">
+          <EditorHeader
+            filePath={selectedFile}
+            canShowDiff={canShowDiff}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            isNewFile={isNewFile}
+          />
+          <div className="editor-panel">
+            <section className="content">
+              {showDiffViewer ? (
+                <DiffViewer
+                  ref={diffViewerRef}
+                  filePath={selectedFile}
+                  status={selectedFileStatus}
+                />
+              ) : (
+                <CodeViewer
+                  ref={codeViewerRef}
+                  filePath={selectedFile}
+                />
+              )}
+            </section>
+            {selectedFile && (
+              <div className="annotations-panel">
+                <MarginPanel filePath={selectedFile} onLineClick={handleLineClick} />
+              </div>
+            )}
+          </div>
+          {selectedFile && (
+            <FileAnnotationFooter filePath={selectedFile} />
           )}
-        </section>
-        {selectedFile && (
-          <aside className="annotation-sidebar">
-            <AnnotationPanel filePath={selectedFile} />
-          </aside>
-        )}
+        </div>
       </main>
+      <AnnotationSummaryPopover
+        onSubmit={handleSubmit}
+        onNavigate={handleNavigate}
+      />
     </div>
   )
 }
@@ -155,7 +200,9 @@ function AppContent() {
 export default function App() {
   return (
     <AnnotationProvider>
-      <AppContent />
+      <LayoutProvider>
+        <AppContent />
+      </LayoutProvider>
     </AnnotationProvider>
   )
 }

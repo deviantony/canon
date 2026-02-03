@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
+import { sortAnnotations, groupAnnotationsByFile } from '../utils/annotationUtils'
 
 export interface Annotation {
   id: string
@@ -14,6 +15,9 @@ interface AnnotationContextValue {
   updateAnnotation: (id: string, comment: string) => void
   removeAnnotation: (id: string) => void
   getAnnotationsForFile: (file: string) => Annotation[]
+  getSortedAnnotationsForFile: (file: string) => Annotation[]
+  getAnnotationsGroupedByFile: () => Map<string, Annotation[]>
+  getFileAnnotation: (file: string) => Annotation | undefined
   formatAsMarkdown: () => string
 }
 
@@ -51,27 +55,36 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
     [annotations]
   )
 
+  const getSortedAnnotationsForFile = useCallback(
+    (file: string) => sortAnnotations(annotations.filter((a) => a.file === file)),
+    [annotations]
+  )
+
+  const getAnnotationsGroupedByFile = useCallback(
+    () => groupAnnotationsByFile(annotations),
+    [annotations]
+  )
+
+  const getFileAnnotation = useCallback(
+    (file: string) => annotations.find((a) => a.file === file && a.lineStart === 0),
+    [annotations]
+  )
+
   const formatAsMarkdown = useCallback(() => {
     if (annotations.length === 0) return ''
 
-    // Group annotations by file
-    const byFile = new Map<string, Annotation[]>()
-    for (const annotation of annotations) {
-      const existing = byFile.get(annotation.file) || []
-      existing.push(annotation)
-      byFile.set(annotation.file, existing)
-    }
-
+    const byFile = groupAnnotationsByFile(annotations)
     let md = '## Code Review Feedback\n\n'
 
     for (const [file, fileAnnotations] of byFile) {
       md += `### ${file}\n\n`
 
-      // Sort by line number
-      const sorted = [...fileAnnotations].sort((a, b) => a.lineStart - b.lineStart)
+      const sorted = sortAnnotations(fileAnnotations)
 
       for (const annotation of sorted) {
-        if (annotation.lineEnd && annotation.lineEnd !== annotation.lineStart) {
+        if (annotation.lineStart === 0) {
+          md += `**File:**\n`
+        } else if (annotation.lineEnd && annotation.lineEnd !== annotation.lineStart) {
           md += `**Lines ${annotation.lineStart}-${annotation.lineEnd}:**\n`
         } else {
           md += `**Line ${annotation.lineStart}:**\n`
@@ -94,6 +107,9 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
         updateAnnotation,
         removeAnnotation,
         getAnnotationsForFile,
+        getSortedAnnotationsForFile,
+        getAnnotationsGroupedByFile,
+        getFileAnnotation,
         formatAsMarkdown,
       }}
     >

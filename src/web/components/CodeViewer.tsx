@@ -1,20 +1,48 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import { EditorView, lineNumbers, highlightActiveLine } from '@codemirror/view'
 import { EditorState, Extension } from '@codemirror/state'
-import { oneDark } from '@codemirror/theme-one-dark'
 import { getLanguageExtension } from '../utils/languageExtensions'
-import { baseEditorTheme } from '../utils/codemirrorTheme'
+import { baseEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
+import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutterInteraction'
+import { useEditorInteraction } from '../hooks/useEditorInteraction'
 
 interface CodeViewerProps {
   filePath: string | null
 }
 
-export default function CodeViewer({ filePath }: CodeViewerProps) {
+export interface CodeViewerRef {
+  scrollToLine: (line: number) => void
+  getScrollTop: () => number
+}
+
+const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewer({
+  filePath,
+}, ref) {
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
+
+  const {
+    handleSelectionComplete,
+    handleIndicatorClick,
+    handleScroll,
+    updateAnnotations,
+    clearSelectionIfNeeded,
+  } = useEditorInteraction({ filePath })
+
+  // Expose scrollToLine via ref
+  useImperativeHandle(ref, () => ({
+    scrollToLine: (line: number) => {
+      if (viewRef.current) {
+        cmScrollToLine(viewRef.current, line)
+      }
+    },
+    getScrollTop: () => {
+      return viewRef.current?.scrollDOM.scrollTop ?? 0
+    },
+  }))
 
   // Fetch file content
   useEffect(() => {
@@ -59,9 +87,16 @@ export default function CodeViewer({ filePath }: CodeViewerProps) {
     const extensions: Extension[] = [
       lineNumbers(),
       highlightActiveLine(),
-      oneDark,
+      cyberpunkSyntax,
       EditorState.readOnly.of(true),
       baseEditorTheme,
+      gutterInteraction({
+        onSelectionComplete: handleSelectionComplete,
+        onIndicatorClick: handleIndicatorClick,
+      }),
+      EditorView.domEventHandlers({
+        scroll: () => handleScroll(viewRef.current!),
+      }),
     ]
 
     // Add language extension if available
@@ -85,7 +120,21 @@ export default function CodeViewer({ filePath }: CodeViewerProps) {
     return () => {
       view.destroy()
     }
-  }, [content, filePath, error])
+  }, [content, filePath, error, handleSelectionComplete, handleIndicatorClick, handleScroll])
+
+  // Update annotated lines when annotations change
+  useEffect(() => {
+    if (viewRef.current) {
+      updateAnnotations(viewRef.current)
+    }
+  }, [updateAnnotations])
+
+  // Clear selection in editor when layout selection is cleared
+  useEffect(() => {
+    if (viewRef.current) {
+      clearSelectionIfNeeded(viewRef.current)
+    }
+  }, [clearSelectionIfNeeded])
 
   if (!filePath) {
     return (
@@ -113,10 +162,9 @@ export default function CodeViewer({ filePath }: CodeViewerProps) {
 
   return (
     <div className="code-viewer">
-      <div className="code-header">
-        <span className="file-path">{filePath}</span>
-      </div>
       <div className="code-content codemirror-container" ref={editorRef} />
     </div>
   )
-}
+})
+
+export default CodeViewer
