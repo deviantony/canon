@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Generated assets
+src/server/embedded-assets.ts
+
+# Compiled binaries
+canon
+canon-*
+*.exe
