@@ -10,12 +10,6 @@ interface UseEditorInteractionOptions {
 }
 
 interface UseEditorInteractionReturn {
-  /** Ref to store getAnnotationsForFile - stable across renders */
-  getAnnotationsRef: React.MutableRefObject<ReturnType<typeof useAnnotations>['getAnnotationsForFile']>
-  /** Ref to store setHighlightedAnnotationId - stable across renders */
-  setHighlightedRef: React.MutableRefObject<ReturnType<typeof useLayout>['setHighlightedAnnotationId']>
-  /** Ref to store filePath - stable across renders */
-  filePathRef: React.MutableRefObject<string | null>
   /** Callback for when gutter selection completes */
   handleSelectionComplete: (start: number, end: number) => void
   /** Callback for clicking annotation indicator */
@@ -105,9 +99,6 @@ export function useEditorInteraction({
   )
 
   return {
-    getAnnotationsRef,
-    setHighlightedRef,
-    filePathRef,
     handleSelectionComplete,
     handleIndicatorClick,
     handleScroll,

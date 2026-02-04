@@ -23,7 +23,7 @@ async function runGit(
 }
 
 // Check if directory is a git repository
-export async function isGitRepo(workingDirectory: string): Promise<boolean> {
+async function isGitRepo(workingDirectory: string): Promise<boolean> {
   const gitDir = join(workingDirectory, '.git')
   if (existsSync(gitDir)) return true
 
@@ -33,7 +33,7 @@ export async function isGitRepo(workingDirectory: string): Promise<boolean> {
 }
 
 // Get current branch name
-export async function getCurrentBranch(workingDirectory: string): Promise<string | null> {
+async function getCurrentBranch(workingDirectory: string): Promise<string | null> {
   const result = await runGit(workingDirectory, ['branch', '--show-current'])
   if (result.exitCode !== 0) return null
   return result.stdout.trim() || null
