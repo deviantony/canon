@@ -20,8 +20,6 @@ function useTreeHeight() {
   return height
 }
 
-export type { FileNode }
-
 interface FileTreeProps {
   onSelectFile: (path: string) => void
   selectedFile: string | null

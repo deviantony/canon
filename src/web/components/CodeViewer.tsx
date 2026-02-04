@@ -14,7 +14,6 @@ interface CodeViewerProps {
 
 export interface CodeViewerRef {
   scrollToLine: (line: number) => void
-  getScrollTop: () => number
 }
 
 const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewer({
@@ -29,7 +28,6 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
   const {
     handleSelectionComplete,
-    handleIndicatorClick,
     updateAnnotations,
     clearSelectionIfNeeded,
     annotations,
@@ -46,9 +44,6 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
       if (viewRef.current) {
         cmScrollToLine(viewRef.current, line)
       }
-    },
-    getScrollTop: () => {
-      return viewRef.current?.scrollDOM.scrollTop ?? 0
     },
   }))
 
@@ -101,7 +96,6 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
       baseEditorTheme,
       gutterInteraction({
         onSelectionComplete: handleSelectionComplete,
-        onIndicatorClick: handleIndicatorClick,
       }),
       inlineAnnotationExtension,
     ]
@@ -131,7 +125,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
     return () => {
       view.destroy()
     }
-  }, [content, filePath, error, handleSelectionComplete, handleIndicatorClick, updateAnnotations, inlineAnnotationExtension, registerView])
+  }, [content, filePath, error, handleSelectionComplete, updateAnnotations, inlineAnnotationExtension, registerView])
 
   // Update annotated lines when annotations change
   useEffect(() => {

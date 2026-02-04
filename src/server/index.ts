@@ -1,5 +1,5 @@
 import { getFileTree, getFileContent } from './files.js'
-import { getGitInfo, getUnifiedDiff, getFileDiff, getOriginalContent } from './git.js'
+import { getGitInfo, getOriginalContent } from './git.js'
 import { embeddedAssets } from './embedded-assets.js'
 import type { FeedbackResult } from '../shared/types.js'
 
@@ -67,23 +67,10 @@ export async function startServer(options: ServerOptions): Promise<Server> {
         return Response.json({ content: result.content, path: filePath })
       }
 
-      // API: Get git info (changed files, branch, etc)
+      // API: Get git info (changed files)
       if (url.pathname === '/api/git/info' && req.method === 'GET') {
         const info = await getGitInfo(workingDirectory)
         return Response.json(info)
-      }
-
-      // API: Get unified diff for all changes
-      if (url.pathname === '/api/git/diff' && req.method === 'GET') {
-        const diff = await getUnifiedDiff(workingDirectory)
-        return Response.json({ diff })
-      }
-
-      // API: Get diff for a specific file
-      if (url.pathname.startsWith('/api/git/diff/') && req.method === 'GET') {
-        const filePath = decodeURIComponent(url.pathname.slice('/api/git/diff/'.length))
-        const diff = await getFileDiff(workingDirectory, filePath)
-        return Response.json({ diff, path: filePath })
       }
 
       // API: Get original (HEAD) content of a file

@@ -48,11 +48,3 @@ export function formatShortcut(shortcut: string): string {
 export function getModifierKey(): string {
   return isMac ? '⌘' : 'Ctrl'
 }
-
-/**
- * Get the control key symbol for the current platform
- * Returns '⌃' on Mac, 'Ctrl' on Windows/Linux
- */
-export function getCtrlKey(): string {
-  return isMac ? '⌃' : 'Ctrl'
-}

@@ -17,7 +17,6 @@ interface DiffViewerProps {
 
 export interface DiffViewerRef {
   scrollToLine: (line: number) => void
-  getScrollTop: () => number
 }
 
 const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewer({
@@ -34,7 +33,6 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
 
   const {
     handleSelectionComplete,
-    handleIndicatorClick,
     updateAnnotations,
     clearSelectionIfNeeded,
     annotations,
@@ -51,9 +49,6 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
       if (mergeViewRef.current) {
         cmScrollToLine(mergeViewRef.current.b, line)
       }
-    },
-    getScrollTop: () => {
-      return mergeViewRef.current?.b.scrollDOM.scrollTop ?? 0
     },
   }))
 
@@ -134,7 +129,6 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
       ...baseExtensions,
       gutterInteraction({
         onSelectionComplete: handleSelectionComplete,
-        onIndicatorClick: handleIndicatorClick,
       }),
       inlineAnnotationExtension,
     ]
@@ -161,7 +155,7 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
     return () => {
       mergeView.destroy()
     }
-  }, [original, modified, filePath, error, loading, handleSelectionComplete, handleIndicatorClick, updateAnnotations, inlineAnnotationExtension, registerView])
+  }, [original, modified, filePath, error, loading, handleSelectionComplete, updateAnnotations, inlineAnnotationExtension, registerView])
 
   // Update annotated lines when annotations change (on modified side)
   useEffect(() => {

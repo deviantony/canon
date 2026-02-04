@@ -5,12 +5,12 @@ import { formatLineBadge } from './annotationUtils'
 import { getModifierKey } from './keyboard'
 
 // Effects for managing annotations
-export const setAnnotationsEffect = StateEffect.define<{
+const setAnnotationsEffect = StateEffect.define<{
   annotations: Annotation[]
   filePath: string
 }>()
 
-export const setSelectedLinesEffect = StateEffect.define<{
+const setSelectedLinesEffect = StateEffect.define<{
   start: number
   end: number
 } | null>()
@@ -358,7 +358,7 @@ interface InlineAnnotationState {
   selectedLines: { start: number; end: number } | null
 }
 
-export const inlineAnnotationField = StateField.define<InlineAnnotationState>({
+const inlineAnnotationField = StateField.define<InlineAnnotationState>({
   create() {
     return {
       annotations: [],

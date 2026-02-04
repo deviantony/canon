@@ -2,8 +2,6 @@ import { readdirSync, readFileSync, statSync, existsSync } from 'fs'
 import { join, relative, resolve } from 'path'
 import type { FileNode } from '../shared/types.js'
 
-export type { FileNode }
-
 // Common patterns to ignore (fallback if no .gitignore)
 const DEFAULT_IGNORE = [
   'node_modules',

@@ -6,8 +6,6 @@ export interface ChangedFile {
 }
 
 export interface GitInfo {
-  isGitRepo: boolean
-  branch?: string
   changedFiles: ChangedFile[]
 }
 
