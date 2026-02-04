@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { File, Folder, FolderOpen, MessageSquare } from 'lucide-react'
 import type { FileNode, ChangedFile, GitInfo } from '../../shared/types'
 import { useAnnotations } from '../context/AnnotationContext'
+import StatusBadge from './StatusBadge'
 
 // Header: 52px, Sidebar header: 45px, Padding: 16px
 const FIXED_OFFSET = 52 + 45 + 16
@@ -37,23 +38,6 @@ function FileIcon({ isDirectory, isOpen }: { isDirectory: boolean; isOpen: boole
     )
   }
   return <File size={14} className="file-icon" />
-}
-
-function StatusBadge({ status }: { status?: string }) {
-  if (!status) return null
-
-  const labels: Record<string, string> = {
-    modified: 'M',
-    added: 'A',
-    deleted: 'D',
-    renamed: 'R',
-  }
-
-  return (
-    <span className={`status-badge ${status}`} title={status}>
-      {labels[status] || '?'}
-    </span>
-  )
 }
 
 function AnnotationBadge({ count }: { count: number }) {

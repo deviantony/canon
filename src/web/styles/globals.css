@@ -678,52 +678,6 @@ body {
   color: var(--accent-gold);
 }
 
-/* Tree footer with refined separator */
-.tree-footer {
-  padding: var(--space-4) var(--space-5);
-  border-top: 1px solid var(--border-subtle);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: var(--text-muted);
-  margin-top: auto;
-  background: linear-gradient(
-    180deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.1) 100%
-  );
-}
-
-/* Elegant section divider for file tree */
-.tree-section-divider {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4) var(--space-3);
-  margin: var(--space-2) 0;
-}
-
-.tree-section-divider::before,
-.tree-section-divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--border-subtle) 50%,
-    transparent 100%
-  );
-}
-
-.tree-section-divider span {
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
 /* ─────────────────────────────────────────────────────────────────────────────
    CONTENT AREA — SPLIT PANE FUSION
    ───────────────────────────────────────────────────────────────────────────── */
@@ -747,10 +701,6 @@ body {
   border-bottom: 1px solid var(--border-subtle);
   height: 45px; /* Matches sidebar-header height exactly */
   flex-shrink: 0;
-}
-
-.editor-header.empty {
-  height: 45px;
 }
 
 .editor-panel {
@@ -868,33 +818,6 @@ body {
 .diff-content {
   flex: 1;
   overflow: auto;
-}
-
-.diff-content .cm-mergeView {
-  height: 100%;
-}
-
-.diff-content .cm-mergeViewEditor {
-  flex: 1;
-}
-
-/* Collapsed unchanged lines indicator - dark theme styling */
-.cm-collapsedLines {
-  background: var(--bg-surface) !important;
-  color: var(--text-tertiary) !important;
-  border-top: 1px solid var(--border-subtle) !important;
-  border-bottom: 1px solid var(--border-subtle) !important;
-  padding: 4px 12px !important;
-  font-size: 11px !important;
-  font-family: var(--font-mono) !important;
-  text-align: center !important;
-  cursor: pointer !important;
-  transition: background 0.15s ease, color 0.15s ease !important;
-}
-
-.cm-collapsedLines:hover {
-  background: var(--bg-elevated) !important;
-  color: var(--text-secondary) !important;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -1968,15 +1891,6 @@ button:focus-visible {
 button:focus-visible {
   box-shadow: 0 0 0 2px var(--bg-void), 0 0 0 4px var(--accent-gold-muted);
 }
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   UTILITY CLASSES
-   ───────────────────────────────────────────────────────────────────────────── */
-.text-gold { color: var(--accent-gold); }
-.text-muted { color: var(--text-muted); }
-.text-secondary { color: var(--text-secondary); }
-
-.font-mono { font-family: var(--font-mono); }
 
 /* ─────────────────────────────────────────────────────────────────────────────
    KEYBOARD HINT — SUBTLE HEADER ELEMENT

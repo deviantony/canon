@@ -73,6 +73,13 @@ function AppContent() {
     }
   }, [isNewFile, selectedFile])
 
+  // Auto-switch to 'all files' mode when no changes detected
+  useEffect(() => {
+    if (gitInfo && !hasChanges && showChangedOnly) {
+      setShowChangedOnly(false)
+    }
+  }, [gitInfo, hasChanges])
+
   // Submit/cancel handlers (defined before keyboard shortcuts so they can be used there)
   const sendFeedback = useCallback(async (payload: FeedbackResult): Promise<void> => {
     try {
@@ -244,6 +251,7 @@ function AppContent() {
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             isNewFile={isNewFile}
+            fileStatus={selectedFileStatus}
           />
           <div className="editor-panel">
             <section className="content">

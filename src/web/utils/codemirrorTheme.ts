@@ -153,23 +153,6 @@ export const diffEditorTheme = EditorView.theme({
   '.cm-mergeViewEditor:last-child': {
     borderRight: 'none',
   },
-  // Collapse unchanged lines indicator - dark theme styling
-  '.cm-collapsedLines': {
-    backgroundColor: colors.surface,
-    color: colors.textTertiary,
-    borderTop: `1px solid ${colors.borderSubtle}`,
-    borderBottom: `1px solid ${colors.borderSubtle}`,
-    padding: '4px 12px',
-    fontSize: '11px',
-    fontFamily: "'JetBrains Mono', monospace",
-    textAlign: 'center',
-    cursor: 'pointer',
-    transition: 'background 0.15s ease, color 0.15s ease',
-    '&:hover': {
-      backgroundColor: colors.elevated,
-      color: colors.textSecondary,
-    },
-  },
 })
 
 // Terminal Luxury syntax highlighting - warm, balanced, readable

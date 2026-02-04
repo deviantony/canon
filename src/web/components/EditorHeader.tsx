@@ -1,6 +1,8 @@
 import { FileDiff, FileCode, MessageSquare } from 'lucide-react'
 import { useAnnotations } from '../context/AnnotationContext'
 import IconToggle from './IconToggle'
+import StatusBadge from './StatusBadge'
+import type { ChangedFile } from '../../shared/types'
 
 interface EditorHeaderProps {
   filePath: string | null
@@ -8,6 +10,7 @@ interface EditorHeaderProps {
   viewMode: 'code' | 'diff'
   onViewModeChange: (mode: 'code' | 'diff') => void
   isNewFile?: boolean
+  fileStatus?: ChangedFile['status']
 }
 
 function getChangesButtonTitle(isNewFile: boolean, canShowDiff: boolean): string {
@@ -22,6 +25,7 @@ export default function EditorHeader({
   viewMode,
   onViewModeChange,
   isNewFile = false,
+  fileStatus,
 }: EditorHeaderProps) {
   const { getAnnotationsForFile } = useAnnotations()
 
@@ -36,6 +40,7 @@ export default function EditorHeader({
     <div className="editor-header">
       <div className="file-info">
         <span className="file-path">{filePath}</span>
+        <StatusBadge status={fileStatus} />
         {annotationCount > 0 && (
           <span
             className="file-annotation-count"
