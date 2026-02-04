@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
-import { lineNumbers } from '@codemirror/view'
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
+import { lineNumbers, EditorView } from '@codemirror/view'
 import { EditorState, Extension } from '@codemirror/state'
-import { oneDark } from '@codemirror/theme-one-dark'
 import { MergeView } from '@codemirror/merge'
 import { getLanguageExtension } from '../utils/languageExtensions'
-import { diffEditorTheme } from '../utils/codemirrorTheme'
+import { diffEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
+import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutterInteraction'
+import { useEditorInteraction } from '../hooks/useEditorInteraction'
 import type { ChangedFile } from '../../shared/types'
 
 interface DiffViewerProps {
@@ -12,13 +13,42 @@ interface DiffViewerProps {
   status?: ChangedFile['status']
 }
 
-export default function DiffViewer({ filePath, status }: DiffViewerProps) {
+export interface DiffViewerRef {
+  scrollToLine: (line: number) => void
+  getScrollTop: () => number
+}
+
+const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewer({
+  filePath,
+  status,
+}, ref) {
   const [original, setOriginal] = useState<string>('')
   const [modified, setModified] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const mergeViewRef = useRef<MergeView | null>(null)
+
+  const {
+    handleSelectionComplete,
+    handleIndicatorClick,
+    handleScroll,
+    updateAnnotations,
+    clearSelectionIfNeeded,
+    annotations,
+  } = useEditorInteraction({ filePath })
+
+  // Expose scrollToLine via ref
+  useImperativeHandle(ref, () => ({
+    scrollToLine: (line: number) => {
+      if (mergeViewRef.current) {
+        cmScrollToLine(mergeViewRef.current.b, line)
+      }
+    },
+    getScrollTop: () => {
+      return mergeViewRef.current?.b.scrollDOM.scrollTop ?? 0
+    },
+  }))
 
   // Fetch both original (from git) and modified (current) content
   useEffect(() => {
@@ -78,9 +108,9 @@ export default function DiffViewer({ filePath, status }: DiffViewerProps) {
       mergeViewRef.current.destroy()
     }
 
-    const extensions: Extension[] = [
+    const baseExtensions: Extension[] = [
       lineNumbers(),
-      oneDark,
+      cyberpunkSyntax,
       EditorState.readOnly.of(true),
       diffEditorTheme,
     ]
@@ -88,17 +118,29 @@ export default function DiffViewer({ filePath, status }: DiffViewerProps) {
     // Add language extension if available
     const langExt = getLanguageExtension(filePath)
     if (langExt) {
-      extensions.push(langExt)
+      baseExtensions.push(langExt)
     }
+
+    // Modified (right) side gets gutter interaction
+    const modifiedExtensions: Extension[] = [
+      ...baseExtensions,
+      gutterInteraction({
+        onSelectionComplete: handleSelectionComplete,
+        onIndicatorClick: handleIndicatorClick,
+      }),
+      EditorView.domEventHandlers({
+        scroll: () => handleScroll(mergeViewRef.current!.b),
+      }),
+    ]
 
     const mergeView = new MergeView({
       a: {
         doc: original,
-        extensions,
+        extensions: baseExtensions,
       },
       b: {
         doc: modified,
-        extensions,
+        extensions: modifiedExtensions,
       },
       parent: containerRef.current,
       collapseUnchanged: { margin: 3, minSize: 4 },
@@ -107,10 +149,27 @@ export default function DiffViewer({ filePath, status }: DiffViewerProps) {
 
     mergeViewRef.current = mergeView
 
+    // Update annotations immediately after creating editor
+    updateAnnotations(mergeView.b)
+
     return () => {
       mergeView.destroy()
     }
-  }, [original, modified, filePath, error, loading])
+  }, [original, modified, filePath, error, loading, handleSelectionComplete, handleIndicatorClick, handleScroll, updateAnnotations])
+
+  // Update annotated lines when annotations change (on modified side)
+  useEffect(() => {
+    if (mergeViewRef.current) {
+      updateAnnotations(mergeViewRef.current.b)
+    }
+  }, [annotations, updateAnnotations])
+
+  // Clear selection in editor when layout selection is cleared
+  useEffect(() => {
+    if (mergeViewRef.current) {
+      clearSelectionIfNeeded(mergeViewRef.current.b)
+    }
+  }, [clearSelectionIfNeeded])
 
   if (!filePath) {
     return (
@@ -138,14 +197,9 @@ export default function DiffViewer({ filePath, status }: DiffViewerProps) {
 
   return (
     <div className="diff-viewer">
-      <div className="diff-header">
-        <span className="file-path">{filePath}</span>
-        <span className="diff-labels">
-          <span className="label original">Original</span>
-          <span className="label modified">Modified</span>
-        </span>
-      </div>
       <div className="diff-content" ref={containerRef} />
     </div>
   )
-}
+})
+
+export default DiffViewer

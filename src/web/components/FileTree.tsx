@@ -1,6 +1,23 @@
 import { Tree, NodeRendererProps } from 'react-arborist'
 import { useState, useEffect, useMemo } from 'react'
+import { File, Folder, FolderOpen, MessageSquare } from 'lucide-react'
 import type { FileNode, ChangedFile, GitInfo } from '../../shared/types'
+import { useAnnotations } from '../context/AnnotationContext'
+
+// Header: 52px, Sidebar header: 45px, Padding: 16px
+const FIXED_OFFSET = 52 + 45 + 16
+
+function useTreeHeight() {
+  const [height, setHeight] = useState(window.innerHeight - FIXED_OFFSET)
+
+  useEffect(() => {
+    const updateHeight = () => setHeight(window.innerHeight - FIXED_OFFSET)
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
+  }, [])
+
+  return height
+}
 
 export type { FileNode }
 
@@ -8,13 +25,18 @@ interface FileTreeProps {
   onSelectFile: (path: string) => void
   selectedFile: string | null
   showChangedOnly: boolean
+  gitInfo: GitInfo | null
 }
 
 function FileIcon({ isDirectory, isOpen }: { isDirectory: boolean; isOpen: boolean }) {
   if (isDirectory) {
-    return <span className="file-icon">{isOpen ? '📂' : '📁'}</span>
+    return isOpen ? (
+      <FolderOpen size={14} className="file-icon" />
+    ) : (
+      <Folder size={14} className="file-icon" />
+    )
   }
-  return <span className="file-icon">📄</span>
+  return <File size={14} className="file-icon" />
 }
 
 function StatusBadge({ status }: { status?: string }) {
@@ -27,25 +49,25 @@ function StatusBadge({ status }: { status?: string }) {
     renamed: 'R',
   }
 
-  const colors: Record<string, string> = {
-    modified: '#f59e0b',
-    added: '#22c55e',
-    deleted: '#ef4444',
-    renamed: '#8b5cf6',
-  }
-
   return (
-    <span
-      className="status-badge"
-      style={{ color: colors[status] || '#71717a' }}
-      title={status}
-    >
+    <span className={`status-badge ${status}`} title={status}>
       {labels[status] || '?'}
     </span>
   )
 }
 
-function Node({ node, style, dragHandle }: NodeRendererProps<FileNode>) {
+function AnnotationBadge({ count }: { count: number }) {
+  if (count === 0) return null
+
+  return (
+    <span className="annotation-badge" title={`${count} annotation${count === 1 ? '' : 's'}`}>
+      <MessageSquare size={10} />
+      <span>{count}</span>
+    </span>
+  )
+}
+
+function Node({ node, style, dragHandle }: NodeRendererProps<FileNode & { annotationCount?: number }>) {
   const data = node.data
 
   return (
@@ -53,6 +75,7 @@ function Node({ node, style, dragHandle }: NodeRendererProps<FileNode>) {
       ref={dragHandle}
       style={style}
       className={`tree-node ${node.isSelected ? 'selected' : ''}`}
+      data-folder={data.isDirectory ? 'true' : undefined}
       onClick={() => {
         if (data.isDirectory) {
           node.toggle()
@@ -63,6 +86,7 @@ function Node({ node, style, dragHandle }: NodeRendererProps<FileNode>) {
     >
       <FileIcon isDirectory={data.isDirectory} isOpen={node.isOpen} />
       <span className="file-name">{data.name}</span>
+      {!data.isDirectory && <AnnotationBadge count={data.annotationCount || 0} />}
       <StatusBadge status={data.status} />
     </div>
   )
@@ -101,40 +125,42 @@ function filterToChanged(nodes: FileNode[], changedPaths: Set<string>): FileNode
     .filter((n): n is FileNode => n !== null)
 }
 
-export default function FileTree({ onSelectFile, selectedFile, showChangedOnly }: FileTreeProps) {
+export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, gitInfo }: FileTreeProps) {
   const [allFiles, setAllFiles] = useState<FileNode[]>([])
-  const [gitInfo, setGitInfo] = useState<GitInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { getAnnotationsForFile } = useAnnotations()
+  const treeHeight = useTreeHeight()
 
   useEffect(() => {
-    async function loadData() {
+    async function loadFiles() {
       try {
-        const [filesRes, gitRes] = await Promise.all([
-          fetch('/api/files'),
-          fetch('/api/git/info'),
-        ])
-
-        if (!filesRes.ok) throw new Error('Failed to load files')
-
-        const tree = await filesRes.json()
+        const res = await fetch('/api/files')
+        if (!res.ok) throw new Error('Failed to load files')
+        const tree = await res.json()
         setAllFiles(tree)
-
-        if (gitRes.ok) {
-          const info = await gitRes.json()
-          setGitInfo(info)
-        }
       } catch (err) {
         setError(String(err))
       } finally {
         setLoading(false)
       }
     }
-    loadData()
+    loadFiles()
   }, [])
 
   // Compute display tree based on view mode and git status
   const displayTree = useMemo(() => {
+    // Add annotation counts to nodes
+    function addAnnotationCounts(nodes: FileNode[]): FileNode[] {
+      return nodes.map((node) => {
+        if (node.isDirectory) {
+          return { ...node, children: node.children ? addAnnotationCounts(node.children) : undefined }
+        }
+        const annotations = getAnnotationsForFile(node.path)
+        return { ...node, annotationCount: annotations.length }
+      })
+    }
+
     let tree = allFiles
 
     // Merge git status if available
@@ -148,8 +174,11 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly }
       tree = filterToChanged(tree, changedPaths)
     }
 
+    // Add annotation counts
+    tree = addAnnotationCounts(tree)
+
     return tree
-  }, [allFiles, gitInfo, showChangedOnly])
+  }, [allFiles, gitInfo, showChangedOnly, getAnnotationsForFile])
 
   if (loading) {
     return <div className="file-tree-loading">Loading files...</div>
@@ -173,9 +202,9 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly }
         data={displayTree}
         openByDefault={showChangedOnly}
         width="100%"
-        height={600}
+        height={treeHeight}
         indent={16}
-        rowHeight={28}
+        rowHeight={26}
         onSelect={(nodes) => {
           const selected = nodes[0]
           if (selected && !selected.data.isDirectory) {
