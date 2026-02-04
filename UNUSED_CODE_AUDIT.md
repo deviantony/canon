@@ -2,6 +2,8 @@
 
 This audit identifies all unused code, variables, CSS classes, properties, and parameters in the Canon codebase.
 
+**Validation Status**: All findings verified in second pass (2026-02-04)
+
 ---
 
 ## Summary
@@ -9,10 +11,11 @@ This audit identifies all unused code, variables, CSS classes, properties, and p
 | Category | Count |
 |----------|-------|
 | Unused TypeScript exports/functions | 5 |
+| Unnecessary exports (internal-only) | 7 |
 | Unused function parameters | 1 |
 | Unused CSS classes | 3 categories (~30 selectors) |
 | Unused CSS variables | 5 |
-| Unused theme colors | 7 |
+| Unused theme colors | 5 confirmed + 2 partial |
 | CSS bugs (undefined animations) | 1 |
 
 ---
@@ -83,6 +86,29 @@ async function getChangedFiles(workingDirectory: string): Promise<ChangedFile[]>
 - Entire component is exported but never used anywhere
 - The inline annotation system uses `NewAnnotationWidget` class in `inlineAnnotations.ts` instead
 - Can be completely removed along with its interface `NewAnnotationCardProps`
+
+---
+
+## 1b. Unnecessary Exports (Internal-Only Usage)
+
+These items are exported but only used internally within their own module. The exports can be removed.
+
+### `src/web/utils/gutterInteraction.ts`
+
+| Export | Line | Status |
+|--------|------|--------|
+| `setLineSelection` | 5 | Only used internally |
+| `setAnnotatedLines` | 6 | Only used internally |
+| `lineSelectionField` | 9 | Only used internally |
+| `annotatedLinesField` | 24 | Only used internally |
+
+### `src/web/utils/inlineAnnotations.ts`
+
+| Export | Line | Status |
+|--------|------|--------|
+| `setAnnotationsEffect` | 8 | Only used internally |
+| `setSelectedLinesEffect` | 13 | Only used internally |
+| `inlineAnnotationField` | 361 | Only used internally |
 
 ---
 
@@ -196,7 +222,9 @@ All defined in `:root` but never used:
 }
 ```
 
-Should probably be `overlayFadeIn` which IS defined at line 2602.
+**Fix:** Change `fadeIn` to `overlayFadeIn` (defined at line 2602).
+
+**Note:** This also means `@keyframes overlayFadeIn` (line 2602) is technically "unused" since nothing references it by the correct name.
 
 ---
 
@@ -204,17 +232,24 @@ Should probably be `overlayFadeIn` which IS defined at line 2602.
 
 ### `src/web/utils/codemirrorTheme.ts`
 
-The following colors are defined in the `colors` object but never used:
+**Completely unused** (never referenced via `colors.X`):
 
 | Color | Line | Value |
 |-------|------|-------|
 | `hover` | 11 | `#1a1a1a` |
 | `active` | 12 | `#1e1e1e` |
 | `goldBright` | 17 | `#e8c49a` |
-| `success` | 21 | `#7d9f7d` |
-| `error` | 22 | `#c47a7a` |
 | `warning` | 23 | `#c4a87a` |
 | `info` | 24 | `#7a9fc4` |
+
+**Partially unused** (color values appear inline in diff styles but `colors.X` reference is not used):
+
+| Color | Line | Value | Note |
+|-------|------|-------|------|
+| `success` | 21 | `#7d9f7d` | Value used inline as `rgba(125, 159, 125, ...)` at lines 138, 144 |
+| `error` | 22 | `#c47a7a` | Value used inline as `rgba(196, 122, 122, ...)` at lines 135, 140, 141 |
+
+These could either be removed (if consistency isn't needed) or the inline values could be refactored to use `colors.success`/`colors.error`.
 
 ---
 
@@ -238,9 +273,12 @@ All packages in `package.json` (both `dependencies` and `devDependencies`) are a
 7. Remove export from `getChangedFiles` in git.ts
 8. Remove unused CSS classes (`.content`, `.btn-small`)
 9. Remove unused CSS variables
+10. Remove unnecessary exports from gutterInteraction.ts (4 exports)
+11. Remove unnecessary exports from inlineAnnotations.ts (3 exports)
 
 ### Low Priority (Theme Cleanup)
-10. Remove unused colors from codemirrorTheme.ts `colors` object
+12. Remove unused colors from codemirrorTheme.ts `colors` object
+13. Consider refactoring diff colors to use `colors.success`/`colors.error` for consistency
 
 ---
 
@@ -248,6 +286,17 @@ All packages in `package.json` (both `dependencies` and `devDependencies`) are a
 
 | Category | Lines |
 |----------|-------|
-| TypeScript/JSX | ~100 |
+| TypeScript/JSX (dead code) | ~100 |
+| TypeScript (unnecessary exports) | ~7 export keywords |
 | CSS | ~230 |
-| **Total** | **~330 lines** |
+| **Total** | **~330+ lines** |
+
+---
+
+## Validation Notes
+
+All findings were validated in a second pass:
+- Searched for all usages of each identified item
+- Confirmed no external imports of "internal-only" exports
+- Verified CSS class names are not dynamically generated
+- Confirmed animation name mismatch (`fadeIn` vs `overlayFadeIn`)
