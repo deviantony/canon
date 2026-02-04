@@ -13,6 +13,8 @@ This audit identifies all unused code, variables, CSS classes, properties, and p
 | Unused TypeScript exports/functions | 5 |
 | Unnecessary exports (internal-only) | 7 |
 | Unused function parameters | 1 |
+| Unused interface methods | 1 (in 2 files) |
+| Unused interface properties | 2 |
 | Unused CSS classes | 3 categories (~30 selectors) |
 | Unused CSS variables | 5 |
 | Unused theme colors | 5 confirmed + 2 partial |
@@ -134,6 +136,59 @@ onIndicatorClick: handleIndicatorClick,
 // UNUSED function in useEditorInteraction.ts (lines 57-67):
 const handleIndicatorClick = useCallback(...)
 ```
+
+---
+
+## 2b. Unused Interface Methods (Third Pass Finding)
+
+### `src/web/components/CodeViewer.tsx` & `DiffViewer.tsx`
+
+**`getScrollTop()` method** in `CodeViewerRef` and `DiffViewerRef` interfaces
+- Method is defined in both interfaces and implemented in both components
+- But it's NEVER called anywhere in the codebase
+
+```typescript
+// CodeViewer.tsx (lines 17, 50-52):
+export interface CodeViewerRef {
+  scrollToLine: (line: number) => void
+  getScrollTop: () => number  // UNUSED
+}
+// ...
+getScrollTop: () => {
+  return viewRef.current?.scrollDOM.scrollTop ?? 0
+}
+
+// DiffViewer.tsx (lines 20, 55-57):
+export interface DiffViewerRef {
+  scrollToLine: (line: number) => void
+  getScrollTop: () => number  // UNUSED
+}
+// ...
+getScrollTop: () => {
+  return containerRef.current?.scrollTop ?? 0
+}
+```
+
+---
+
+## 2c. Unused Interface Properties (Third Pass Finding)
+
+### `src/shared/types.ts`
+
+**`GitInfo.isGitRepo`** and **`GitInfo.branch`** properties
+- Both properties are set by the server in `git.ts`
+- But NEITHER is ever read by the frontend client
+
+```typescript
+// In types.ts (lines 8-12):
+export interface GitInfo {
+  isGitRepo: boolean     // UNUSED by client
+  branch?: string        // UNUSED by client
+  changedFiles: ChangedFile[]  // Only this is used
+}
+```
+
+**Impact:** The `getCurrentBranch()` function in `git.ts` (lines 36-40) computes a value that is never used by the client.
 
 ---
 
@@ -280,6 +335,11 @@ All packages in `package.json` (both `dependencies` and `devDependencies`) are a
 12. Remove unused colors from codemirrorTheme.ts `colors` object
 13. Consider refactoring diff colors to use `colors.success`/`colors.error` for consistency
 
+### Third Pass Findings
+14. Remove `getScrollTop()` from `CodeViewerRef` and `DiffViewerRef` interfaces and implementations
+15. Consider removing `isGitRepo` and `branch` from `GitInfo` interface (server sets but client never reads)
+16. If removing `branch`, also remove `getCurrentBranch()` function from git.ts
+
 ---
 
 ## Estimated Lines to Remove
@@ -288,15 +348,21 @@ All packages in `package.json` (both `dependencies` and `devDependencies`) are a
 |----------|-------|
 | TypeScript/JSX (dead code) | ~100 |
 | TypeScript (unnecessary exports) | ~7 export keywords |
+| TypeScript (third pass) | ~15 |
 | CSS | ~230 |
-| **Total** | **~330+ lines** |
+| **Total** | **~350+ lines** |
 
 ---
 
 ## Validation Notes
 
-All findings were validated in a second pass:
+**Second Pass:**
 - Searched for all usages of each identified item
 - Confirmed no external imports of "internal-only" exports
 - Verified CSS class names are not dynamically generated
 - Confirmed animation name mismatch (`fadeIn` vs `overlayFadeIn`)
+
+**Third Pass:**
+- Searched for unused interface methods (`getScrollTop` never called)
+- Verified frontend never accesses `GitInfo.isGitRepo` or `GitInfo.branch`
+- Confirmed `getCurrentBranch()` result is computed but never consumed by client
