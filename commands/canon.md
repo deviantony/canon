@@ -1,5 +1,5 @@
 ---
-description: Open interactive code review for current changes
+description: Open annotation session to annotate code with line-specific feedback
 allowed-tools: Bash(canon:*)
 ---
 

@@ -1,0 +1,10 @@
+{
+  "name": "canon",
+  "description": "Annotate code with line-specific feedback in Claude Code sessions",
+  "version": "1.0.0",
+  "author": {
+    "name": "deviantony"
+  },
+  "repository": "https://github.com/deviantony/canon",
+  "license": "MIT"
+}

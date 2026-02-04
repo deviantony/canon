@@ -1,0 +1,16 @@
+{
+  "name": "canon",
+  "owner": {
+    "name": "deviantony"
+  },
+  "metadata": {
+    "description": "Browser-based code annotation tool for Claude Code"
+  },
+  "plugins": [
+    {
+      "name": "canon",
+      "source": "./",
+      "description": "Annotate code with line-specific feedback in Claude Code sessions"
+    }
+  ]
+}
