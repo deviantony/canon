@@ -6,11 +6,13 @@ import { getLanguageExtension } from '../utils/languageExtensions'
 import { diffEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
 import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutterInteraction'
 import { useEditorInteraction } from '../hooks/useEditorInteraction'
+import { useInlineAnnotations } from '../hooks/useInlineAnnotations'
 import type { ChangedFile } from '../../shared/types'
 
 interface DiffViewerProps {
   filePath: string | null
   status?: ChangedFile['status']
+  onLineClick?: (line: number) => void
 }
 
 export interface DiffViewerRef {
@@ -21,6 +23,7 @@ export interface DiffViewerRef {
 const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewer({
   filePath,
   status,
+  onLineClick,
 }, ref) {
   const [original, setOriginal] = useState<string>('')
   const [modified, setModified] = useState<string>('')
@@ -32,11 +35,15 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
   const {
     handleSelectionComplete,
     handleIndicatorClick,
-    handleScroll,
     updateAnnotations,
     clearSelectionIfNeeded,
     annotations,
   } = useEditorInteraction({ filePath })
+
+  const { extension: inlineAnnotationExtension, registerView } = useInlineAnnotations({
+    filePath,
+    onLineClick,
+  })
 
   // Expose scrollToLine via ref
   useImperativeHandle(ref, () => ({
@@ -110,6 +117,7 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
 
     const baseExtensions: Extension[] = [
       lineNumbers(),
+      EditorView.lineWrapping,
       cyberpunkSyntax,
       EditorState.readOnly.of(true),
       diffEditorTheme,
@@ -121,16 +129,14 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
       baseExtensions.push(langExt)
     }
 
-    // Modified (right) side gets gutter interaction
+    // Modified (right) side gets gutter interaction and inline annotations
     const modifiedExtensions: Extension[] = [
       ...baseExtensions,
       gutterInteraction({
         onSelectionComplete: handleSelectionComplete,
         onIndicatorClick: handleIndicatorClick,
       }),
-      EditorView.domEventHandlers({
-        scroll: () => handleScroll(mergeViewRef.current!.b),
-      }),
+      inlineAnnotationExtension,
     ]
 
     const mergeView = new MergeView({
@@ -150,11 +156,12 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
 
     // Update annotations immediately after creating editor
     updateAnnotations(mergeView.b)
+    registerView(mergeView.b)
 
     return () => {
       mergeView.destroy()
     }
-  }, [original, modified, filePath, error, loading, handleSelectionComplete, handleIndicatorClick, handleScroll, updateAnnotations])
+  }, [original, modified, filePath, error, loading, handleSelectionComplete, handleIndicatorClick, updateAnnotations, inlineAnnotationExtension, registerView])
 
   // Update annotated lines when annotations change (on modified side)
   useEffect(() => {

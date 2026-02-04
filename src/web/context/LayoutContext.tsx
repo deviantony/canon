@@ -13,7 +13,6 @@ interface LayoutState {
   fileAnnotationExpanded: boolean
   summaryPopoverOpen: boolean
   highlightedAnnotationId: string | null
-  editorScrollTop: number
 }
 
 interface LayoutContextValue extends LayoutState {
@@ -25,7 +24,6 @@ interface LayoutContextValue extends LayoutState {
   setFileAnnotationExpanded: (expanded: boolean) => void
   setSummaryPopoverOpen: (open: boolean) => void
   setHighlightedAnnotationId: (id: string | null) => void
-  setEditorScrollTop: (top: number) => void
   clearSelection: () => void
 }
 
@@ -47,7 +45,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   const [fileAnnotationExpanded, setFileAnnotationExpanded] = useState(false)
   const [summaryPopoverOpen, setSummaryPopoverOpen] = useState(false)
   const [highlightedAnnotationId, setHighlightedAnnotationId] = useState<string | null>(null)
-  const [editorScrollTop, setEditorScrollTop] = useState(0)
 
   const toggleSidebar = useCallback(() => {
     setSidebarVisible(prev => !prev)
@@ -122,7 +119,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         fileAnnotationExpanded,
         summaryPopoverOpen,
         highlightedAnnotationId,
-        editorScrollTop,
         toggleSidebar,
         setSidebarVisible,
         setSidebarWidth,
@@ -131,7 +127,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         setFileAnnotationExpanded,
         setSummaryPopoverOpen,
         setHighlightedAnnotationId,
-        setEditorScrollTop,
         clearSelection,
       }}
     >

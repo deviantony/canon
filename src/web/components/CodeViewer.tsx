@@ -5,9 +5,11 @@ import { getLanguageExtension } from '../utils/languageExtensions'
 import { baseEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
 import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutterInteraction'
 import { useEditorInteraction } from '../hooks/useEditorInteraction'
+import { useInlineAnnotations } from '../hooks/useInlineAnnotations'
 
 interface CodeViewerProps {
   filePath: string | null
+  onLineClick?: (line: number) => void
 }
 
 export interface CodeViewerRef {
@@ -17,6 +19,7 @@ export interface CodeViewerRef {
 
 const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewer({
   filePath,
+  onLineClick,
 }, ref) {
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(false)
@@ -27,11 +30,15 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
   const {
     handleSelectionComplete,
     handleIndicatorClick,
-    handleScroll,
     updateAnnotations,
     clearSelectionIfNeeded,
     annotations,
   } = useEditorInteraction({ filePath })
+
+  const { extension: inlineAnnotationExtension, registerView } = useInlineAnnotations({
+    filePath,
+    onLineClick,
+  })
 
   // Expose scrollToLine via ref
   useImperativeHandle(ref, () => ({
@@ -87,6 +94,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
     const extensions: Extension[] = [
       lineNumbers(),
+      EditorView.lineWrapping,
       highlightActiveLine(),
       cyberpunkSyntax,
       EditorState.readOnly.of(true),
@@ -95,9 +103,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
         onSelectionComplete: handleSelectionComplete,
         onIndicatorClick: handleIndicatorClick,
       }),
-      EditorView.domEventHandlers({
-        scroll: () => handleScroll(viewRef.current!),
-      }),
+      inlineAnnotationExtension,
     ]
 
     // Add language extension if available
@@ -120,11 +126,12 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
     // Update annotations immediately after creating editor
     updateAnnotations(view)
+    registerView(view)
 
     return () => {
       view.destroy()
     }
-  }, [content, filePath, error, handleSelectionComplete, handleIndicatorClick, handleScroll, updateAnnotations])
+  }, [content, filePath, error, handleSelectionComplete, handleIndicatorClick, updateAnnotations, inlineAnnotationExtension, registerView])
 
   // Update annotated lines when annotations change
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useAnnotations, type Annotation } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { formatLineBadge, sortAnnotations } from '../utils/annotationUtils'
-import { X, FileText, Pencil, Trash2, Send, Eraser } from 'lucide-react'
+import { X, FileText, Pencil, Trash2, MessageSquareShare, Eraser } from 'lucide-react'
 
 interface AnnotationSummaryPopoverProps {
   onSubmit: () => void
@@ -155,7 +155,7 @@ export default function AnnotationSummaryPopover({
             onClick={handleSubmitClick}
             disabled={annotations.length === 0}
           >
-            <Send size={14} />
+            <MessageSquareShare size={14} />
             Submit Review
           </button>
         </div>

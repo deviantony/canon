@@ -1,6 +1,6 @@
 import { useLayout } from '../context/LayoutContext'
 import { useAnnotations } from '../context/AnnotationContext'
-import { PanelLeft, ListChecks, Send } from 'lucide-react'
+import { PanelLeft, ListCheck, MessageSquareShare } from 'lucide-react'
 import CountBadge from './CountBadge'
 import KeyboardHint from './KeyboardHint'
 
@@ -44,7 +44,7 @@ export default function Header({
           disabled={!canSubmit}
           title="Review all annotations"
         >
-          <ListChecks size={14} />
+          <ListCheck size={14} />
           <span>Review All</span>
           {canSubmit && <CountBadge count={annotations.length} variant="header" />}
         </button>
@@ -54,7 +54,7 @@ export default function Header({
           disabled={!canSubmit}
           title={!canSubmit ? 'Add annotations to submit' : 'Submit review (⌃⌘Enter)'}
         >
-          <Send size={14} />
+          <MessageSquareShare size={14} />
           <span>Submit</span>
         </button>
         <button className="btn cancel" onClick={onCancel} title="Cancel review (⌃⌘⌫)">

@@ -95,7 +95,7 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
             placeholder="Add your comment..."
           />
           <div className="annotation-card-edit-footer">
-            <span className="hint">⌘+Enter</span>
+            <span className="hint">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter</span>
             <button className="annotation-action-btn delete" onClick={onDelete} title="Delete">
               <Trash2 size={11} />
             </button>
@@ -126,7 +126,6 @@ interface NewAnnotationCardProps {
 
 export function NewAnnotationCard({ lineStart, lineEnd, onSave, onCancel, style }: NewAnnotationCardProps) {
   const [comment, setComment] = useState('')
-  const [isFocused, setIsFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useAutoResizeTextarea(textareaRef, comment, 48)
@@ -153,9 +152,7 @@ export function NewAnnotationCard({ lineStart, lineEnd, onSave, onCancel, style 
   const hasContent = comment.trim().length > 0
 
   return (
-    <div className={`new-annotation-whisper ${isFocused ? 'focused' : ''}`} style={style}>
-      <div className="new-annotation-whisper__accent" />
-
+    <div className="new-annotation-whisper" style={style}>
       <div className="new-annotation-whisper__body">
         <div className="new-annotation-whisper__line-marker">
           {formatLineBadge(lineStart, lineEnd)}
@@ -167,16 +164,14 @@ export function NewAnnotationCard({ lineStart, lineEnd, onSave, onCancel, style 
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
           placeholder="Add your thoughts..."
           spellCheck={false}
         />
 
         <div className={`new-annotation-whisper__actions ${hasContent ? 'visible' : ''}`}>
           <div className="new-annotation-whisper__hint">
-            <kbd>⌘</kbd>
-            <span>+</span>
+            <kbd>{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}</kbd>
+            <span style={{ opacity: 0.5 }}>+</span>
             <kbd>Enter</kbd>
           </div>
           <button
