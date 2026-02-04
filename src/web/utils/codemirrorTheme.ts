@@ -8,20 +8,11 @@ const colors = {
   void: '#0c0c0c',
   surface: '#111111',
   elevated: '#161616',
-  hover: '#1a1a1a',
-  active: '#1e1e1e',
 
   // Accent
   gold: '#d4a574',
-  goldBright: '#e8c49a',
   goldMuted: '#9c7a58',
   goldDim: 'rgba(212, 165, 116, 0.15)',
-
-  // Functional (desaturated, elegant)
-  success: '#7d9f7d',
-  error: '#c47a7a',
-  warning: '#c4a87a',
-  info: '#7a9fc4',
 
   // Text
   textPrimary: '#e8e8e8',

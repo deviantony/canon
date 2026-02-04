@@ -18,7 +18,6 @@ interface LayoutState {
 
 interface LayoutContextValue extends LayoutState {
   toggleSidebar: () => void
-  setSidebarVisible: (visible: boolean) => void
   setSidebarWidth: (width: number) => void
   setSelectedLines: (lines: LineSelection | null) => void
   setEditingAnnotationId: (id: string | null) => void
@@ -120,7 +119,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         summaryPopoverOpen,
         highlightedAnnotationId,
         toggleSidebar,
-        setSidebarVisible,
         setSidebarWidth,
         setSelectedLines,
         setEditingAnnotationId,

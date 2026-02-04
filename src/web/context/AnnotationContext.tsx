@@ -25,7 +25,6 @@ interface AnnotationContextValue {
   removeAnnotation: (id: string) => void
   clearAllAnnotations: () => void
   getAnnotationsForFile: (file: string) => Annotation[]
-  getSortedAnnotationsForFile: (file: string) => Annotation[]
   getAnnotationsGroupedByFile: () => Map<string, Annotation[]>
   getFileAnnotation: (file: string) => Annotation | undefined
   formatAsXml: () => string
@@ -66,11 +65,6 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
 
   const getAnnotationsForFile = useCallback(
     (file: string) => annotations.filter((a) => a.file === file),
-    [annotations]
-  )
-
-  const getSortedAnnotationsForFile = useCallback(
-    (file: string) => sortAnnotations(annotations.filter((a) => a.file === file)),
     [annotations]
   )
 
@@ -126,7 +120,6 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
         removeAnnotation,
         clearAllAnnotations,
         getAnnotationsForFile,
-        getSortedAnnotationsForFile,
         getAnnotationsGroupedByFile,
         getFileAnnotation,
         formatAsXml,

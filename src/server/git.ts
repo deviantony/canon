@@ -32,32 +32,6 @@ async function isGitRepo(workingDirectory: string): Promise<boolean> {
   return result.exitCode === 0
 }
 
-// Get current branch name
-async function getCurrentBranch(workingDirectory: string): Promise<string | null> {
-  const result = await runGit(workingDirectory, ['branch', '--show-current'])
-  if (result.exitCode !== 0) return null
-  return result.stdout.trim() || null
-}
-
-// Combine staged and unstaged diff results
-function combineDiffs(
-  stagedResult: { exitCode: number; stdout: string },
-  unstagedResult: { exitCode: number; stdout: string }
-): string {
-  let diff = ''
-
-  if (stagedResult.exitCode === 0 && stagedResult.stdout) {
-    diff += stagedResult.stdout
-  }
-
-  if (unstagedResult.exitCode === 0 && unstagedResult.stdout) {
-    if (diff) diff += '\n'
-    diff += unstagedResult.stdout
-  }
-
-  return diff
-}
-
 // Parse git status porcelain output
 function parseStatusLine(line: string): ChangedFile | null {
   if (line.length < 4) return null
@@ -107,7 +81,7 @@ function parseStatusLine(line: string): ChangedFile | null {
 }
 
 // Get list of changed files (staged + unstaged)
-export async function getChangedFiles(workingDirectory: string): Promise<ChangedFile[]> {
+async function getChangedFiles(workingDirectory: string): Promise<ChangedFile[]> {
   const result = await runGit(workingDirectory, ['status', '--porcelain'])
   if (result.exitCode !== 0) return []
 
@@ -127,42 +101,12 @@ export async function getGitInfo(workingDirectory: string): Promise<GitInfo> {
   const isRepo = await isGitRepo(workingDirectory)
 
   if (!isRepo) {
-    return { isGitRepo: false, changedFiles: [] }
+    return { changedFiles: [] }
   }
 
-  const [branch, changedFiles] = await Promise.all([
-    getCurrentBranch(workingDirectory),
-    getChangedFiles(workingDirectory),
-  ])
+  const changedFiles = await getChangedFiles(workingDirectory)
 
-  return {
-    isGitRepo: true,
-    branch: branch || undefined,
-    changedFiles,
-  }
-}
-
-// Get unified diff for all uncommitted changes
-export async function getUnifiedDiff(workingDirectory: string): Promise<string> {
-  const [stagedResult, unstagedResult] = await Promise.all([
-    runGit(workingDirectory, ['diff', '--cached']),
-    runGit(workingDirectory, ['diff']),
-  ])
-
-  return combineDiffs(stagedResult, unstagedResult)
-}
-
-// Get diff for a specific file
-export async function getFileDiff(
-  workingDirectory: string,
-  filePath: string
-): Promise<string> {
-  const [stagedResult, unstagedResult] = await Promise.all([
-    runGit(workingDirectory, ['diff', '--cached', '--', filePath]),
-    runGit(workingDirectory, ['diff', '--', filePath]),
-  ])
-
-  return combineDiffs(stagedResult, unstagedResult)
+  return { changedFiles }
 }
 
 // Get the original (HEAD) content of a file

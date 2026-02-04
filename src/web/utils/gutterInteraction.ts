@@ -2,11 +2,11 @@ import { EditorView, ViewPlugin, ViewUpdate, Decoration, DecorationSet } from '@
 import { StateField, StateEffect, RangeSetBuilder } from '@codemirror/state'
 
 // Effects for line selection
-export const setLineSelection = StateEffect.define<{ start: number; end: number } | null>()
-export const setAnnotatedLines = StateEffect.define<Set<number>>()
+const setLineSelection = StateEffect.define<{ start: number; end: number } | null>()
+const setAnnotatedLines = StateEffect.define<Set<number>>()
 
 // State field to track current line selection
-export const lineSelectionField = StateField.define<{ start: number; end: number } | null>({
+const lineSelectionField = StateField.define<{ start: number; end: number } | null>({
   create() {
     return null
   },
@@ -21,7 +21,7 @@ export const lineSelectionField = StateField.define<{ start: number; end: number
 })
 
 // State field to track annotated lines
-export const annotatedLinesField = StateField.define<Set<number>>({
+const annotatedLinesField = StateField.define<Set<number>>({
   create() {
     return new Set()
   },
@@ -80,7 +80,6 @@ const selectionHighlightPlugin = ViewPlugin.fromClass(
 // Gutter interaction plugin for click/drag selection
 interface GutterInteractionConfig {
   onSelectionComplete: (start: number, end: number) => void
-  onIndicatorClick: (line: number) => void
 }
 
 // Create the floating range indicator element

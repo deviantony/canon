@@ -59,26 +59,17 @@
   --space-4: 16px;
   --space-5: 20px;
   --space-6: 24px;
-  --space-8: 32px;
   --space-10: 40px;
-  --space-12: 48px;
 
   /* Radii - subtle, refined */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
 
-  /* Layout dimensions */
-  --margin-width: 280px;
-
   /* Transitions */
   --transition-fast: 0.15s ease;
-  --transition-base: 0.2s ease;
-  --transition-slow: 0.3s ease;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
 }
 
@@ -709,15 +700,6 @@ body {
   overflow: hidden;
 }
 
-.content {
-  flex: 1;
-  overflow: auto;
-  background: var(--bg-void);
-  min-width: 0;
-}
-
-/* Annotations panel removed - now using inline annotations */
-
 /* ─────────────────────────────────────────────────────────────────────────────
    CODE VIEWER
    ───────────────────────────────────────────────────────────────────────────── */
@@ -1124,246 +1106,6 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   NEW ANNOTATION — FULL BORDER DESIGN
-   Matches the inline-annotation style with complete border and corner glow
-   ───────────────────────────────────────────────────────────────────────────── */
-.new-annotation-whisper {
-  position: relative;
-  margin: var(--space-3) var(--space-5) var(--space-5) var(--space-5);
-  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
-  background: radial-gradient(
-    ellipse 200px 120px at top left,
-    rgba(212, 165, 116, 0.1) 0%,
-    rgba(212, 165, 116, 0.04) 40%,
-    transparent 70%
-  );
-  border: 1px solid var(--accent-gold);
-  border-radius: 8px;
-  animation: whisperAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes whisperAppear {
-  from {
-    opacity: 0;
-    transform: translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.new-annotation-whisper__body {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Line marker - styled as corner tab badge */
-.new-annotation-whisper__line-marker {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 2px 10px;
-  background: rgba(212, 165, 116, 0.12);
-  border: 1px solid var(--accent-gold);
-  border-radius: 4px;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent-gold);
-  margin-bottom: var(--space-2);
-}
-
-.new-annotation-whisper__input {
-  width: 100%;
-  padding: 0;
-  margin-top: var(--space-2);
-  background: transparent;
-  border: none;
-  color: var(--text-primary);
-  font-family: var(--font-display);
-  font-size: 14px;
-  line-height: 1.8;
-  resize: none;
-  min-height: 48px;
-  caret-color: var(--accent-gold);
-}
-
-/* Placeholder - italic and muted */
-.new-annotation-whisper__input::placeholder {
-  color: var(--text-muted);
-  font-style: italic;
-  letter-spacing: 0.01em;
-}
-
-.new-annotation-whisper__input:focus {
-  outline: none;
-}
-
-.new-annotation-whisper__input::selection {
-  background: rgba(212, 165, 116, 0.25);
-}
-
-/* Actions row */
-.new-annotation-whisper__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-}
-
-.new-annotation-whisper__actions.visible {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-}
-
-.new-annotation-whisper__hint {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--text-muted);
-  font-size: 9px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.new-annotation-whisper__hint kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 14px;
-  height: 14px;
-  padding: 0 4px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-subtle);
-  border-radius: 2px;
-  font-family: var(--font-mono);
-  font-size: 8px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-}
-
-.new-annotation-whisper__hint span {
-  color: var(--text-muted);
-  opacity: 0.5;
-}
-
-.new-annotation-whisper__btn {
-  padding: 5px 10px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.new-annotation-whisper__btn:active {
-  transform: scale(0.97);
-}
-
-.new-annotation-whisper__btn--ghost {
-  background: transparent;
-  color: var(--text-tertiary);
-}
-
-.new-annotation-whisper__btn--ghost:hover {
-  border-color: var(--border-default);
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.new-annotation-whisper__btn--primary {
-  background: transparent;
-  border-color: var(--accent-gold-muted);
-  color: var(--accent-gold);
-  font-weight: 600;
-}
-
-.new-annotation-whisper__btn--primary:hover:not(:disabled) {
-  border-color: var(--accent-gold);
-  background: rgba(212, 165, 116, 0.08);
-  color: var(--accent-gold-bright);
-}
-
-.new-annotation-whisper__btn--primary:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.new-annotation-whisper__btn--primary:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   SMALL BUTTONS
-   ───────────────────────────────────────────────────────────────────────────── */
-.btn-small {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-1) var(--space-3);
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 500;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.btn-small svg {
-  flex-shrink: 0;
-}
-
-.btn-small.save {
-  background: var(--accent-gold);
-  color: var(--bg-void);
-}
-
-.btn-small.save:hover:not(:disabled) {
-  background: var(--accent-gold-bright);
-}
-
-.btn-small.save:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.btn-small.cancel {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
-}
-
-.btn-small.cancel:hover {
-  background: var(--bg-active);
-  color: var(--text-primary);
-}
-
-.btn-small.delete {
-  background: rgba(196, 122, 122, 0.15);
-  color: var(--status-error);
-}
-
-.btn-small.delete:hover {
-  background: rgba(196, 122, 122, 0.25);
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
    FILE ANNOTATION FOOTER — CARD-BASED DESIGN (matches inline annotations)
    ───────────────────────────────────────────────────────────────────────────── */
 .file-annotation-footer {
@@ -1658,7 +1400,7 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.15s ease-out;
+  animation: overlayFadeIn 0.15s ease-out;
 }
 
 .summary-popover {
@@ -2104,12 +1846,6 @@ body {
     rgba(212, 165, 116, 0.04) 40%,
     transparent 70%
   );
-}
-
-/* Badge highlight for new/editing states */
-.inline-annotation.new .inline-annotation-badge,
-.inline-annotation.editing .inline-annotation-badge {
-  color: var(--accent-gold);
 }
 
 /* Highlighted state with pulse */

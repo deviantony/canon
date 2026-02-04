@@ -12,8 +12,6 @@ interface UseEditorInteractionOptions {
 interface UseEditorInteractionReturn {
   /** Callback for when gutter selection completes */
   handleSelectionComplete: (start: number, end: number) => void
-  /** Callback for clicking annotation indicator */
-  handleIndicatorClick: (line: number) => void
   /** Update annotated lines in the editor */
   updateAnnotations: (view: EditorView) => void
   /** Clear selection if layout selection is cleared */
@@ -29,20 +27,16 @@ export function useEditorInteraction({
   filePath,
 }: UseEditorInteractionOptions): UseEditorInteractionReturn {
   const { getAnnotationsForFile, annotations } = useAnnotations()
-  const { setSelectedLines, setHighlightedAnnotationId, selectedLines } = useLayout()
+  const { setSelectedLines, selectedLines } = useLayout()
 
   // Store callbacks in refs to avoid recreating the editor when they change
   const getAnnotationsRef = useRef(getAnnotationsForFile)
-  const setHighlightedRef = useRef(setHighlightedAnnotationId)
   const filePathRef = useRef(filePath)
-  const annotationsRef = useRef(annotations)
 
   // Keep refs up to date
   useEffect(() => {
     getAnnotationsRef.current = getAnnotationsForFile
-    setHighlightedRef.current = setHighlightedAnnotationId
     filePathRef.current = filePath
-    annotationsRef.current = annotations
   })
 
   // Callback for when gutter selection completes
@@ -52,19 +46,6 @@ export function useEditorInteraction({
     },
     [setSelectedLines]
   )
-
-  // Callback for clicking annotation indicator - uses refs to avoid dependency changes
-  const handleIndicatorClick = useCallback((line: number) => {
-    const currentFilePath = filePathRef.current
-    if (!currentFilePath) return
-    const fileAnnotations = getAnnotationsRef.current(currentFilePath)
-    const annotation = fileAnnotations.find(
-      (a) => line >= a.lineStart && line <= (a.lineEnd || a.lineStart)
-    )
-    if (annotation) {
-      setHighlightedRef.current(annotation.id)
-    }
-  }, [])
 
   // Update annotated lines - uses refs to stay stable across annotation changes
   const updateAnnotations = useCallback(
@@ -90,7 +71,6 @@ export function useEditorInteraction({
 
   return {
     handleSelectionComplete,
-    handleIndicatorClick,
     updateAnnotations,
     clearSelectionIfNeeded,
     annotations,
