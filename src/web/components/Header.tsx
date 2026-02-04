@@ -36,6 +36,7 @@ export default function Header({
           <PanelLeft size={16} />
         </button>
         <span className="logo-wordmark">Canon</span>
+        <span className="version-badge">v{__APP_VERSION__}</span>
         <KeyboardHint onClick={onShowShortcuts} />
       </div>
       <div className="header-actions">

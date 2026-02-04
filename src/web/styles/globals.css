@@ -173,6 +173,15 @@ body {
   animation: cursorBlink 1s step-end infinite;
   margin-left: 1px;
 }
+
+.version-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
 @keyframes cursorBlink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }

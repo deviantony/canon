@@ -1,0 +1,36 @@
+name: Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - run: bun install
+
+      - run: bun run build:all
+
+      - name: Rename artifacts with version
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          mv canon-linux-x64 canon-${VERSION}-linux-x64
+          mv canon-darwin-arm64 canon-${VERSION}-darwin-arm64
+          mv canon-darwin-x64 canon-${VERSION}-darwin-x64
+          mv canon.exe canon-${VERSION}-windows-x64.exe
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            canon-*-linux-x64
+            canon-*-darwin-arm64
+            canon-*-darwin-x64
+            canon-*-windows-x64.exe
