@@ -31,6 +31,14 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
     }
   }, [fileAnnotationExpanded, isEditing])
 
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
+    }
+  }, [comment])
+
   function handleInputFocus() {
     if (fileAnnotation) {
       setIsEditing(true)
@@ -90,29 +98,31 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
   if (fileAnnotation && !isEditing) {
     return (
       <div className="file-annotation-footer has-content">
-        <div className="file-annotation-bar">
-          <div className="file-annotation-badge">
-            <FileText size={12} />
-            <span>File</span>
+        <div className="file-annotation-card">
+          <div className="file-annotation-header">
+            <div className="file-annotation-badge">
+              <FileText size={10} />
+              <span>File</span>
+            </div>
+            <div className="file-annotation-actions">
+              <button
+                className="inline-annotation-action"
+                onClick={handleEdit}
+                title="Edit"
+              >
+                <Pencil size={14} />
+              </button>
+              <button
+                className="inline-annotation-action delete"
+                onClick={handleDelete}
+                title="Delete"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           </div>
           <div className="file-annotation-text">
             {fileAnnotation.comment}
-          </div>
-          <div className="file-annotation-actions">
-            <button
-              className="file-annotation-action"
-              onClick={handleEdit}
-              title="Edit"
-            >
-              <Pencil size={12} />
-            </button>
-            <button
-              className="file-annotation-action delete"
-              onClick={handleDelete}
-              title="Delete"
-            >
-              <Trash2 size={12} />
-            </button>
           </div>
         </div>
       </div>
@@ -123,9 +133,9 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
   if (fileAnnotationExpanded || isEditing) {
     return (
       <div className="file-annotation-footer editing">
-        <div className="file-annotation-edit">
+        <div className="file-annotation-edit-card">
           <div className="file-annotation-badge">
-            <FileText size={12} />
+            <FileText size={10} />
             <span>File</span>
           </div>
           <textarea
@@ -134,14 +144,21 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
             onChange={(e) => setComment(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Add a note about this file..."
-            rows={2}
           />
           <div className="file-annotation-edit-actions">
-            <span className="hint">{getModifierKey()}+Enter to save</span>
-            <button className="btn-small cancel" onClick={handleCancel}>
+            <span className="hint">
+              <kbd>{getModifierKey()}</kbd>
+              <span style={{ opacity: 0.5 }}>+</span>
+              <kbd>Enter</kbd>
+            </span>
+            <button className="file-annotation-btn" onClick={handleCancel}>
               Cancel
             </button>
-            <button className="btn-small save" onClick={handleSave} disabled={!comment.trim()}>
+            <button
+              className="file-annotation-btn save"
+              onClick={handleSave}
+              disabled={!comment.trim()}
+            >
               Save
             </button>
           </div>
@@ -150,12 +167,14 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
     )
   }
 
-  // Empty state - just show clickable input
+  // Empty state - clickable card placeholder
   return (
     <div className="file-annotation-footer empty">
       <div className="file-annotation-input-bar" onClick={handleInputFocus}>
         <FileText size={14} className="file-annotation-input-icon" />
-        <span className="file-annotation-placeholder">Annotate this file... ({formatShortcut('Ctrl+Cmd+C')})</span>
+        <span className="file-annotation-placeholder">
+          Annotate this file... ({formatShortcut('Ctrl+Cmd+C')})
+        </span>
       </div>
     </div>
   )

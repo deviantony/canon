@@ -1364,30 +1364,42 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   FILE ANNOTATION FOOTER — SEAMLESS BOTTOM BAR
+   FILE ANNOTATION FOOTER — CARD-BASED DESIGN (matches inline annotations)
    ───────────────────────────────────────────────────────────────────────────── */
 .file-annotation-footer {
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-subtle);
+  background: transparent;
 }
 
 /* Empty state - clickable input bar */
 .file-annotation-footer.empty {
-  height: 44px;
+  padding: var(--space-3) var(--space-5) var(--space-5) var(--space-5);
 }
 
 .file-annotation-input-bar {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  height: 44px;
+  padding: var(--space-4) var(--space-5);
   cursor: text;
-  transition: background var(--transition-fast);
+  background: radial-gradient(
+    ellipse 200px 120px at top left,
+    rgba(212, 165, 116, 0.03) 0%,
+    rgba(212, 165, 116, 0.01) 40%,
+    transparent 70%
+  );
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  transition: all 0.25s ease;
 }
 
 .file-annotation-input-bar:hover {
-  background: var(--bg-hover);
+  border-color: var(--accent-gold-muted);
+  background: radial-gradient(
+    ellipse 200px 120px at top left,
+    rgba(212, 165, 116, 0.05) 0%,
+    rgba(212, 165, 116, 0.02) 40%,
+    transparent 70%
+  );
 }
 
 .file-annotation-input-icon {
@@ -1400,16 +1412,40 @@ body {
   font-size: 13px;
 }
 
-/* Has content state - shows annotation with actions */
+/* Has content state - card-based display */
 .file-annotation-footer.has-content {
-  height: auto;
+  padding: var(--space-3) var(--space-5) var(--space-5) var(--space-5);
 }
 
-.file-annotation-bar {
+.file-annotation-card {
+  position: relative;
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
+  background: radial-gradient(
+    ellipse 200px 120px at top left,
+    rgba(212, 165, 116, 0.05) 0%,
+    rgba(212, 165, 116, 0.02) 40%,
+    transparent 70%
+  );
+  border: 1px solid var(--accent-gold-muted);
+  border-radius: 8px;
+  transition: all 0.25s ease;
+}
+
+.file-annotation-card:hover {
+  border-color: var(--accent-gold);
+  background: radial-gradient(
+    ellipse 200px 120px at top left,
+    rgba(212, 165, 116, 0.08) 0%,
+    rgba(212, 165, 116, 0.03) 40%,
+    transparent 70%
+  );
+}
+
+.file-annotation-header {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
 }
 
 .file-annotation-badge {
@@ -1417,84 +1453,198 @@ body {
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-  padding: 2px 8px;
-  background: var(--accent-gold-dim);
-  border-radius: var(--radius-sm);
-  color: var(--accent-gold);
-  font-size: 11px;
+  padding: 2px 10px;
+  background: rgba(212, 165, 116, 0.08);
+  border: 1px solid var(--accent-gold-muted);
+  border-radius: 4px;
+  color: var(--accent-gold-muted);
+  font-size: 10px;
   font-weight: 600;
   font-family: var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
 }
 
-.file-annotation-bar .file-annotation-text {
-  flex: 1;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-secondary);
+.file-annotation-card:hover .file-annotation-badge {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+  background: rgba(212, 165, 116, 0.12);
+}
+
+.file-annotation-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-primary);
   white-space: pre-wrap;
   word-break: break-word;
-  padding-top: 2px;
+  margin-top: var(--space-2);
 }
 
 .file-annotation-actions {
   display: flex;
   gap: var(--space-1);
   opacity: 0;
-  transition: opacity var(--transition-fast);
+  transform: translateX(4px);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex-shrink: 0;
 }
 
-.file-annotation-bar:hover .file-annotation-actions {
+.file-annotation-card:hover .file-annotation-actions {
   opacity: 1;
+  transform: translateX(0);
 }
 
-/* Action button styles use shared pattern above */
-
-/* Editing state */
+/* Editing state - card with golden glow */
 .file-annotation-footer.editing {
-  height: auto;
+  padding: var(--space-3) var(--space-5) var(--space-5) var(--space-5);
 }
 
-.file-annotation-edit {
-  padding: var(--space-3) var(--space-4);
+.file-annotation-edit-card {
+  position: relative;
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
+  background: radial-gradient(
+    ellipse 200px 120px at top left,
+    rgba(212, 165, 116, 0.1) 0%,
+    rgba(212, 165, 116, 0.04) 40%,
+    transparent 70%
+  );
+  border: 1px solid var(--accent-gold);
+  border-radius: 8px;
+  animation: fileAnnotationAppear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.file-annotation-edit .file-annotation-badge {
-  margin-bottom: var(--space-3);
+@keyframes fileAnnotationAppear {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.file-annotation-edit textarea {
-  width: 100%;
-  padding: var(--space-3);
-  background: var(--bg-void);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
-  font-size: 13px;
-  font-family: var(--font-display);
-  resize: vertical;
-  min-height: 60px;
-  line-height: 1.5;
-  transition: border-color var(--transition-fast);
-}
-
-.file-annotation-edit textarea:focus {
-  outline: none;
+.file-annotation-edit-card .file-annotation-badge {
+  color: var(--accent-gold);
   border-color: var(--accent-gold);
+  background: rgba(212, 165, 116, 0.12);
+  margin-bottom: var(--space-2);
+}
+
+.file-annotation-edit-card textarea {
+  width: 100%;
+  padding: 0;
+  margin-top: var(--space-2);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-display);
+  line-height: 1.8;
+  resize: none;
+  min-height: 48px;
+  caret-color: var(--accent-gold);
+}
+
+.file-annotation-edit-card textarea:focus {
+  outline: none;
+}
+
+.file-annotation-edit-card textarea::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.file-annotation-edit-card textarea::selection {
+  background: rgba(212, 165, 116, 0.25);
 }
 
 .file-annotation-edit-actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: var(--space-2);
-  margin-top: var(--space-3);
+  gap: var(--space-3);
+  margin-top: var(--space-4);
 }
 
 .file-annotation-edit-actions .hint {
   flex: 1;
-  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
   color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.file-annotation-edit-actions .hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 2px;
+  color: var(--text-muted);
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* File annotation buttons - matches inline-annotation-btn */
+.file-annotation-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-annotation-btn:hover {
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.file-annotation-btn:active {
+  transform: scale(0.97);
+}
+
+.file-annotation-btn.save {
+  background: transparent;
+  border-color: var(--accent-gold-muted);
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.file-annotation-btn.save:hover:not(:disabled) {
+  border-color: var(--accent-gold);
+  background: rgba(212, 165, 116, 0.08);
+  color: var(--accent-gold-bright);
+}
+
+.file-annotation-btn.save:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.file-annotation-btn.save:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
