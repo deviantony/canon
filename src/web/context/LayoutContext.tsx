@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { isMac } from '../utils/keyboard'
 
 export interface LineSelection {
   start: number
@@ -13,7 +14,6 @@ interface LayoutState {
   fileAnnotationExpanded: boolean
   summaryPopoverOpen: boolean
   highlightedAnnotationId: string | null
-  editorScrollTop: number
 }
 
 interface LayoutContextValue extends LayoutState {
@@ -25,7 +25,6 @@ interface LayoutContextValue extends LayoutState {
   setFileAnnotationExpanded: (expanded: boolean) => void
   setSummaryPopoverOpen: (open: boolean) => void
   setHighlightedAnnotationId: (id: string | null) => void
-  setEditorScrollTop: (top: number) => void
   clearSelection: () => void
 }
 
@@ -47,7 +46,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   const [fileAnnotationExpanded, setFileAnnotationExpanded] = useState(false)
   const [summaryPopoverOpen, setSummaryPopoverOpen] = useState(false)
   const [highlightedAnnotationId, setHighlightedAnnotationId] = useState<string | null>(null)
-  const [editorScrollTop, setEditorScrollTop] = useState(0)
 
   const toggleSidebar = useCallback(() => {
     setSidebarVisible(prev => !prev)
@@ -87,7 +85,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // macOS: Ctrl+Cmd+S, Windows/Linux: Ctrl+Alt+S
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
       const isShortcut = isMac
         ? (e.ctrlKey && e.metaKey && e.key.toLowerCase() === 's')
         : (e.ctrlKey && e.altKey && e.key.toLowerCase() === 's')
@@ -122,7 +119,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         fileAnnotationExpanded,
         summaryPopoverOpen,
         highlightedAnnotationId,
-        editorScrollTop,
         toggleSidebar,
         setSidebarVisible,
         setSidebarWidth,
@@ -131,7 +127,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         setFileAnnotationExpanded,
         setSummaryPopoverOpen,
         setHighlightedAnnotationId,
-        setEditorScrollTop,
         clearSelection,
       }}
     >

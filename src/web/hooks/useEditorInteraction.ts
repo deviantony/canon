@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react'
-import { EditorView } from '@codemirror/view'
+import type { EditorView } from '@codemirror/view'
 import { useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { updateAnnotatedLines, clearLineSelection } from '../utils/gutterInteraction'
@@ -14,8 +14,6 @@ interface UseEditorInteractionReturn {
   handleSelectionComplete: (start: number, end: number) => void
   /** Callback for clicking annotation indicator */
   handleIndicatorClick: (line: number) => void
-  /** Callback for scroll events */
-  handleScroll: (view: EditorView) => void
   /** Update annotated lines in the editor */
   updateAnnotations: (view: EditorView) => void
   /** Clear selection if layout selection is cleared */
@@ -31,7 +29,7 @@ export function useEditorInteraction({
   filePath,
 }: UseEditorInteractionOptions): UseEditorInteractionReturn {
   const { getAnnotationsForFile, annotations } = useAnnotations()
-  const { setSelectedLines, setHighlightedAnnotationId, selectedLines, setEditorScrollTop } = useLayout()
+  const { setSelectedLines, setHighlightedAnnotationId, selectedLines } = useLayout()
 
   // Store callbacks in refs to avoid recreating the editor when they change
   const getAnnotationsRef = useRef(getAnnotationsForFile)
@@ -68,14 +66,6 @@ export function useEditorInteraction({
     }
   }, [])
 
-  // Handle scroll for syncing with margin panel
-  const handleScroll = useCallback(
-    (view: EditorView) => {
-      setEditorScrollTop(view.scrollDOM.scrollTop)
-    },
-    [setEditorScrollTop]
-  )
-
   // Update annotated lines - uses refs to stay stable across annotation changes
   const updateAnnotations = useCallback(
     (view: EditorView) => {
@@ -101,7 +91,6 @@ export function useEditorInteraction({
   return {
     handleSelectionComplete,
     handleIndicatorClick,
-    handleScroll,
     updateAnnotations,
     clearSelectionIfNeeded,
     annotations,

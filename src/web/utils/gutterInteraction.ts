@@ -1,4 +1,4 @@
-import { EditorView, ViewPlugin, ViewUpdate, Decoration, DecorationSet, gutter, GutterMarker } from '@codemirror/view'
+import { EditorView, ViewPlugin, ViewUpdate, Decoration, DecorationSet } from '@codemirror/view'
 import { StateField, StateEffect, RangeSetBuilder } from '@codemirror/state'
 
 // Effects for line selection
@@ -77,40 +77,26 @@ const selectionHighlightPlugin = ViewPlugin.fromClass(
   }
 )
 
-// Gold bar marker for annotated lines
-class AnnotationMarker extends GutterMarker {
-  toDOM() {
-    const marker = document.createElement('div')
-    marker.className = 'cm-annotation-indicator'
-    marker.style.height = '100%'
-    return marker
-  }
-}
-
-const annotationMarker = new AnnotationMarker()
-
-// Gutter for annotation indicators
-const annotationGutter = gutter({
-  class: 'cm-annotation-gutter',
-  lineMarker(view, line) {
-    const lineNumber = view.state.doc.lineAt(line.from).number
-    const annotatedLines = view.state.field(annotatedLinesField)
-    if (annotatedLines.has(lineNumber)) {
-      return annotationMarker
-    }
-    return null
-  },
-  lineMarkerChange: (update) => {
-    // Re-render markers when annotated lines change
-    return update.state.field(annotatedLinesField) !== update.startState.field(annotatedLinesField)
-  },
-  initialSpacer: () => annotationMarker,
-})
-
 // Gutter interaction plugin for click/drag selection
 interface GutterInteractionConfig {
   onSelectionComplete: (start: number, end: number) => void
   onIndicatorClick: (line: number) => void
+}
+
+// Create the floating range indicator element
+function createRangeIndicator(): HTMLElement {
+  const indicator = document.createElement('div')
+  indicator.className = 'line-selection-indicator'
+  indicator.innerHTML = `
+    <span class="line-selection-indicator-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+    </span>
+    <span class="line-selection-indicator-text"></span>
+  `
+  document.body.appendChild(indicator)
+  return indicator
 }
 
 function createGutterInteractionPlugin(config: GutterInteractionConfig) {
@@ -118,7 +104,10 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
     class {
       private isDragging = false
       private startLine: number | null = null
+      private currentEndLine: number | null = null
       private view: EditorView
+      private rangeIndicator: HTMLElement | null = null
+      private lastLineCount: number = 0
 
       constructor(view: EditorView) {
         this.view = view
@@ -136,6 +125,14 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
         this.view.dom.removeEventListener('mousedown', this.handleMouseDown)
         window.removeEventListener('mousemove', this.handleMouseMove)
         window.removeEventListener('mouseup', this.handleMouseUp)
+        this.cleanupIndicator()
+      }
+
+      private cleanupIndicator() {
+        if (this.rangeIndicator) {
+          this.rangeIndicator.remove()
+          this.rangeIndicator = null
+        }
       }
 
       private getLineFromEvent(e: MouseEvent): number | null {
@@ -154,25 +151,76 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
         )
       }
 
-      private isAnnotationIndicatorClick(e: MouseEvent): boolean {
-        const target = e.target as HTMLElement
-        return !!(target.closest('.cm-annotation-indicator') || target.closest('.cm-annotation-gutter'))
+      private updateGutterStyles(startLine: number, endLine: number) {
+        // Get all gutter elements
+        const gutterElements = this.view.dom.querySelectorAll('.cm-lineNumbers .cm-gutterElement')
+
+        const minLine = Math.min(startLine, endLine)
+        const maxLine = Math.max(startLine, endLine)
+
+        gutterElements.forEach((el) => {
+          const lineNum = parseInt(el.textContent || '0', 10)
+          if (isNaN(lineNum)) return
+
+          // Remove previous classes
+          el.classList.remove('selection-start', 'selection-active')
+
+          // Add appropriate classes
+          if (lineNum === startLine) {
+            el.classList.add('selection-start')
+          }
+          if (lineNum >= minLine && lineNum <= maxLine) {
+            el.classList.add('selection-active')
+          }
+        })
+      }
+
+      private clearGutterStyles() {
+        const gutterElements = this.view.dom.querySelectorAll('.cm-lineNumbers .cm-gutterElement')
+        gutterElements.forEach((el) => {
+          el.classList.remove('selection-start', 'selection-active')
+        })
+      }
+
+      private updateRangeIndicator(e: MouseEvent, startLine: number, endLine: number) {
+        if (!this.rangeIndicator) {
+          this.rangeIndicator = createRangeIndicator()
+        }
+
+        const minLine = Math.min(startLine, endLine)
+        const maxLine = Math.max(startLine, endLine)
+        const lineCount = maxLine - minLine + 1
+        const lineText = lineCount === 1 ? 'Line' : 'Lines'
+
+        // Update text
+        const textEl = this.rangeIndicator.querySelector('.line-selection-indicator-text')
+        if (textEl) {
+          textEl.textContent = `${lineText} ${minLine}${lineCount > 1 ? `–${maxLine}` : ''}`
+        }
+
+        // Trigger pulse animation when count changes
+        if (lineCount !== this.lastLineCount) {
+          this.rangeIndicator.classList.remove('counting')
+          // Force reflow to restart animation
+          void this.rangeIndicator.offsetWidth
+          this.rangeIndicator.classList.add('counting')
+          this.lastLineCount = lineCount
+        }
+
+        // Position near cursor
+        this.rangeIndicator.style.left = `${e.clientX}px`
+        this.rangeIndicator.style.top = `${e.clientY}px`
+        this.rangeIndicator.classList.add('visible')
+      }
+
+      private hideRangeIndicator() {
+        if (this.rangeIndicator) {
+          this.rangeIndicator.classList.remove('visible', 'counting')
+        }
+        this.lastLineCount = 0
       }
 
       private handleMouseDown(e: MouseEvent) {
-        // Check for annotation indicator click first
-        if (this.isAnnotationIndicatorClick(e)) {
-          const line = this.getLineFromEvent(e)
-          if (line !== null) {
-            const annotatedLines = this.view.state.field(annotatedLinesField)
-            if (annotatedLines.has(line)) {
-              e.preventDefault()
-              config.onIndicatorClick(line)
-              return
-            }
-          }
-        }
-
         // Check if click is on gutter
         if (!this.isGutterClick(e)) return
 
@@ -182,7 +230,12 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
         e.preventDefault()
         this.isDragging = true
         this.startLine = line
+        this.currentEndLine = line
         this.view.dom.classList.add('cm-line-selecting')
+
+        // Update visual feedback
+        this.updateGutterStyles(line, line)
+        this.updateRangeIndicator(e, line, line)
 
         // Set initial selection
         this.view.dispatch({
@@ -196,6 +249,12 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
         const line = this.getLineFromEvent(e)
         if (line === null) return
 
+        this.currentEndLine = line
+
+        // Update visual feedback
+        this.updateGutterStyles(this.startLine, line)
+        this.updateRangeIndicator(e, this.startLine, line)
+
         // Update selection
         this.view.dispatch({
           effects: setLineSelection.of({ start: this.startLine, end: line }),
@@ -206,10 +265,13 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
         if (!this.isDragging || this.startLine === null) {
           this.isDragging = false
           this.startLine = null
+          this.currentEndLine = null
           return
         }
 
         this.view.dom.classList.remove('cm-line-selecting')
+        this.clearGutterStyles()
+        this.hideRangeIndicator()
 
         const endLine = this.getLineFromEvent(e)
         const start = this.startLine
@@ -217,6 +279,7 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
 
         this.isDragging = false
         this.startLine = null
+        this.currentEndLine = null
 
         // Normalize the range
         const lineStart = Math.min(start, end)
@@ -235,7 +298,6 @@ export function gutterInteraction(config: GutterInteractionConfig) {
     lineSelectionField,
     annotatedLinesField,
     selectionHighlightPlugin,
-    annotationGutter,
     createGutterInteractionPlugin(config),
   ]
 }

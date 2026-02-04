@@ -2,6 +2,7 @@ import { FileDiff, FileCode, MessageSquare } from 'lucide-react'
 import { useAnnotations } from '../context/AnnotationContext'
 import IconToggle from './IconToggle'
 import StatusBadge from './StatusBadge'
+import { formatShortcut } from '../utils/keyboard'
 import type { ChangedFile } from '../../shared/types'
 
 interface EditorHeaderProps {
@@ -16,7 +17,7 @@ interface EditorHeaderProps {
 function getChangesButtonTitle(isNewFile: boolean, canShowDiff: boolean): string {
   if (isNewFile) return 'New file - no changes to compare'
   if (!canShowDiff) return 'No changes to show'
-  return 'View changes (⌃⌘X)'
+  return `View changes (${formatShortcut('Ctrl+Cmd+X')})`
 }
 
 export default function EditorHeader({
@@ -64,7 +65,7 @@ export default function EditorHeader({
           {
             value: 'code',
             icon: <FileCode size={15} />,
-            title: canShowDiff && !isNewFile ? 'View source (⌃⌘X)' : 'View source',
+            title: canShowDiff && !isNewFile ? `View source (${formatShortcut('Ctrl+Cmd+X')})` : 'View source',
           },
         ]}
       />

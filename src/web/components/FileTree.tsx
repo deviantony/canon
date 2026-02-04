@@ -189,6 +189,7 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, 
         height={treeHeight}
         indent={16}
         rowHeight={26}
+        selection={selectedFile ?? undefined}
         onSelect={(nodes) => {
           const selected = nodes[0]
           if (selected && !selected.data.isDirectory) {

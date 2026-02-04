@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import FileTree from './components/FileTree'
 import CodeViewer, { CodeViewerRef } from './components/CodeViewer'
 import DiffViewer, { DiffViewerRef } from './components/DiffViewer'
-import MarginPanel from './components/MarginPanel'
 import FileAnnotationFooter from './components/FileAnnotationFooter'
 import EditorHeader from './components/EditorHeader'
 import Header from './components/Header'
@@ -71,7 +70,7 @@ function AppContent() {
     if (isNewFile && viewMode === 'diff') {
       setViewMode('code')
     }
-  }, [isNewFile, selectedFile])
+  }, [isNewFile, viewMode])
 
   // Auto-switch to 'all files' mode when no changes detected
   useEffect(() => {
@@ -109,19 +108,27 @@ function AppContent() {
     })
   }, [sendFeedback])
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts - consolidated handler
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Only handle if both Ctrl and Cmd are pressed
-      if (!e.ctrlKey || !e.metaKey) return
-
       const key = e.key.toLowerCase()
+
+      // Cmd+K / Ctrl+K to open shortcuts modal (but not Ctrl+Cmd+K)
+      if ((e.metaKey || e.ctrlKey) && key === 'k' && !e.shiftKey && !e.altKey) {
+        if (e.ctrlKey && e.metaKey) return
+        e.preventDefault()
+        e.stopPropagation()
+        setShortcutsModalOpen(prev => !prev)
+        return
+      }
+
+      // All other shortcuts require both Ctrl and Cmd
+      if (!e.ctrlKey || !e.metaKey) return
 
       // Ctrl+Cmd+Z: Toggle changes/all in file sidebar
       if (key === 'z') {
         e.preventDefault()
         e.stopPropagation()
-        // Only toggle to 'changed' if there are changes
         if (showChangedOnly || hasChanges) {
           setShowChangedOnly(!showChangedOnly)
         }
@@ -132,7 +139,6 @@ function AppContent() {
       if (key === 'x') {
         e.preventDefault()
         e.stopPropagation()
-        // Only toggle if we can show diff (file has changes and is not new)
         if (canShowDiff && !isNewFile) {
           setViewMode(viewMode === 'diff' ? 'code' : 'diff')
         }
@@ -168,28 +174,9 @@ function AppContent() {
       }
     }
 
-    // Use capture phase to intercept before browser/OS shortcuts
     document.addEventListener('keydown', handleKeyDown, { capture: true })
     return () => document.removeEventListener('keydown', handleKeyDown, { capture: true })
   }, [showChangedOnly, hasChanges, viewMode, canShowDiff, isNewFile, selectedFile, setFileAnnotationExpanded, handleSubmit, handleCancel, annotations])
-
-  // Cmd+K / Ctrl+K to open shortcuts modal
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      // Cmd+K (macOS) or Ctrl+K (Windows/Linux)
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k' && !e.shiftKey && !e.altKey) {
-        // Don't trigger if both Ctrl and Cmd are pressed (that's for other shortcuts)
-        if (e.ctrlKey && e.metaKey) return
-
-        e.preventDefault()
-        e.stopPropagation()
-        setShortcutsModalOpen(prev => !prev)
-      }
-    }
-
-    document.addEventListener('keydown', handleKeyDown, { capture: true })
-    return () => document.removeEventListener('keydown', handleKeyDown, { capture: true })
-  }, [])
 
   // Scroll to line in the current viewer
   const scrollToLine = useCallback((line: number) => {
@@ -254,24 +241,19 @@ function AppContent() {
             fileStatus={selectedFileStatus}
           />
           <div className="editor-panel">
-            <section className="content">
-              {showDiffViewer ? (
-                <DiffViewer
-                  ref={diffViewerRef}
-                  filePath={selectedFile}
-                  status={selectedFileStatus}
-                />
-              ) : (
-                <CodeViewer
-                  ref={codeViewerRef}
-                  filePath={selectedFile}
-                />
-              )}
-            </section>
-            {selectedFile && (
-              <div className="annotations-panel">
-                <MarginPanel filePath={selectedFile} onLineClick={handleLineClick} />
-              </div>
+            {showDiffViewer ? (
+              <DiffViewer
+                ref={diffViewerRef}
+                filePath={selectedFile}
+                status={selectedFileStatus}
+                onLineClick={handleLineClick}
+              />
+            ) : (
+              <CodeViewer
+                ref={codeViewerRef}
+                filePath={selectedFile}
+                onLineClick={handleLineClick}
+              />
             )}
           </div>
           {selectedFile && (
