@@ -35,6 +35,7 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
     handleScroll,
     updateAnnotations,
     clearSelectionIfNeeded,
+    annotations,
   } = useEditorInteraction({ filePath })
 
   // Expose scrollToLine via ref
@@ -148,17 +149,20 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
 
     mergeViewRef.current = mergeView
 
+    // Update annotations immediately after creating editor
+    updateAnnotations(mergeView.b)
+
     return () => {
       mergeView.destroy()
     }
-  }, [original, modified, filePath, error, loading, handleSelectionComplete, handleIndicatorClick, handleScroll])
+  }, [original, modified, filePath, error, loading, handleSelectionComplete, handleIndicatorClick, handleScroll, updateAnnotations])
 
   // Update annotated lines when annotations change (on modified side)
   useEffect(() => {
     if (mergeViewRef.current) {
       updateAnnotations(mergeViewRef.current.b)
     }
-  }, [updateAnnotations])
+  }, [annotations, updateAnnotations])
 
   // Clear selection in editor when layout selection is cleared
   useEffect(() => {

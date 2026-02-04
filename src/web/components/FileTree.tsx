@@ -4,6 +4,21 @@ import { File, Folder, FolderOpen, MessageSquare } from 'lucide-react'
 import type { FileNode, ChangedFile, GitInfo } from '../../shared/types'
 import { useAnnotations } from '../context/AnnotationContext'
 
+// Header: 52px, Sidebar header: 45px, Padding: 16px
+const FIXED_OFFSET = 52 + 45 + 16
+
+function useTreeHeight() {
+  const [height, setHeight] = useState(window.innerHeight - FIXED_OFFSET)
+
+  useEffect(() => {
+    const updateHeight = () => setHeight(window.innerHeight - FIXED_OFFSET)
+    window.addEventListener('resize', updateHeight)
+    return () => window.removeEventListener('resize', updateHeight)
+  }, [])
+
+  return height
+}
+
 export type { FileNode }
 
 interface FileTreeProps {
@@ -60,6 +75,7 @@ function Node({ node, style, dragHandle }: NodeRendererProps<FileNode & { annota
       ref={dragHandle}
       style={style}
       className={`tree-node ${node.isSelected ? 'selected' : ''}`}
+      data-folder={data.isDirectory ? 'true' : undefined}
       onClick={() => {
         if (data.isDirectory) {
           node.toggle()
@@ -114,6 +130,7 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { getAnnotationsForFile } = useAnnotations()
+  const treeHeight = useTreeHeight()
 
   useEffect(() => {
     async function loadFiles() {
@@ -131,19 +148,19 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, 
     loadFiles()
   }, [])
 
-  // Add annotation counts to nodes
-  function addAnnotationCounts(nodes: FileNode[]): FileNode[] {
-    return nodes.map((node) => {
-      if (node.isDirectory) {
-        return { ...node, children: node.children ? addAnnotationCounts(node.children) : undefined }
-      }
-      const annotations = getAnnotationsForFile(node.path)
-      return { ...node, annotationCount: annotations.length }
-    })
-  }
-
   // Compute display tree based on view mode and git status
   const displayTree = useMemo(() => {
+    // Add annotation counts to nodes
+    function addAnnotationCounts(nodes: FileNode[]): FileNode[] {
+      return nodes.map((node) => {
+        if (node.isDirectory) {
+          return { ...node, children: node.children ? addAnnotationCounts(node.children) : undefined }
+        }
+        const annotations = getAnnotationsForFile(node.path)
+        return { ...node, annotationCount: annotations.length }
+      })
+    }
+
     let tree = allFiles
 
     // Merge git status if available
@@ -185,9 +202,9 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, 
         data={displayTree}
         openByDefault={showChangedOnly}
         width="100%"
-        height={600}
+        height={treeHeight}
         indent={16}
-        rowHeight={28}
+        rowHeight={26}
         onSelect={(nodes) => {
           const selected = nodes[0]
           if (selected && !selected.data.isDirectory) {

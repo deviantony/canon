@@ -1,5 +1,6 @@
-import { GitCompareArrows, FileCode, MessageSquare } from 'lucide-react'
+import { FileDiff, FileCode, MessageSquare } from 'lucide-react'
 import { useAnnotations } from '../context/AnnotationContext'
+import IconToggle from './IconToggle'
 
 interface EditorHeaderProps {
   filePath: string | null
@@ -12,7 +13,7 @@ interface EditorHeaderProps {
 function getChangesButtonTitle(isNewFile: boolean, canShowDiff: boolean): string {
   if (isNewFile) return 'New file - no changes to compare'
   if (!canShowDiff) return 'No changes to show'
-  return 'View changes'
+  return 'View changes (⌃⌘X)'
 }
 
 export default function EditorHeader({
@@ -25,8 +26,7 @@ export default function EditorHeader({
   const { getAnnotationsForFile } = useAnnotations()
 
   // Get annotation count for this file
-  const fileAnnotations = filePath ? getAnnotationsForFile(filePath) : []
-  const annotationCount = fileAnnotations.length
+  const annotationCount = filePath ? getAnnotationsForFile(filePath).length : 0
 
   if (!filePath) {
     return null
@@ -46,25 +46,23 @@ export default function EditorHeader({
           </span>
         )}
       </div>
-      <div className="view-mode-toggle">
-        <button
-          className={`view-mode-btn ${viewMode === 'diff' ? 'active' : ''}`}
-          onClick={() => onViewModeChange('diff')}
-          disabled={!canShowDiff || isNewFile}
-          title={getChangesButtonTitle(isNewFile, canShowDiff)}
-        >
-          <GitCompareArrows size={14} />
-          <span>Changes</span>
-        </button>
-        <button
-          className={`view-mode-btn ${viewMode === 'code' ? 'active' : ''}`}
-          onClick={() => onViewModeChange('code')}
-          title="View source"
-        >
-          <FileCode size={14} />
-          <span>Source</span>
-        </button>
-      </div>
+      <IconToggle
+        value={viewMode}
+        onChange={onViewModeChange}
+        options={[
+          {
+            value: 'diff',
+            icon: <FileDiff size={15} />,
+            title: getChangesButtonTitle(isNewFile, canShowDiff),
+            disabled: !canShowDiff || isNewFile,
+          },
+          {
+            value: 'code',
+            icon: <FileCode size={15} />,
+            title: canShowDiff && !isNewFile ? 'View source (⌃⌘X)' : 'View source',
+          },
+        ]}
+      />
     </div>
   )
 }

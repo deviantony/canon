@@ -26,6 +26,8 @@ interface UseEditorInteractionReturn {
   updateAnnotations: (view: EditorView) => void
   /** Clear selection if layout selection is cleared */
   clearSelectionIfNeeded: (view: EditorView) => void
+  /** Current annotations - use as effect dependency for annotation updates */
+  annotations: ReturnType<typeof useAnnotations>['annotations']
 }
 
 /**
@@ -41,12 +43,14 @@ export function useEditorInteraction({
   const getAnnotationsRef = useRef(getAnnotationsForFile)
   const setHighlightedRef = useRef(setHighlightedAnnotationId)
   const filePathRef = useRef(filePath)
+  const annotationsRef = useRef(annotations)
 
   // Keep refs up to date
   useEffect(() => {
     getAnnotationsRef.current = getAnnotationsForFile
     setHighlightedRef.current = setHighlightedAnnotationId
     filePathRef.current = filePath
+    annotationsRef.current = annotations
   })
 
   // Callback for when gutter selection completes
@@ -78,15 +82,16 @@ export function useEditorInteraction({
     [setEditorScrollTop]
   )
 
-  // Update annotated lines when annotations change
+  // Update annotated lines - uses refs to stay stable across annotation changes
   const updateAnnotations = useCallback(
     (view: EditorView) => {
-      if (!filePath) return
-      const fileAnnotations = getAnnotationsForFile(filePath)
+      const currentFilePath = filePathRef.current
+      if (!currentFilePath) return
+      const fileAnnotations = getAnnotationsRef.current(currentFilePath)
       const lines = getAnnotatedLineNumbers(fileAnnotations)
       updateAnnotatedLines(view, lines)
     },
-    [filePath, annotations, getAnnotationsForFile]
+    []
   )
 
   // Clear selection in editor when layout selection is cleared
@@ -108,5 +113,6 @@ export function useEditorInteraction({
     handleScroll,
     updateAnnotations,
     clearSelectionIfNeeded,
+    annotations,
   }
 }

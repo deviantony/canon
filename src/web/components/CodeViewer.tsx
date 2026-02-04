@@ -30,6 +30,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
     handleScroll,
     updateAnnotations,
     clearSelectionIfNeeded,
+    annotations,
   } = useEditorInteraction({ filePath })
 
   // Expose scrollToLine via ref
@@ -117,17 +118,20 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
     viewRef.current = view
 
+    // Update annotations immediately after creating editor
+    updateAnnotations(view)
+
     return () => {
       view.destroy()
     }
-  }, [content, filePath, error, handleSelectionComplete, handleIndicatorClick, handleScroll])
+  }, [content, filePath, error, handleSelectionComplete, handleIndicatorClick, handleScroll, updateAnnotations])
 
   // Update annotated lines when annotations change
   useEffect(() => {
     if (viewRef.current) {
       updateAnnotations(viewRef.current)
     }
-  }, [updateAnnotations])
+  }, [annotations, updateAnnotations])
 
   // Clear selection in editor when layout selection is cleared
   useEffect(() => {

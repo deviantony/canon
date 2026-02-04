@@ -116,8 +116,6 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
   )
 }
 
-const NEW_ANNOTATION_MIN_HEIGHT = 60
-
 interface NewAnnotationCardProps {
   lineStart: number
   lineEnd: number
@@ -128,15 +126,13 @@ interface NewAnnotationCardProps {
 
 export function NewAnnotationCard({ lineStart, lineEnd, onSave, onCancel, style }: NewAnnotationCardProps) {
   const [comment, setComment] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Auto-resize textarea on content change
-  useAutoResizeTextarea(textareaRef, comment, NEW_ANNOTATION_MIN_HEIGHT)
+  useAutoResizeTextarea(textareaRef, comment, 48)
 
   useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.focus()
-    }
+    textareaRef.current?.focus()
   }, [])
 
   function handleSave() {
@@ -154,30 +150,45 @@ export function NewAnnotationCard({ lineStart, lineEnd, onSave, onCancel, style 
     }
   }
 
+  const hasContent = comment.trim().length > 0
+
   return (
-    <div className="annotation-card new" style={style}>
-      <div className="annotation-card-header">
-        <div className="annotation-line-badge">
+    <div className={`new-annotation-whisper ${isFocused ? 'focused' : ''}`} style={style}>
+      <div className="new-annotation-whisper__accent" />
+
+      <div className="new-annotation-whisper__body">
+        <div className="new-annotation-whisper__line-marker">
           {formatLineBadge(lineStart, lineEnd)}
         </div>
-      </div>
-      <div className="annotation-card-edit">
+
         <textarea
           ref={textareaRef}
+          className="new-annotation-whisper__input"
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Add your comment..."
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder="Add your thoughts..."
+          spellCheck={false}
         />
-        <div className="annotation-card-edit-footer">
-          <span className="hint">⌘+Enter</span>
-          <button className="annotation-action-btn" onClick={onCancel}>
+
+        <div className={`new-annotation-whisper__actions ${hasContent ? 'visible' : ''}`}>
+          <div className="new-annotation-whisper__hint">
+            <kbd>⌘</kbd>
+            <span>+</span>
+            <kbd>Enter</kbd>
+          </div>
+          <button
+            className="new-annotation-whisper__btn new-annotation-whisper__btn--ghost"
+            onClick={onCancel}
+          >
             Cancel
           </button>
           <button
-            className="annotation-action-btn save"
+            className="new-annotation-whisper__btn new-annotation-whisper__btn--primary"
             onClick={handleSave}
-            disabled={!comment.trim()}
+            disabled={!hasContent}
           >
             Save
           </button>

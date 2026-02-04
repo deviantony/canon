@@ -1,6 +1,7 @@
 import { ReactNode, useRef, useCallback, useEffect, useState } from 'react'
 import { useLayout } from '../context/LayoutContext'
-import { FolderGit2, Files } from 'lucide-react'
+import { Diff, FolderTree } from 'lucide-react'
+import IconToggle from './IconToggle'
 
 interface SidebarProps {
   children: ReactNode
@@ -31,17 +32,12 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
   }, [])
 
   useEffect(() => {
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = 'col-resize'
-      document.body.style.userSelect = 'none'
-    } else {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      document.body.style.cursor = ''
-      document.body.style.userSelect = ''
-    }
+    if (!isResizing) return
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove)
@@ -62,26 +58,24 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
       style={{ width: sidebarWidth }}
     >
       <div className="sidebar-header">
-        <div className="sidebar-filter-toggle">
-          <button
-            className={`filter-btn ${showChangedOnly ? 'active' : ''}`}
-            onClick={() => setShowChangedOnly(true)}
-            title="Show changed files only"
-            disabled={!hasChanges}
-          >
-            <FolderGit2 size={14} />
-            <span>Changed</span>
-            {changedCount > 0 && <span className="filter-badge">{changedCount}</span>}
-          </button>
-          <button
-            className={`filter-btn ${!showChangedOnly ? 'active' : ''}`}
-            onClick={() => setShowChangedOnly(false)}
-            title="Show all files"
-          >
-            <Files size={14} />
-            <span>All</span>
-          </button>
-        </div>
+        <IconToggle
+          value={showChangedOnly ? 'changed' : 'all'}
+          onChange={(v) => setShowChangedOnly(v === 'changed')}
+          options={[
+            {
+              value: 'changed',
+              icon: <Diff size={15} />,
+              title: 'Changed files (⌃⌘Z)',
+              disabled: !hasChanges,
+              badge: changedCount,
+            },
+            {
+              value: 'all',
+              icon: <FolderTree size={15} />,
+              title: 'All files (⌃⌘Z)',
+            },
+          ]}
+        />
       </div>
       <div className="sidebar-content">
         {children}

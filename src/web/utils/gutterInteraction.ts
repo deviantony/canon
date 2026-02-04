@@ -100,6 +100,10 @@ const annotationGutter = gutter({
     }
     return null
   },
+  lineMarkerChange: (update) => {
+    // Re-render markers when annotated lines change
+    return update.state.field(annotatedLinesField) !== update.startState.field(annotatedLinesField)
+  },
   initialSpacer: () => annotationMarker,
 })
 
@@ -220,10 +224,6 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
 
         // Call the callback with the selection
         config.onSelectionComplete(lineStart, lineEnd)
-      }
-
-      update() {
-        // No-op for now
       }
     }
   )

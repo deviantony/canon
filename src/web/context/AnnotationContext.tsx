@@ -1,6 +1,15 @@
 import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
 import { sortAnnotations, groupAnnotationsByFile } from '../utils/annotationUtils'
 
+function escapeXml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 export interface Annotation {
   id: string
   file: string
@@ -14,11 +23,12 @@ interface AnnotationContextValue {
   addAnnotation: (file: string, lineStart: number, comment: string, lineEnd?: number) => void
   updateAnnotation: (id: string, comment: string) => void
   removeAnnotation: (id: string) => void
+  clearAllAnnotations: () => void
   getAnnotationsForFile: (file: string) => Annotation[]
   getSortedAnnotationsForFile: (file: string) => Annotation[]
   getAnnotationsGroupedByFile: () => Map<string, Annotation[]>
   getFileAnnotation: (file: string) => Annotation | undefined
-  formatAsMarkdown: () => string
+  formatAsXml: () => string
 }
 
 const AnnotationContext = createContext<AnnotationContextValue | null>(null)
@@ -50,6 +60,10 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
     setAnnotations((prev) => prev.filter((a) => a.id !== id))
   }, [])
 
+  const clearAllAnnotations = useCallback(() => {
+    setAnnotations([])
+  }, [])
+
   const getAnnotationsForFile = useCallback(
     (file: string) => annotations.filter((a) => a.file === file),
     [annotations]
@@ -70,33 +84,37 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
     [annotations]
   )
 
-  const formatAsMarkdown = useCallback(() => {
+  const formatAsXml = useCallback(() => {
     if (annotations.length === 0) return ''
 
     const byFile = groupAnnotationsByFile(annotations)
-    let md = '## Code Review Feedback\n\n'
+    let xml = '<code-review-feedback>\n'
 
     for (const [file, fileAnnotations] of byFile) {
-      md += `### ${file}\n\n`
+      xml += `  <file path="${escapeXml(file)}">\n`
 
       const sorted = sortAnnotations(fileAnnotations)
 
       for (const annotation of sorted) {
         if (annotation.lineStart === 0) {
-          md += `**File:**\n`
+          xml += `    <annotation type="file">\n`
         } else if (annotation.lineEnd && annotation.lineEnd !== annotation.lineStart) {
-          md += `**Lines ${annotation.lineStart}-${annotation.lineEnd}:**\n`
+          xml += `    <annotation type="range" start="${annotation.lineStart}" end="${annotation.lineEnd}">\n`
         } else {
-          md += `**Line ${annotation.lineStart}:**\n`
+          xml += `    <annotation type="line" line="${annotation.lineStart}">\n`
         }
-        md += `> ${annotation.comment}\n\n`
+        xml += `      <comment>${escapeXml(annotation.comment)}</comment>\n`
+        xml += `    </annotation>\n`
       }
+
+      xml += `  </file>\n`
     }
 
     const fileCount = byFile.size
-    md += `---\n*${annotations.length} annotation${annotations.length === 1 ? '' : 's'} across ${fileCount} file${fileCount === 1 ? '' : 's'}*\n`
+    xml += `  <summary annotations="${annotations.length}" files="${fileCount}" />\n`
+    xml += '</code-review-feedback>'
 
-    return md
+    return xml
   }, [annotations])
 
   return (
@@ -106,11 +124,12 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
         addAnnotation,
         updateAnnotation,
         removeAnnotation,
+        clearAllAnnotations,
         getAnnotationsForFile,
         getSortedAnnotationsForFile,
         getAnnotationsGroupedByFile,
         getFileAnnotation,
-        formatAsMarkdown,
+        formatAsXml,
       }}
     >
       {children}

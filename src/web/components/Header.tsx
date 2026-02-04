@@ -1,15 +1,19 @@
 import { useLayout } from '../context/LayoutContext'
 import { useAnnotations } from '../context/AnnotationContext'
 import { PanelLeft, ListChecks, Send } from 'lucide-react'
+import CountBadge from './CountBadge'
+import KeyboardHint from './KeyboardHint'
 
 interface HeaderProps {
   onSubmit: () => void
   onCancel: () => void
+  onShowShortcuts: () => void
 }
 
 export default function Header({
   onSubmit,
   onCancel,
+  onShowShortcuts,
 }: HeaderProps) {
   const { sidebarVisible, toggleSidebar, setSummaryPopoverOpen } = useLayout()
   const { annotations } = useAnnotations()
@@ -30,7 +34,8 @@ export default function Header({
         >
           <PanelLeft size={16} />
         </button>
-        <h1>Canon</h1>
+        <span className="logo-wordmark">Canon</span>
+        <KeyboardHint onClick={onShowShortcuts} />
       </div>
       <div className="header-actions">
         <button
@@ -41,18 +46,18 @@ export default function Header({
         >
           <ListChecks size={14} />
           <span>Review All</span>
-          {canSubmit && <span className="badge">{annotations.length}</span>}
+          {canSubmit && <CountBadge count={annotations.length} variant="header" />}
         </button>
         <button
           className="btn submit"
           onClick={onSubmit}
           disabled={!canSubmit}
-          title={!canSubmit ? 'Add annotations to submit' : 'Submit review'}
+          title={!canSubmit ? 'Add annotations to submit' : 'Submit review (⌃⌘Enter)'}
         >
           <Send size={14} />
           <span>Submit</span>
         </button>
-        <button className="btn cancel" onClick={onCancel} title="Cancel review">
+        <button className="btn cancel" onClick={onCancel} title="Cancel review (⌃⌘⌫)">
           Cancel
         </button>
       </div>

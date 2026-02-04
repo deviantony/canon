@@ -1,7 +1,7 @@
-import { useAnnotations } from '../context/AnnotationContext'
+import { useAnnotations, type Annotation } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { formatLineBadge, sortAnnotations } from '../utils/annotationUtils'
-import { X, FileText, Pencil, Trash2, Send } from 'lucide-react'
+import { X, FileText, Pencil, Trash2, Send, Eraser } from 'lucide-react'
 
 interface AnnotationSummaryPopoverProps {
   onSubmit: () => void
@@ -15,7 +15,7 @@ export default function AnnotationSummaryPopover({
   onSubmit,
   onNavigate,
 }: AnnotationSummaryPopoverProps) {
-  const { annotations, removeAnnotation, getAnnotationsGroupedByFile } = useAnnotations()
+  const { annotations, removeAnnotation, clearAllAnnotations, getAnnotationsGroupedByFile } = useAnnotations()
   const { summaryPopoverOpen, setSummaryPopoverOpen, setEditingAnnotationId } = useLayout()
 
   if (!summaryPopoverOpen) {
@@ -62,6 +62,11 @@ export default function AnnotationSummaryPopover({
   function handleSubmitClick() {
     setSummaryPopoverOpen(false)
     onSubmit()
+  }
+
+  function handleClearAll() {
+    clearAllAnnotations()
+    setSummaryPopoverOpen(false)
   }
 
   return (
@@ -136,6 +141,15 @@ export default function AnnotationSummaryPopover({
         </div>
 
         <div className="summary-popover-footer">
+          <button
+            className="btn secondary"
+            onClick={handleClearAll}
+            disabled={annotations.length === 0}
+            title="Clear all annotations"
+          >
+            <Eraser size={14} />
+            Clear All
+          </button>
           <button
             className="btn submit"
             onClick={handleSubmitClick}

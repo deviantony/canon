@@ -154,7 +154,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
     <div className="file-annotation-footer empty">
       <div className="file-annotation-input-bar" onClick={handleInputFocus}>
         <FileText size={14} className="file-annotation-input-icon" />
-        <span className="file-annotation-placeholder">Annotate this file...</span>
+        <span className="file-annotation-placeholder">Annotate this file... (⌃⌘C)</span>
       </div>
     </div>
   )
