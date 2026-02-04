@@ -820,33 +820,6 @@ body {
   overflow: auto;
 }
 
-.diff-content .cm-mergeView {
-  height: 100%;
-}
-
-.diff-content .cm-mergeViewEditor {
-  flex: 1;
-}
-
-/* Collapsed unchanged lines indicator - dark theme styling */
-.cm-collapsedLines {
-  background: var(--bg-surface) !important;
-  color: var(--text-tertiary) !important;
-  border-top: 1px solid var(--border-subtle) !important;
-  border-bottom: 1px solid var(--border-subtle) !important;
-  padding: 4px 12px !important;
-  font-size: 11px !important;
-  font-family: var(--font-mono) !important;
-  text-align: center !important;
-  cursor: pointer !important;
-  transition: background 0.15s ease, color 0.15s ease !important;
-}
-
-.cm-collapsedLines:hover {
-  background: var(--bg-elevated) !important;
-  color: var(--text-secondary) !important;
-}
-
 /* ─────────────────────────────────────────────────────────────────────────────
    MARGIN PANEL — FULLY INTEGRATED (NO HEADER)
    ───────────────────────────────────────────────────────────────────────────── */
