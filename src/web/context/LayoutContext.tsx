@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { isMac } from '../utils/keyboard'
 
 export interface LineSelection {
   start: number
@@ -84,7 +85,6 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       // macOS: Ctrl+Cmd+S, Windows/Linux: Ctrl+Alt+S
-      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
       const isShortcut = isMac
         ? (e.ctrlKey && e.metaKey && e.key.toLowerCase() === 's')
         : (e.ctrlKey && e.altKey && e.key.toLowerCase() === 's')

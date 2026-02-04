@@ -4,6 +4,7 @@ import { Annotation } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea'
 import { formatLineBadge } from '../utils/annotationUtils'
+import { getModifierKey } from '../utils/keyboard'
 
 interface AnnotationCardProps {
   annotation: Annotation
@@ -95,7 +96,7 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
             placeholder="Add your comment..."
           />
           <div className="annotation-card-edit-footer">
-            <span className="hint">{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}+Enter</span>
+            <span className="hint">{getModifierKey()}+Enter</span>
             <button className="annotation-action-btn delete" onClick={onDelete} title="Delete">
               <Trash2 size={11} />
             </button>
@@ -170,7 +171,7 @@ export function NewAnnotationCard({ lineStart, lineEnd, onSave, onCancel, style 
 
         <div className={`new-annotation-whisper__actions ${hasContent ? 'visible' : ''}`}>
           <div className="new-annotation-whisper__hint">
-            <kbd>{navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'}</kbd>
+            <kbd>{getModifierKey()}</kbd>
             <span style={{ opacity: 0.5 }}>+</span>
             <kbd>Enter</kbd>
           </div>

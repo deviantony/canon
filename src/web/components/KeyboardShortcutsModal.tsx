@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { X, Command } from 'lucide-react'
+import { formatKey } from '../utils/keyboard'
 
 interface ShortcutItem {
   keys: string[]
@@ -19,27 +20,6 @@ interface KeyboardShortcutsModalProps {
   hasChanges?: boolean
   hasAnnotations?: boolean
   hasSelectedFile?: boolean
-}
-
-const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0
-
-// Helper to render key symbols
-function formatKey(key: string): string {
-  if (isMac) {
-    return key
-      .replace('Ctrl', '⌃')
-      .replace('Cmd', '⌘')
-      .replace('Alt', '⌥')
-      .replace('Shift', '⇧')
-      .replace('Enter', '↵')
-      .replace('Backspace', '⌫')
-      .replace('Escape', 'esc')
-  }
-  return key
-    .replace('Cmd', 'Ctrl')
-    .replace('Enter', '↵')
-    .replace('Backspace', '⌫')
-    .replace('Escape', 'Esc')
 }
 
 export default function KeyboardShortcutsModal({

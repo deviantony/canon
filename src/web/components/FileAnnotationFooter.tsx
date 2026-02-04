@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { FileText, Pencil, Trash2 } from 'lucide-react'
+import { formatShortcut, getModifierKey } from '../utils/keyboard'
 
 interface FileAnnotationFooterProps {
   filePath: string
@@ -136,7 +137,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
             rows={2}
           />
           <div className="file-annotation-edit-actions">
-            <span className="hint">⌘+Enter to save</span>
+            <span className="hint">{getModifierKey()}+Enter to save</span>
             <button className="btn-small cancel" onClick={handleCancel}>
               Cancel
             </button>
@@ -154,7 +155,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
     <div className="file-annotation-footer empty">
       <div className="file-annotation-input-bar" onClick={handleInputFocus}>
         <FileText size={14} className="file-annotation-input-icon" />
-        <span className="file-annotation-placeholder">Annotate this file... (⌃⌘C)</span>
+        <span className="file-annotation-placeholder">Annotate this file... ({formatShortcut('Ctrl+Cmd+C')})</span>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@ import { ReactNode, useRef, useCallback, useEffect, useState } from 'react'
 import { useLayout } from '../context/LayoutContext'
 import { Diff, FolderTree } from 'lucide-react'
 import IconToggle from './IconToggle'
+import { formatShortcut } from '../utils/keyboard'
 
 interface SidebarProps {
   children: ReactNode
@@ -65,14 +66,14 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
             {
               value: 'changed',
               icon: <Diff size={15} />,
-              title: 'Changed files (⌃⌘Z)',
+              title: `Changed files (${formatShortcut('Ctrl+Cmd+Z')})`,
               disabled: !hasChanges,
               badge: changedCount,
             },
             {
               value: 'all',
               icon: <FolderTree size={15} />,
-              title: 'All files (⌃⌘Z)',
+              title: `All files (${formatShortcut('Ctrl+Cmd+Z')})`,
             },
           ]}
         />

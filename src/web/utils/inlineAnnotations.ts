@@ -2,6 +2,7 @@ import { EditorView, Decoration, DecorationSet, WidgetType } from '@codemirror/v
 import { StateField, StateEffect, EditorState } from '@codemirror/state'
 import type { Annotation } from '../context/AnnotationContext'
 import { formatLineBadge } from './annotationUtils'
+import { getModifierKey } from './keyboard'
 
 // Effects for managing annotations
 export const setAnnotationsEffect = StateEffect.define<{
@@ -118,7 +119,7 @@ class AnnotationWidget extends WidgetType {
     const hint = document.createElement('span')
     hint.className = 'inline-annotation-hint'
     const kbd1 = document.createElement('kbd')
-    kbd1.textContent = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'
+    kbd1.textContent = getModifierKey()
     const kbdPlus = document.createElement('span')
     kbdPlus.textContent = '+'
     kbdPlus.style.cssText = 'opacity: 0.5; margin: 0 2px;'
@@ -220,7 +221,7 @@ class NewAnnotationWidget extends WidgetType {
     const hint = document.createElement('span')
     hint.className = 'inline-annotation-hint'
     const kbd1 = document.createElement('kbd')
-    kbd1.textContent = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl'
+    kbd1.textContent = getModifierKey()
     const kbdPlus = document.createElement('span')
     kbdPlus.textContent = '+'
     kbdPlus.style.cssText = 'opacity: 0.5; margin: 0 2px;'
