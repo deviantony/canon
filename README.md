@@ -30,6 +30,7 @@ A browser window opens automatically at `http://localhost:9847`. Browse files, c
 To update the plugin, outside of a Claude Code session run:
 
 ```bash
+claude plugin marketplace update canon
 claude plugin update -s project canon@canon
 ```
 
