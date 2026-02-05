@@ -4,7 +4,7 @@ A browser-based annotation tool for Claude Code that lets you add line-specific 
 
 ## Install
 
-Outside of a Claude Code session, run:
+Install the Claude marketplace and plugin first:
 
 ```bash
 claude plugin marketplace add deviantony/canon
@@ -27,7 +27,7 @@ A browser window opens automatically at `http://localhost:9847`. Browse files, c
 
 ### Update
 
-To update the plugin, outside of a Claude Code session run:
+To update Canon, update the marketplace and plugin:
 
 ```bash
 claude plugin marketplace update canon
