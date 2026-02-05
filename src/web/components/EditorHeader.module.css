@@ -76,3 +76,28 @@
 .annotationCount svg {
   flex-shrink: 0;
 }
+
+/* Fullscreen toggle button */
+.fullscreenBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.fullscreenBtn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.fullscreenBtn:active {
+  transform: scale(0.95);
+}
