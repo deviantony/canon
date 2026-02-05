@@ -1,6 +1,17 @@
-# Canon
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/banner-dark.svg">
+    <img src="assets/banner.svg" alt="Canon" width="600">
+  </picture>
+</p>
 
-A browser-based annotation tool for Claude Code that lets you add line-specific feedback to any file, with annotations flowing back into your conversation as structured context.
+<p align="center">
+  A browser-based annotation tool for Claude Code that lets you add<br>
+  line-specific feedback to any file, with annotations flowing back<br>
+  into your conversation as structured context.
+</p>
+
+---
 
 ## Install
 
