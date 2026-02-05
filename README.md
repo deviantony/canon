@@ -21,7 +21,7 @@ This installs the plugin and downloads the Canon binary for your platform.
 In a Claude Code session:
 
 ```
-/canon
+/canon:new
 ```
 
 A browser window opens automatically at `http://localhost:9847`. Browse files, click lines to annotate, and submit to return feedback to Claude.

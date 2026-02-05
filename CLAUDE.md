@@ -92,4 +92,4 @@ Two React Context providers:
 
 ## Integration
 
-Canon integrates as a Claude Code slash command via `commands/canon.md`. The command runs `canon` binary and captures XML-formatted feedback output.
+Canon integrates as a Claude Code slash command via `commands/new.md`. The command `/canon:new` runs the `canon` binary and captures XML-formatted feedback output.
