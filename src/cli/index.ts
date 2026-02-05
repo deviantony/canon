@@ -1,8 +1,15 @@
 import { startServer } from '../server/index.js'
+import pkg from '../../package.json'
 
 const DEFAULT_PORT = 9847
 
 async function main(): Promise<void> {
+  // Handle --version flag
+  if (process.argv.includes('--version') || process.argv.includes('-v')) {
+    console.log(pkg.version)
+    process.exit(0)
+  }
+
   const port = process.env.CANON_PORT
     ? parseInt(process.env.CANON_PORT)
     : DEFAULT_PORT

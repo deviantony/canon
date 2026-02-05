@@ -4,22 +4,17 @@ A browser-based annotation tool for Claude Code that lets you add line-specific 
 
 ## Install
 
-**1. Install the binary:**
-
-```bash
-git clone https://github.com/deviantony/canon.git
-cd canon
-npm install
-npm run build
-make install  # installs to ~/.local/bin
-```
-
-**2. Install the plugin:**
+In Claude Code, run:
 
 ```
 /plugin marketplace add deviantony/canon
 /plugin install canon@canon
+/canon:setup
 ```
+
+This installs the plugin and downloads the Canon binary for your platform.
+
+**Supported platforms:** Linux (x64, arm64), macOS (Apple Silicon), Windows (x64)
 
 ## Usage
 
@@ -31,9 +26,27 @@ In a Claude Code session:
 
 A browser window opens automatically at `http://localhost:9847`. Browse files, click lines to annotate, and submit to return feedback to Claude.
 
+### Update
+
+To update Canon to the latest version:
+
+```
+/canon:setup
+```
+
+### Custom Install Location
+
+To install the binary to a custom location instead of `~/.local/bin`:
+
+```bash
+export CANON_BIN_DIR=/usr/local/bin
+```
+
+Then run `/canon:setup`.
+
 ### Container/Remote
 
-If running Claude Code in a container or over SSH, set these environment variables before starting your session:
+If running Claude Code in a container or over SSH:
 
 ```bash
 export CANON_PORT=9000
