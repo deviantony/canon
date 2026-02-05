@@ -4,15 +4,14 @@ A browser-based annotation tool for Claude Code that lets you add line-specific 
 
 ## Install
 
-In Claude Code, run:
+Outside of a Claude Code session, run:
 
-```
-/plugin marketplace add deviantony/canon
-/plugin install canon@canon
-/canon:setup
+```bash
+claude plugin marketplace add deviantony/canon
+claude plugin install -s project canon@canon
 ```
 
-This installs the plugin and downloads the Canon binary for your platform.
+Then in a Claude Code session, run `/canon:setup` to download the binary for your platform.
 
 **Supported platforms:** Linux (x64, arm64), macOS (Apple Silicon), Windows (x64)
 
@@ -28,13 +27,13 @@ A browser window opens automatically at `http://localhost:9847`. Browse files, c
 
 ### Update
 
-To keep Canon up to date, [enable auto-updates](https://code.claude.com/docs/en/discover-plugins#configure-auto-updates) for the plugin.
+To update the plugin, outside of a Claude Code session run:
 
-To update the binary to the latest version:
+```bash
+claude plugin update -s project canon@canon
+```
 
-```
-/canon:setup
-```
+Then in a Claude Code session, run `/canon:setup` to update the binary.
 
 Restart Claude Code after updating to ensure changes take effect.
 
