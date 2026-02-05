@@ -8,15 +8,15 @@
 
 ## Executive Summary
 
-This comprehensive audit of the Canon codebase identified **67 specific issues** across 10 categories. The codebase demonstrates strong fundamentals with good TypeScript practices (zero `any` types), proper React patterns, and a well-designed architecture. However, there are significant opportunities for improvement in code consistency, CSS organization, and error handling.
+This comprehensive audit of the Canon codebase identified **65 specific issues** across 9 categories. The codebase demonstrates strong fundamentals with good TypeScript practices (zero `any` types), proper React patterns, and a well-designed architecture. However, there are significant opportunities for improvement in code consistency, CSS organization, and error handling.
 
 ### Severity Distribution
 | Severity | Count | Description |
 |----------|-------|-------------|
 | Critical | 5 | Must fix - affects functionality/maintainability |
 | High | 18 | Should fix - significant technical debt |
-| Medium | 28 | Worth fixing - improves code quality |
-| Low | 16 | Nice to have - minor improvements |
+| Medium | 27 | Worth fixing - improves code quality |
+| Low | 15 | Nice to have - minor improvements |
 
 ---
 
@@ -30,7 +30,7 @@ This comprehensive audit of the Canon codebase identified **67 specific issues**
 7. [Build & Configuration Issues](#7-build--configuration-issues)
 8. [Code Duplication](#8-code-duplication)
 9. [Documentation Issues](#9-documentation-issues)
-10. [Recommendations Summary](#10-recommendations-summary)
+10. [Appendix: Files Requiring Most Attention](#appendix-files-requiring-most-attention)
 
 ---
 
@@ -198,26 +198,6 @@ const toggleEditorFullscreen = useCallback(() => {
 ```
 
 **Impact:** The keyboard handler `useEffect` that depends on `toggleEditorFullscreen` is recreated frequently.
-
-### 3.3 Action Naming Inconsistency Between Contexts
-
-| Context | Pattern | Examples |
-|---------|---------|----------|
-| AnnotationContext | Verb-based | `addAnnotation`, `removeAnnotation`, `updateAnnotation` |
-| LayoutContext | Setter/toggle | `setSidebarWidth`, `setSelectedLines`, `toggleSidebar` |
-
-**Recommendation:** Choose consistent naming convention.
-
-### 3.4 Missing Input Validation
-
-**Severity: LOW**
-**Location:** `src/web/context/AnnotationContext.tsx`
-
-`addAnnotation` accepts inputs without validation:
-- Empty file path allowed
-- Negative/zero lineStart allowed
-- lineEnd < lineStart allowed
-- Empty comment allowed
 
 ---
 
@@ -534,47 +514,6 @@ decodeURIComponent(url.pathname.slice('/api/git/original/'.length))
 | `src/web/utils/gutterInteraction.ts` | Plugin classes undocumented |
 | `src/web/utils/inlineAnnotations.ts` | StateField purpose unclear |
 | `src/server/git.ts` | DiffStats interface undocumented |
-
----
-
-## 10. Recommendations Summary
-
-### Critical (Fix Immediately)
-
-1. **Fix CLAUDE.md script names** - Update to match actual package.json scripts
-2. **Add missing status code** - `src/server/index.ts:85` should return 400 on error
-3. **Remove global mutable state** - `inlineAnnotations.ts` should use Context/Props
-4. **Pin dependency versions** - Replace `"latest"` with specific versions
-5. **Consolidate duplicate CSS** - Create shared component classes
-
-### High Priority (Fix Soon)
-
-1. Use existing `useAutoResizeTextarea` hook instead of duplicating logic
-2. Standardize error response patterns across server modules
-3. Consolidate keyboard event handling
-4. Extract duplicate CSS patterns (badges, buttons, textareas, cards)
-5. Create CSS variables for hard-coded colors and z-index values
-6. Standardize CSS naming convention (choose camelCase or kebab-case)
-7. Extract utility helpers in gutterInteraction.ts and inlineAnnotations.ts
-
-### Medium Priority (Plan to Fix)
-
-1. Split LayoutContext into multiple focused contexts
-2. Extract shared types to `src/shared/types.ts`
-3. Document utility functions with JSDoc
-4. Consider making file operations async
-5. Refactor fetch handler into route handlers
-6. Add input validation to context actions
-7. Fix toggleEditorFullscreen dependency issue
-8. Update outdated dependencies
-
-### Low Priority (Nice to Have)
-
-1. Add TypeScript strict null checks for DOM navigation
-2. Standardize focus timing patterns
-3. Add minimum height to AnnotationWidget textarea
-4. Replace animation reflow hack with CSS animations
-5. Standardize callback naming conventions
 
 ---
 
