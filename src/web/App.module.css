@@ -211,7 +211,7 @@
   padding: 0 4px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   color: var(--text-muted);
   font-size: 8px;
   font-weight: 600;
@@ -378,7 +378,7 @@
   padding: 0 4px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   color: var(--text-muted);
   font-size: 8px;
   font-weight: 600;

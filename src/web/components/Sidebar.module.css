@@ -38,7 +38,7 @@
 
 .sidebarContent::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .sidebarContent::-webkit-scrollbar-thumb:hover {

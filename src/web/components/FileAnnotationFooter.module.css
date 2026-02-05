@@ -18,7 +18,7 @@
   cursor: text;
   background: var(--gradient-input);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   transition: all var(--duration-normal) var(--ease-default);
 }
 
@@ -48,7 +48,7 @@
   padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
   background: var(--gradient-card);
   border: 1px solid var(--accent-gold-muted);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   transition: all var(--duration-normal) var(--ease-default);
 }
 
@@ -100,7 +100,7 @@
   padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
   background: var(--gradient-card-active);
   border: 1px solid var(--accent-gold);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   animation: fadeSlideIn var(--duration-slow) var(--ease-smooth);
 }
 
@@ -146,7 +146,7 @@
   padding: 0 4px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   color: var(--text-muted);
   font-size: 8px;
   font-weight: 600;

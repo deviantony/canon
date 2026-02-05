@@ -113,9 +113,12 @@
   --space-10: 40px;
 
   /* ═══ RADII ═══ */
+  --radius-xs: 2px;
+  --radius-btn: 3px;
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --radius-pill: 99px;
 
   /* ═══ ANIMATION ═══ */
   --duration-fast: 0.15s;
@@ -262,7 +265,7 @@ body {
   padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
   background: var(--gradient-card);
   border: 1px solid var(--accent-gold-muted);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   font-family: var(--font-display);
   transition: all var(--duration-normal) var(--ease-default);
 }
@@ -319,7 +322,7 @@ body {
   padding: 2px 10px;
   background: var(--color-gold-alpha-08);
   border: 1px solid var(--accent-gold-muted);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   color: var(--accent-gold-muted);
   font-size: 10px;
   font-weight: 600;
@@ -396,7 +399,7 @@ body {
   padding: 5px 10px;
   background: transparent;
   border: 1px solid var(--border-subtle);
-  border-radius: 3px;
+  border-radius: var(--radius-btn);
   color: var(--text-tertiary);
   font-family: var(--font-mono);
   font-size: 9px;
@@ -511,7 +514,7 @@ body {
   padding: 0 4px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-subtle);
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   color: var(--text-muted);
   font-size: 8px;
   font-weight: 600;
@@ -535,7 +538,7 @@ body {
 .cm-lineNumbers .cm-gutterElement {
   cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
-  border-radius: 2px;
+  border-radius: var(--radius-xs);
   position: relative;
 }
 
@@ -603,7 +606,7 @@ body {
   padding: 4px 10px;
   background: var(--bg-surface);
   border: 1px solid var(--accent-gold);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.4),
     0 0 0 1px rgba(212, 165, 116, 0.2);
@@ -628,7 +631,7 @@ body {
   width: 16px;
   height: 16px;
   background: rgba(212, 165, 116, 0.15);
-  border-radius: 3px;
+  border-radius: var(--radius-btn);
 }
 
 .line-selection-indicator-icon svg {
