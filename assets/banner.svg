@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <!-- Subtle noise texture -->
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" in2="noise" mode="multiply"/>
+    </filter>
+
+    <!-- Elegant gradient for accent -->
+    <linearGradient id="accentLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1a1a1a" stop-opacity="0"/>
+      <stop offset="15%" stop-color="#1a1a1a" stop-opacity="1"/>
+      <stop offset="85%" stop-color="#1a1a1a" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#1a1a1a" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background with subtle warmth -->
+  <rect width="800" height="200" fill="#faf9f7"/>
+
+  <!-- Top decorative rule -->
+  <rect x="100" y="32" width="600" height="1" fill="url(#accentLine)"/>
+
+  <!-- Ornamental diamond -->
+  <g transform="translate(400, 32)">
+    <rect x="-4" y="-4" width="8" height="8" fill="#1a1a1a" transform="rotate(45)"/>
+  </g>
+
+  <!-- Main wordmark - CANON in elegant tracked capitals -->
+  <text x="400" y="115"
+        font-family="'Playfair Display', 'Georgia', 'Times New Roman', serif"
+        font-size="72"
+        font-weight="400"
+        letter-spacing="0.35em"
+        text-anchor="middle"
+        fill="#1a1a1a">CANON</text>
+
+  <!-- Tagline in refined small caps style -->
+  <text x="400" y="148"
+        font-family="'SF Mono', 'Consolas', 'Monaco', monospace"
+        font-size="11"
+        font-weight="400"
+        letter-spacing="0.25em"
+        text-anchor="middle"
+        fill="#6b6b6b">LINE-SPECIFIC CODE ANNOTATIONS FOR CLAUDE</text>
+
+  <!-- Bottom decorative rule -->
+  <rect x="100" y="168" width="600" height="1" fill="url(#accentLine)"/>
+
+  <!-- Corner ornaments - subtle editorial flourish -->
+  <g fill="#1a1a1a">
+    <!-- Top left -->
+    <rect x="100" y="28" width="12" height="1"/>
+    <rect x="100" y="28" width="1" height="12"/>
+
+    <!-- Top right -->
+    <rect x="688" y="28" width="12" height="1"/>
+    <rect x="699" y="28" width="1" height="12"/>
+
+    <!-- Bottom left -->
+    <rect x="100" y="172" width="12" height="1"/>
+    <rect x="100" y="161" width="1" height="12"/>
+
+    <!-- Bottom right -->
+    <rect x="688" y="172" width="12" height="1"/>
+    <rect x="699" y="161" width="1" height="12"/>
+  </g>
+</svg>
