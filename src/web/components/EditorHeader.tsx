@@ -1,5 +1,6 @@
-import { FileDiff, FileCode, MessageSquare } from 'lucide-react'
+import { FileDiff, FileCode, MessageSquare, Maximize2 } from 'lucide-react'
 import { useAnnotations } from '../context/AnnotationContext'
+import { useLayout } from '../context/LayoutContext'
 import IconToggle from './IconToggle'
 import StatusBadge from './StatusBadge'
 import { formatShortcut } from '../utils/keyboard'
@@ -36,6 +37,7 @@ export default function EditorHeader({
   lineCount,
 }: EditorHeaderProps) {
   const { getAnnotationsForFile } = useAnnotations()
+  const { toggleEditorFullscreen } = useLayout()
 
   // Get annotation count for this file
   const annotationCount = filePath ? getAnnotationsForFile(filePath).length : 0
@@ -91,6 +93,13 @@ export default function EditorHeader({
             },
           ]}
         />
+        <button
+          className={styles.fullscreenBtn}
+          onClick={toggleEditorFullscreen}
+          title={`Focus mode (${formatShortcut('Ctrl+Cmd+V')})`}
+        >
+          <Maximize2 size={14} />
+        </button>
       </div>
     </div>
   )

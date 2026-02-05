@@ -61,6 +61,7 @@ export default function KeyboardShortcutsModal({
     {
       title: 'Navigation',
       shortcuts: [
+        { keys: ['Ctrl', 'Cmd', 'V'], label: 'Toggle focus mode', available: hasSelectedFile },
         { keys: ['Ctrl', 'Cmd', 'S'], label: 'Toggle sidebar', available: true },
         { keys: ['Ctrl', 'Cmd', 'Z'], label: 'Toggle changed/all files', available: hasChanges },
         { keys: ['Ctrl', 'Cmd', 'X'], label: 'Toggle diff/source view', available: canShowDiff },

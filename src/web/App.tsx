@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { X, Minimize2, FileText, Pencil, Trash2, FileDiff, FileCode } from 'lucide-react'
 import FileTree from './components/FileTree'
 import CodeViewer, { CodeViewerRef } from './components/CodeViewer'
 import DiffViewer, { DiffViewerRef } from './components/DiffViewer'
 import FileAnnotationFooter from './components/FileAnnotationFooter'
 import EditorHeader from './components/EditorHeader'
+import IconToggle from './components/IconToggle'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import AnnotationSummaryPopover from './components/AnnotationSummaryPopover'
@@ -12,10 +14,16 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal'
 import { AnnotationProvider, useAnnotations } from './context/AnnotationContext'
 import { LayoutProvider, useLayout } from './context/LayoutContext'
 import type { FeedbackResult, GitInfo } from '../shared/types'
+import { getModifierKey, formatShortcut } from './utils/keyboard'
 import styles from './App.module.css'
 
 // Delay to allow file content to load before scrolling
 const NAVIGATION_SCROLL_DELAY_MS = 100
+
+// Fullscreen mode configuration
+const FULLSCREEN_HEADER_DIM_TIMEOUT_MS = 2000
+const FULLSCREEN_HEADER_HOVER_ZONE_PX = 100
+const FULLSCREEN_DEBOUNCE_MS = 50
 
 function AppContent() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
@@ -25,9 +33,28 @@ function AppContent() {
   const [completionState, setCompletionState] = useState<'submitted' | 'cancelled' | null>(null)
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false)
   const [lineCount, setLineCount] = useState<number | undefined>(undefined)
+  const [floatingHeaderDimmed, setFloatingHeaderDimmed] = useState(false)
+  const floatingHeaderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [modalAnnotationText, setModalAnnotationText] = useState('')
+  const [isEditingModalAnnotation, setIsEditingModalAnnotation] = useState(false)
+  const modalTextareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const { formatAsXml, annotations } = useAnnotations()
-  const { clearSelection, setFileAnnotationExpanded } = useLayout()
+  const {
+    formatAsXml,
+    annotations,
+    getFileAnnotation,
+    addAnnotation,
+    updateAnnotation,
+    removeAnnotation,
+  } = useAnnotations()
+  const {
+    clearSelection,
+    setFileAnnotationExpanded,
+    fileAnnotationExpanded,
+    editorFullscreen,
+    fullscreenHintShown,
+    exitFullscreen,
+  } = useLayout()
 
   const codeViewerRef = useRef<CodeViewerRef>(null)
   const diffViewerRef = useRef<DiffViewerRef>(null)
@@ -230,6 +257,105 @@ function AppContent() {
     scrollToLine(Math.max(line, 1))
   }, [scrollToLine])
 
+  // Auto-dim floating header in fullscreen after inactivity
+  useEffect(() => {
+    if (!editorFullscreen) {
+      setFloatingHeaderDimmed(false)
+      return
+    }
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+    function resetDimTimer() {
+      setFloatingHeaderDimmed(false)
+      if (floatingHeaderTimeoutRef.current) {
+        clearTimeout(floatingHeaderTimeoutRef.current)
+      }
+      floatingHeaderTimeoutRef.current = setTimeout(() => {
+        setFloatingHeaderDimmed(true)
+      }, FULLSCREEN_HEADER_DIM_TIMEOUT_MS)
+    }
+
+    // Initial timer
+    resetDimTimer()
+
+    // Debounced mouse move handler for better performance
+    function handleMouseMove(e: MouseEvent) {
+      if (e.clientY < FULLSCREEN_HEADER_HOVER_ZONE_PX) {
+        if (debounceTimer) return
+        debounceTimer = setTimeout(() => {
+          debounceTimer = null
+          resetDimTimer()
+        }, FULLSCREEN_DEBOUNCE_MS)
+      }
+    }
+
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      if (floatingHeaderTimeoutRef.current) {
+        clearTimeout(floatingHeaderTimeoutRef.current)
+      }
+      if (debounceTimer) {
+        clearTimeout(debounceTimer)
+      }
+    }
+  }, [editorFullscreen])
+
+  // Get file annotation for modal
+  const fileAnnotation = selectedFile ? getFileAnnotation(selectedFile) : null
+
+  // Reset modal state when opening/closing or file changes
+  useEffect(() => {
+    if (fileAnnotationExpanded && editorFullscreen && selectedFile) {
+      if (fileAnnotation) {
+        setModalAnnotationText(fileAnnotation.comment)
+        setIsEditingModalAnnotation(false)
+      } else {
+        setModalAnnotationText('')
+        setIsEditingModalAnnotation(true)
+      }
+      // Focus textarea after modal opens
+      setTimeout(() => modalTextareaRef.current?.focus(), 100)
+    }
+  }, [fileAnnotationExpanded, editorFullscreen, selectedFile, fileAnnotation])
+
+  // Modal handlers
+  const handleModalSave = useCallback(() => {
+    if (!selectedFile || !modalAnnotationText.trim()) return
+    if (fileAnnotation) {
+      updateAnnotation(fileAnnotation.id, modalAnnotationText.trim())
+    } else {
+      addAnnotation(selectedFile, 0, modalAnnotationText.trim())
+    }
+    setFileAnnotationExpanded(false)
+    setIsEditingModalAnnotation(false)
+  }, [selectedFile, modalAnnotationText, fileAnnotation, updateAnnotation, addAnnotation, setFileAnnotationExpanded])
+
+  const handleModalDelete = useCallback(() => {
+    if (fileAnnotation) {
+      removeAnnotation(fileAnnotation.id)
+    }
+    setFileAnnotationExpanded(false)
+    setIsEditingModalAnnotation(false)
+    setModalAnnotationText('')
+  }, [fileAnnotation, removeAnnotation, setFileAnnotationExpanded])
+
+  const handleModalClose = useCallback(() => {
+    setFileAnnotationExpanded(false)
+    setIsEditingModalAnnotation(false)
+  }, [setFileAnnotationExpanded])
+
+  const handleModalKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      handleModalSave()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleModalClose()
+    }
+  }, [handleModalSave, handleModalClose])
+
   // Determine which viewer to show
   const showDiffViewer = viewMode === 'diff' && canShowDiff && !isNewFile
 
@@ -303,6 +429,158 @@ function AppContent() {
         hasAnnotations={annotations.length > 0}
         hasSelectedFile={!!selectedFile}
       />
+      {/* Fullscreen Mode Overlay */}
+      {editorFullscreen && selectedFile && (
+        <div className={styles.fullscreenOverlay}>
+          {/* Floating header pill */}
+          <div
+            className={`${styles.floatingHeader} ${floatingHeaderDimmed ? styles.dimmed : ''}`}
+          >
+            <span className={styles.floatingFilePath}>{selectedFile}</span>
+            {lineCount !== undefined && lineCount > 0 && (
+              <span className={styles.floatingLineCount}>{lineCount} ln</span>
+            )}
+            {canShowDiff && !isNewFile && (
+              <IconToggle
+                variant="compact"
+                value={viewMode}
+                onChange={setViewMode}
+                options={[
+                  { value: 'diff', icon: <FileDiff size={13} />, title: `View changes (${formatShortcut('Ctrl+Cmd+X')})` },
+                  { value: 'code', icon: <FileCode size={13} />, title: `View source (${formatShortcut('Ctrl+Cmd+X')})` },
+                ]}
+              />
+            )}
+            <button
+              className={styles.floatingExitBtn}
+              onClick={exitFullscreen}
+              title="Exit focus mode (Esc)"
+            >
+              <Minimize2 size={12} />
+            </button>
+          </div>
+
+          {/* Main content area */}
+          <div className={styles.fullscreenContent}>
+            <div className={styles.fullscreenEditorPanel}>
+              {showDiffViewer ? (
+                <DiffViewer
+                  ref={diffViewerRef}
+                  filePath={selectedFile}
+                  status={selectedFileStatus}
+                  onLineClick={handleLineClick}
+                />
+              ) : (
+                <CodeViewer
+                  ref={codeViewerRef}
+                  filePath={selectedFile}
+                  onLineClick={handleLineClick}
+                />
+              )}
+            </div>
+
+            {/* Annotation modal — command palette style */}
+            {fileAnnotationExpanded && (
+              <div
+                className={styles.annotationModalBackdrop}
+                onClick={handleModalClose}
+              >
+                <div
+                  className={styles.annotationModal}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className={styles.annotationModalHeader}>
+                    <div className={styles.annotationModalIcon}>
+                      <FileText size={14} />
+                    </div>
+                    <span className={styles.annotationModalTitle}>
+                      File Annotation
+                    </span>
+                    <button
+                      className={styles.annotationModalClose}
+                      onClick={handleModalClose}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  <div className={styles.annotationModalBody}>
+                    {isEditingModalAnnotation || !fileAnnotation ? (
+                      <textarea
+                        ref={modalTextareaRef}
+                        className={styles.annotationModalTextarea}
+                        value={modalAnnotationText}
+                        onChange={(e) => setModalAnnotationText(e.target.value)}
+                        onKeyDown={handleModalKeyDown}
+                        placeholder="Add a note about this file..."
+                      />
+                    ) : (
+                      <>
+                        <div className={styles.annotationModalContent}>
+                          {fileAnnotation.comment}
+                        </div>
+                        <div className={styles.annotationModalContentActions}>
+                          <button
+                            className={styles.annotationModalBtn}
+                            onClick={() => {
+                              setIsEditingModalAnnotation(true)
+                              setModalAnnotationText(fileAnnotation.comment)
+                              setTimeout(() => modalTextareaRef.current?.focus(), 50)
+                            }}
+                          >
+                            <Pencil size={12} />
+                            Edit
+                          </button>
+                          <button
+                            className={styles.annotationModalBtn}
+                            onClick={handleModalDelete}
+                          >
+                            <Trash2 size={12} />
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {(isEditingModalAnnotation || !fileAnnotation) && (
+                    <div className={styles.annotationModalFooter}>
+                      <div className={styles.annotationModalHint}>
+                        <kbd>{getModifierKey()}</kbd>
+                        <span className={styles.hintSeparator}>+</span>
+                        <kbd>Enter</kbd>
+                      </div>
+                      <div className={styles.annotationModalActions}>
+                        <button
+                          className={styles.annotationModalBtn}
+                          onClick={handleModalClose}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className={`${styles.annotationModalBtn} ${styles.primary}`}
+                          onClick={handleModalSave}
+                          disabled={!modalAnnotationText.trim()}
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ESC hint — only shown first time */}
+          {!fullscreenHintShown && (
+            <div className={styles.escHint}>
+              <kbd>ESC</kbd>
+              <span>to exit</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

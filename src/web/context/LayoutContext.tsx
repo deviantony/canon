@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react'
 import { isMac } from '../utils/keyboard'
 
 export interface LineSelection {
@@ -14,6 +14,8 @@ interface LayoutState {
   fileAnnotationExpanded: boolean
   summaryPopoverOpen: boolean
   highlightedAnnotationId: string | null
+  editorFullscreen: boolean
+  fullscreenHintShown: boolean
 }
 
 interface LayoutContextValue extends LayoutState {
@@ -25,6 +27,8 @@ interface LayoutContextValue extends LayoutState {
   setSummaryPopoverOpen: (open: boolean) => void
   setHighlightedAnnotationId: (id: string | null) => void
   clearSelection: () => void
+  toggleEditorFullscreen: () => void
+  exitFullscreen: () => void
 }
 
 const LayoutContext = createContext<LayoutContextValue | null>(null)
@@ -45,6 +49,9 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   const [fileAnnotationExpanded, setFileAnnotationExpanded] = useState(false)
   const [summaryPopoverOpen, setSummaryPopoverOpen] = useState(false)
   const [highlightedAnnotationId, setHighlightedAnnotationId] = useState<string | null>(null)
+  const [editorFullscreen, setEditorFullscreen] = useState(false)
+  const [fullscreenHintShown, setFullscreenHintShown] = useState(false)
+  const sidebarWasVisibleRef = useRef(true)
 
   const toggleSidebar = useCallback(() => {
     setSidebarVisible(prev => !prev)
@@ -61,13 +68,40 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     setHighlightedAnnotationId(null)
   }, [])
 
-  // Global Escape key handler to clear selections
+  const toggleEditorFullscreen = useCallback(() => {
+    setEditorFullscreen(prev => {
+      if (!prev) {
+        // Entering fullscreen: remember sidebar state and hide it
+        sidebarWasVisibleRef.current = sidebarVisible
+        setSidebarVisible(false)
+      } else {
+        // Exiting fullscreen: restore sidebar state
+        setSidebarVisible(sidebarWasVisibleRef.current)
+      }
+      return !prev
+    })
+  }, [sidebarVisible])
+
+  const exitFullscreen = useCallback(() => {
+    if (editorFullscreen) {
+      setEditorFullscreen(false)
+      setSidebarVisible(sidebarWasVisibleRef.current)
+    }
+  }, [editorFullscreen])
+
+  // Global Escape key handler to clear selections or exit fullscreen
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
-        // Don't clear if user is typing in an input/textarea
+        // Don't interfere if user is typing in an input/textarea
         const target = e.target as HTMLElement
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+          return
+        }
+        // Fullscreen exit takes priority
+        if (editorFullscreen) {
+          e.preventDefault()
+          exitFullscreen()
           return
         }
         clearSelection()
@@ -78,7 +112,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [clearSelection])
+  }, [clearSelection, editorFullscreen, exitFullscreen])
 
   // Ctrl+Cmd+S (macOS) / Ctrl+Alt+S (Windows/Linux) to toggle sidebar
   useEffect(() => {
@@ -98,6 +132,23 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [toggleSidebar])
 
+  // Ctrl+Cmd+V (macOS) / Ctrl+Alt+V (Windows/Linux) to toggle fullscreen
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const isShortcut = isMac
+        ? (e.ctrlKey && e.metaKey && e.key.toLowerCase() === 'v')
+        : (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'v')
+
+      if (isShortcut) {
+        e.preventDefault()
+        toggleEditorFullscreen()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [toggleEditorFullscreen])
+
   // Clear highlight after animation duration
   useEffect(() => {
     if (highlightedAnnotationId) {
@@ -107,6 +158,16 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
       return () => clearTimeout(timer)
     }
   }, [highlightedAnnotationId])
+
+  // Mark fullscreen hint as shown after the animation completes (3s)
+  useEffect(() => {
+    if (editorFullscreen && !fullscreenHintShown) {
+      const timer = setTimeout(() => {
+        setFullscreenHintShown(true)
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [editorFullscreen, fullscreenHintShown])
 
   return (
     <LayoutContext.Provider
@@ -118,6 +179,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         fileAnnotationExpanded,
         summaryPopoverOpen,
         highlightedAnnotationId,
+        editorFullscreen,
+        fullscreenHintShown,
         toggleSidebar,
         setSidebarWidth,
         setSelectedLines,
@@ -126,6 +189,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         setSummaryPopoverOpen,
         setHighlightedAnnotationId,
         clearSelection,
+        toggleEditorFullscreen,
+        exitFullscreen,
       }}
     >
       {children}

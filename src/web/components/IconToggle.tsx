@@ -13,15 +13,21 @@ interface IconToggleProps<T extends string> {
   options: [ToggleOption<T>, ToggleOption<T>]
   value: T
   onChange: (value: T) => void
+  variant?: 'default' | 'compact'
 }
 
 export default function IconToggle<T extends string>({
   options,
   value,
   onChange,
+  variant = 'default',
 }: IconToggleProps<T>) {
+  const containerClass = variant === 'compact'
+    ? `${styles.iconToggle} ${styles.compact}`
+    : styles.iconToggle
+
   return (
-    <div className={styles.iconToggle}>
+    <div className={containerClass}>
       {options.map((option) => {
         const isActive = value === option.value
         const showBadge = option.badge !== undefined && option.badge > 0 && isActive
