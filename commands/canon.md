@@ -1,24 +1,29 @@
 ---
 description: Open annotation session to annotate code with line-specific feedback
-allowed-tools: Bash(which:*), Bash(canon:*)
+allowed-tools: Bash(command:*), Bash(canon:*)
 ---
 
 ## Binary Check
 
-First, verify the Canon binary is installed:
+First, verify the Canon binary is installed by running:
 
-!`which canon`
+```bash
+command -v canon >/dev/null 2>&1 && echo "INSTALLED" || echo "NOT_INSTALLED"
+```
 
-If the binary is not found, stop and tell the user:
-"Canon binary not found. Run `/canon:setup` to install it."
+If the output is "NOT_INSTALLED", stop immediately and tell the user:
 
-Do not proceed if the binary is not installed.
+**Canon binary not found.** Run `/canon:setup` to install it.
+
+Do not proceed further if the binary is not installed.
 
 ## Code Review Feedback
 
-If the binary exists, run it:
+Only if the binary is installed, run:
 
-!`canon`
+```bash
+canon
+```
 
 ## Your Task
 
