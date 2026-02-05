@@ -136,4 +136,27 @@ src/web/
   - `btn`, `btnSubmit`, `btnCancel`, `btnSecondary`, `btnReviewAll` — Standard buttons
   - `cardText`, `cardHeader`, `cardActions`, `cardEditFooter`, `hint` — Card utilities
 - Keep component-specific styles (states, contextual selectors) in the component module
-- Global styles only for: tokens, reset, animations, inline annotations, CodeMirror overrides
+- Global styles only for: tokens, reset, scrollbar, inline annotations (imperative DOM), CodeMirror overrides
+
+### Keyframe Animations in CSS Modules
+
+**CSS Modules cannot reference global keyframes.** Animation names are scoped automatically.
+
+If a component uses `animation: fadeSlideIn`, it must define the keyframe locally:
+```css
+/* Component.module.css */
+.card {
+  animation: fadeSlideIn var(--duration-slow) var(--ease-smooth) both;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+```
+
+The global `@keyframes fadeSlideIn` in `globals.css` is only for:
+- Inline annotation widgets (created via imperative DOM)
+- Third-party library overrides (CodeMirror)
+
+This duplication is intentional and required by CSS Modules.
