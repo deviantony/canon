@@ -68,37 +68,6 @@
   transform: translateX(0);
 }
 
-/* Action buttons */
-.action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-default);
-}
-
-.action:hover {
-  background: var(--bg-active);
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
-}
-
-.action:active {
-  transform: scale(0.95);
-}
-
-.actionDelete:hover {
-  color: var(--status-error);
-  background: rgba(196, 122, 122, 0.1);
-  border-color: rgba(196, 122, 122, 0.2);
-}
-
 /* Line badge */
 .lineBadge {
   display: inline-flex;
@@ -129,16 +98,6 @@
   color: var(--accent-gold-bright);
   border-color: var(--accent-gold-bright);
   background: var(--color-gold-alpha-15);
-}
-
-/* Text content */
-.text {
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--text-primary);
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin-top: var(--space-2);
 }
 
 /* Edit mode */
@@ -192,65 +151,3 @@
   text-transform: uppercase;
 }
 
-/* Compact action buttons for edit footer */
-.actionBtn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 10px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all 0.2s var(--ease-default);
-}
-
-.actionBtn:hover {
-  border-color: var(--border-default);
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.actionBtn:active {
-  transform: scale(0.97);
-}
-
-.actionBtnSave {
-  composes: actionBtn;
-  border-color: var(--accent-gold-muted);
-  color: var(--accent-gold);
-  font-weight: 600;
-}
-
-.actionBtnSave:hover:not(:disabled) {
-  border-color: var(--accent-gold);
-  background: var(--color-gold-alpha-08);
-  color: var(--accent-gold-bright);
-}
-
-.actionBtnSave:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.actionBtnSave:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-.actionBtnDelete {
-  composes: actionBtn;
-  padding: 5px;
-  border-color: transparent;
-}
-
-.actionBtnDelete:hover {
-  color: var(--status-error);
-  background: rgba(196, 122, 122, 0.06);
-  border-color: rgba(196, 122, 122, 0.2);
-}

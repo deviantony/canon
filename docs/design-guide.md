@@ -69,15 +69,20 @@ Annotation cards use a consistent pattern:
 
 ### Buttons
 
-**Icon buttons** (`.action` in modules):
+**Icon buttons** (`baseStyles.actionIcon`):
 - 26x26px, transparent background
 - Hover: subtle background, border appears
-- Delete variant: red on hover
+- Delete variant (`actionIconDelete`): red on hover
 
-**Text buttons** (`.btn`, `.actionBtn`):
+**Text buttons** (`baseStyles.textBtn`):
 - Monospace, uppercase, 9px
 - Border with subtle background on hover
-- Save variant: gold accent color
+- Save variant (`textBtnSave`): gold accent color
+- Delete variant (`textBtnDelete`): red on hover
+
+**Standard buttons** (`baseStyles.btn`):
+- 13px display font, rounded
+- Variants: `btnSubmit` (gold), `btnCancel` (outline), `btnSecondary` (outline, red hover)
 
 ### Badges
 
@@ -107,15 +112,28 @@ Annotation cards use a consistent pattern:
 ```
 src/web/
 ├── styles/
-│   └── globals.css      # Tokens, reset, scrollbar, animations, CodeMirror overrides, inline annotations
+│   ├── globals.css         # Tokens, reset, scrollbar, animations, CodeMirror overrides, inline annotations
+│   └── base.module.css     # Shared patterns: actionIcon, textBtn, lineBadge, btn, card utilities
+├── App.tsx
+├── App.module.css          # App layout (app, main, contentArea, editorPanel)
 └── components/
     ├── Component.tsx
-    └── Component.module.css  # Co-located styles
+    └── Component.module.css  # Co-located component styles
 ```
 
 ## CSS Modules Convention
 
-- Use camelCase for class names: `.cardHeader`, `.actionBtn`
-- Use `composes` for shared base styles
-- Keep component-specific styles in the module
-- Global styles only for: tokens, reset, animations, CodeMirror overrides
+- Use camelCase for class names: `.cardHeader`, `.lineBadge`
+- Import shared patterns from `base.module.css`:
+  ```tsx
+  import baseStyles from '../styles/base.module.css'
+  <button className={baseStyles.actionIcon}>
+  ```
+- Available in `base.module.css`:
+  - `actionIcon`, `actionIconDelete` — Icon buttons (26x26px)
+  - `textBtn`, `textBtnSave`, `textBtnDelete` — Compact text buttons
+  - `lineBadge`, `lineBadgeClickable` — Line number badges
+  - `btn`, `btnSubmit`, `btnCancel`, `btnSecondary`, `btnReviewAll` — Standard buttons
+  - `cardText`, `cardHeader`, `cardActions`, `cardEditFooter`, `hint` — Card utilities
+- Keep component-specific styles (states, contextual selectors) in the component module
+- Global styles only for: tokens, reset, animations, inline annotations, CodeMirror overrides

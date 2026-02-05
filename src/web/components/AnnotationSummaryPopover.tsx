@@ -120,14 +120,14 @@ export default function AnnotationSummaryPopover({
                       </div>
                       <div className={styles.annotationActions}>
                         <button
-                          className={styles.action}
+                          className={baseStyles.actionIcon}
                           onClick={(e) => handleEditClick(e, annotation)}
                           title="Edit"
                         >
                           <Pencil size={12} />
                         </button>
                         <button
-                          className={`${styles.action} ${styles.actionDelete}`}
+                          className={`${baseStyles.actionIcon} ${baseStyles.actionIconDelete}`}
                           onClick={(e) => handleDeleteClick(e, annotation.id)}
                           title="Delete"
                         >

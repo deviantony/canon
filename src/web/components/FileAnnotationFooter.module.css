@@ -88,15 +88,6 @@
   background: var(--color-gold-alpha-12);
 }
 
-.text {
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--text-primary);
-  white-space: pre-wrap;
-  word-break: break-word;
-  margin-top: var(--space-2);
-}
-
 .actions {
   display: flex;
   gap: var(--space-1);
@@ -109,37 +100,6 @@
 .card:hover .actions {
   opacity: 1;
   transform: translateX(0);
-}
-
-/* Action icon buttons */
-.action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-default);
-}
-
-.action:hover {
-  background: var(--bg-active);
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
-}
-
-.action:active {
-  transform: scale(0.95);
-}
-
-.actionDelete:hover {
-  color: var(--status-error);
-  background: rgba(196, 122, 122, 0.1);
-  border-color: rgba(196, 122, 122, 0.2);
 }
 
 /* Editing state - card with golden glow */
@@ -231,55 +191,4 @@
   font-size: 8px;
   font-weight: 600;
   text-transform: uppercase;
-}
-
-/* Text buttons */
-.btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 5px 10px;
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-  color: var(--text-tertiary);
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s var(--ease-default);
-}
-
-.btn:hover {
-  border-color: var(--border-default);
-  color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.btn:active {
-  transform: scale(0.97);
-}
-
-.btnSave {
-  composes: btn;
-  border-color: var(--accent-gold-muted);
-  color: var(--accent-gold);
-  font-weight: 600;
-}
-
-.btnSave:hover:not(:disabled) {
-  border-color: var(--accent-gold);
-  background: var(--color-gold-alpha-08);
-  color: var(--accent-gold-bright);
-}
-
-.btnSave:active:not(:disabled) {
-  transform: scale(0.98);
-}
-
-.btnSave:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
 }

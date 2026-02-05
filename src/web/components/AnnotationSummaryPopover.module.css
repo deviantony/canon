@@ -157,37 +157,6 @@
   opacity: 1;
 }
 
-/* Action icon buttons */
-.action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-default);
-}
-
-.action:hover {
-  background: var(--bg-active);
-  border-color: var(--border-subtle);
-  color: var(--text-primary);
-}
-
-.action:active {
-  transform: scale(0.95);
-}
-
-.actionDelete:hover {
-  color: var(--status-error);
-  background: rgba(196, 122, 122, 0.1);
-  border-color: rgba(196, 122, 122, 0.2);
-}
-
 .footer {
   display: flex;
   align-items: center;

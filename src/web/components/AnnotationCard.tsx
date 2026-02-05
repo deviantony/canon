@@ -6,6 +6,7 @@ import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea'
 import { formatLineBadge } from '../utils/annotationUtils'
 import { getModifierKey } from '../utils/keyboard'
 import styles from './AnnotationCard.module.css'
+import baseStyles from '../styles/base.module.css'
 
 interface AnnotationCardProps {
   annotation: Annotation
@@ -83,10 +84,10 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
         </div>
         {!isEditing && (
           <div className={styles.actions}>
-            <button className={styles.action} onClick={handleEdit} title="Edit">
+            <button className={baseStyles.actionIcon} onClick={handleEdit} title="Edit">
               <Pencil size={12} />
             </button>
-            <button className={`${styles.action} ${styles.actionDelete}`} onClick={onDelete} title="Delete">
+            <button className={`${baseStyles.actionIcon} ${baseStyles.actionIconDelete}`} onClick={onDelete} title="Delete">
               <Trash2 size={12} />
             </button>
           </div>
@@ -104,19 +105,19 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
           />
           <div className={styles.editFooter}>
             <span className={styles.hint}>{getModifierKey()}+Enter</span>
-            <button className={styles.actionBtnDelete} onClick={onDelete} title="Delete">
+            <button className={baseStyles.textBtnDelete} onClick={onDelete} title="Delete">
               <Trash2 size={11} />
             </button>
-            <button className={styles.actionBtn} onClick={handleCancel}>
+            <button className={baseStyles.textBtn} onClick={handleCancel}>
               Cancel
             </button>
-            <button className={styles.actionBtnSave} onClick={handleSave}>
+            <button className={baseStyles.textBtnSave} onClick={handleSave}>
               Save
             </button>
           </div>
         </div>
       ) : (
-        <div className={styles.text}>
+        <div className={baseStyles.cardText}>
           {annotation.comment}
         </div>
       )}

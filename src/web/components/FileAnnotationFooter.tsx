@@ -4,6 +4,7 @@ import { useLayout } from '../context/LayoutContext'
 import { FileText, Pencil, Trash2 } from 'lucide-react'
 import { formatShortcut, getModifierKey } from '../utils/keyboard'
 import styles from './FileAnnotationFooter.module.css'
+import baseStyles from '../styles/base.module.css'
 
 interface FileAnnotationFooterProps {
   filePath: string
@@ -107,14 +108,14 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
             </div>
             <div className={styles.actions}>
               <button
-                className={styles.action}
+                className={baseStyles.actionIcon}
                 onClick={handleEdit}
                 title="Edit"
               >
                 <Pencil size={14} />
               </button>
               <button
-                className={`${styles.action} ${styles.actionDelete}`}
+                className={`${baseStyles.actionIcon} ${baseStyles.actionIconDelete}`}
                 onClick={handleDelete}
                 title="Delete"
               >
@@ -122,7 +123,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
               </button>
             </div>
           </div>
-          <div className={styles.text}>
+          <div className={baseStyles.cardText}>
             {fileAnnotation.comment}
           </div>
         </div>
@@ -152,11 +153,11 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
               <span style={{ opacity: 0.5 }}>+</span>
               <kbd>Enter</kbd>
             </span>
-            <button className={styles.btn} onClick={handleCancel}>
+            <button className={baseStyles.textBtn} onClick={handleCancel}>
               Cancel
             </button>
             <button
-              className={styles.btnSave}
+              className={baseStyles.textBtnSave}
               onClick={handleSave}
               disabled={!comment.trim()}
             >

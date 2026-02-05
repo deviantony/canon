@@ -168,7 +168,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
   return (
     <div className={styles.codeViewer}>
-      <div className={`${styles.codeContent} codemirror-container`} ref={editorRef} />
+      <div className={`${styles.codeContent} ${styles.codemirrorContainer}`} ref={editorRef} />
     </div>
   )
 })

@@ -237,57 +237,6 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   APP LAYOUT
-   ───────────────────────────────────────────────────────────────────────────── */
-.app {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   MAIN LAYOUT
-   ───────────────────────────────────────────────────────────────────────────── */
-.main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   CONTENT AREA — SPLIT PANE FUSION
-   ───────────────────────────────────────────────────────────────────────────── */
-.content-area {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-  background: var(--bg-void);
-}
-
-.editor-panel {
-  flex: 1;
-  display: flex;
-  overflow: hidden;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   CODEMIRROR CONTAINER
-   ───────────────────────────────────────────────────────────────────────────── */
-.codemirror-container {
-  height: 100%;
-}
-
-.codemirror-container .cm-editor {
-  height: 100%;
-}
-
-.codemirror-container .cm-scroller {
-  overflow: auto;
-}
-
-/* ─────────────────────────────────────────────────────────────────────────────
    INLINE ANNOTATIONS — FULL BORDER DESIGN
    Complete border with corner glow for maximum visibility
    ───────────────────────────────────────────────────────────────────────────── */
