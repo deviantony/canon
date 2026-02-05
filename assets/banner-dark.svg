@@ -36,7 +36,7 @@
         font-weight="400"
         letter-spacing="0.25em"
         text-anchor="middle"
-        fill="#8a8578">LINE-SPECIFIC CODE ANNOTATIONS FOR CLAUDE</text>
+        fill="#8a8578">A CLAUDE CODE ANNOTATION TOOL</text>
 
   <!-- Bottom decorative rule -->
   <rect x="100" y="168" width="600" height="1" fill="url(#accentLineDark)"/>
