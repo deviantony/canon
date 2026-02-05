@@ -4,13 +4,13 @@
     "name": "deviantony"
   },
   "metadata": {
-    "description": "Browser-based code annotation tool for Claude Code"
+    "description": "Canon plugin marketplace"
   },
   "plugins": [
     {
       "name": "canon",
       "source": "./",
-      "description": "Annotate code with line-specific feedback in Claude Code sessions"
+      "description": "Browser-based annotation tool that lets you add line-specific feedback to any file"
     }
   ]
 }
