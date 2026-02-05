@@ -142,6 +142,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
           </div>
           <textarea
             ref={textareaRef}
+            className={baseStyles.cardTextarea}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             onKeyDown={handleKeyDown}

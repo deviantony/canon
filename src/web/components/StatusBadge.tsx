@@ -5,17 +5,24 @@ interface StatusBadgeProps {
   status?: ChangedFile['status']
 }
 
-const labels: Record<string, string> = {
+const labels: Record<ChangedFile['status'], string> = {
   modified: 'M',
   added: 'A',
   deleted: 'D',
   renamed: 'R',
 }
 
+const statusStyles: Record<ChangedFile['status'], string> = {
+  modified: styles.modified,
+  added: styles.added,
+  deleted: styles.deleted,
+  renamed: styles.renamed,
+}
+
 export default function StatusBadge({ status }: StatusBadgeProps) {
   if (!status) return null
 
-  const statusClass = styles[status as keyof typeof styles] || styles.badge
+  const statusClass = statusStyles[status] || styles.badge
 
   return (
     <span className={statusClass} title={status}>

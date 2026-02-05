@@ -3,11 +3,11 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: var(--overlay-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-overlay);
   animation: fadeIn var(--duration-fast) var(--ease-out);
 }
 
@@ -118,21 +118,7 @@
 
 /* Line badge within popover */
 .lineBadge {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 2px 10px;
-  background: var(--color-gold-alpha-08);
-  border: 1px solid var(--accent-gold-muted);
-  border-radius: 4px;
-  color: var(--accent-gold-muted);
-  font-size: 10px;
-  font-weight: 600;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  transition: all var(--duration-normal) var(--ease-default);
+  composes: lineBadge from '../styles/base.module.css';
 }
 
 .annotationText {

@@ -1,7 +1,8 @@
+import type { CompletionType } from '../../shared/types'
 import styles from './CompletionScreen.module.css'
 
 interface CompletionScreenProps {
-  type: 'submitted' | 'cancelled'
+  type: CompletionType
 }
 
 export default function CompletionScreen({ type }: CompletionScreenProps) {

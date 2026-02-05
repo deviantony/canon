@@ -17,6 +17,10 @@ export interface Server {
   stop: () => void
 }
 
+function extractPathParam(url: URL, prefix: string): string {
+  return decodeURIComponent(url.pathname.slice(prefix.length))
+}
+
 export async function startServer(options: ServerOptions): Promise<Server> {
   const { port, workingDirectory, openBrowser } = options
 
@@ -59,7 +63,7 @@ export async function startServer(options: ServerOptions): Promise<Server> {
 
       // API: Get file content
       if (url.pathname.startsWith('/api/file/') && req.method === 'GET') {
-        const filePath = decodeURIComponent(url.pathname.slice('/api/file/'.length))
+        const filePath = extractPathParam(url, '/api/file/')
         const result = getFileContent(workingDirectory, filePath)
         if (result.error) {
           return Response.json({ error: result.error }, { status: 400 })
@@ -79,10 +83,10 @@ export async function startServer(options: ServerOptions): Promise<Server> {
 
       // API: Get original (HEAD) content of a file
       if (url.pathname.startsWith('/api/git/original/') && req.method === 'GET') {
-        const filePath = decodeURIComponent(url.pathname.slice('/api/git/original/'.length))
+        const filePath = extractPathParam(url, '/api/git/original/')
         const result = await getOriginalContent(workingDirectory, filePath)
         if (result.error) {
-          return Response.json({ error: result.error, content: '' })
+          return Response.json({ error: result.error, content: '' }, { status: 400 })
         }
         return Response.json({ content: result.content, path: filePath })
       }
@@ -153,6 +157,6 @@ function openInBrowser(url: string): void {
   try {
     Bun.spawn(cmd, { stdout: 'ignore', stderr: 'ignore' })
   } catch {
-    // Silently fail - user can open URL manually
+    console.warn(`Could not open browser automatically. Please visit ${url} manually.`)
   }
 }

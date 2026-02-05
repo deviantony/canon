@@ -13,7 +13,7 @@ import CompletionScreen from './components/CompletionScreen'
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal'
 import { AnnotationProvider, useAnnotations } from './context/AnnotationContext'
 import { LayoutProvider, useLayout } from './context/LayoutContext'
-import type { FeedbackResult, GitInfo } from '../shared/types'
+import type { FeedbackResult, GitInfo, ViewMode, CompletionType } from '../shared/types'
 import { getModifierKey, formatShortcut } from './utils/keyboard'
 import styles from './App.module.css'
 
@@ -28,9 +28,9 @@ const FULLSCREEN_DEBOUNCE_MS = 50
 function AppContent() {
   const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [showChangedOnly, setShowChangedOnly] = useState(true)
-  const [viewMode, setViewMode] = useState<'code' | 'diff'>('code')
+  const [viewMode, setViewMode] = useState<ViewMode>('code')
   const [gitInfo, setGitInfo] = useState<GitInfo | null>(null)
-  const [completionState, setCompletionState] = useState<'submitted' | 'cancelled' | null>(null)
+  const [completionState, setCompletionState] = useState<CompletionType | null>(null)
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false)
   const [lineCount, setLineCount] = useState<number | undefined>(undefined)
   const [floatingHeaderDimmed, setFloatingHeaderDimmed] = useState(false)

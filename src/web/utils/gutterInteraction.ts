@@ -6,6 +6,23 @@ import type { Extension } from '@codemirror/state'
 const setLineSelection = StateEffect.define<{ start: number; end: number } | null>()
 const setAnnotatedLines = StateEffect.define<Set<number>>()
 
+// --- Shared helpers ---
+
+function queryGutterElements(view: EditorView) {
+  return view.dom.querySelectorAll('.cm-lineNumbers .cm-gutterElement')
+}
+
+function parseLineNumber(el: Element): number | null {
+  const num = parseInt(el.textContent || '0', 10)
+  return isNaN(num) ? null : num
+}
+
+function normalizeLineRange(start: number, end: number) {
+  return { min: Math.min(start, end), max: Math.max(start, end) }
+}
+
+// --- State fields ---
+
 // State field to track current line selection
 const lineSelectionField = StateField.define<{ start: number; end: number } | null>({
   create() {
@@ -62,8 +79,9 @@ const selectionHighlightPlugin = ViewPlugin.fromClass(
 
       const builder = new RangeSetBuilder<Decoration>()
       const doc = view.state.doc
-      const startLine = Math.max(1, Math.min(selection.start, selection.end))
-      const endLine = Math.min(doc.lines, Math.max(selection.start, selection.end))
+      const { min, max } = normalizeLineRange(selection.start, selection.end)
+      const startLine = Math.max(1, min)
+      const endLine = Math.min(doc.lines, max)
 
       for (let line = startLine; line <= endLine; line++) {
         const lineInfo = doc.line(line)
@@ -90,15 +108,16 @@ const gutterIndicatorPlugin = ViewPlugin.fromClass(
     }
 
     private updateGutterClasses(view: EditorView) {
-      const gutterElements = view.dom.querySelectorAll('.cm-lineNumbers .cm-gutterElement')
+      const gutterElements = queryGutterElements(view)
       const annotatedLines = view.state.field(annotatedLinesField)
       const selection = view.state.field(lineSelectionField)
-      const minLine = selection ? Math.min(selection.start, selection.end) : 0
-      const maxLine = selection ? Math.max(selection.start, selection.end) : 0
+      const { min: minLine, max: maxLine } = selection
+        ? normalizeLineRange(selection.start, selection.end)
+        : { min: 0, max: 0 }
 
       gutterElements.forEach((el) => {
-        const lineNum = parseInt(el.textContent || '0', 10)
-        if (isNaN(lineNum)) return
+        const lineNum = parseLineNumber(el)
+        if (lineNum === null) return
 
         el.classList.toggle('annotated', annotatedLines.has(lineNum))
         el.classList.toggle('selected', selection !== null && lineNum >= minLine && lineNum <= maxLine)
@@ -181,15 +200,12 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
       }
 
       private updateGutterStyles(startLine: number, endLine: number) {
-        // Get all gutter elements
-        const gutterElements = this.view.dom.querySelectorAll('.cm-lineNumbers .cm-gutterElement')
-
-        const minLine = Math.min(startLine, endLine)
-        const maxLine = Math.max(startLine, endLine)
+        const gutterElements = queryGutterElements(this.view)
+        const { min: minLine, max: maxLine } = normalizeLineRange(startLine, endLine)
 
         gutterElements.forEach((el) => {
-          const lineNum = parseInt(el.textContent || '0', 10)
-          if (isNaN(lineNum)) return
+          const lineNum = parseLineNumber(el)
+          if (lineNum === null) return
 
           // Remove previous classes
           el.classList.remove('selection-start', 'selection-active')
@@ -205,8 +221,7 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
       }
 
       private clearGutterStyles() {
-        const gutterElements = this.view.dom.querySelectorAll('.cm-lineNumbers .cm-gutterElement')
-        gutterElements.forEach((el) => {
+        queryGutterElements(this.view).forEach((el) => {
           el.classList.remove('selection-start', 'selection-active')
         })
       }
@@ -216,8 +231,7 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
           this.rangeIndicator = createRangeIndicator()
         }
 
-        const minLine = Math.min(startLine, endLine)
-        const maxLine = Math.max(startLine, endLine)
+        const { min: minLine, max: maxLine } = normalizeLineRange(startLine, endLine)
         const lineCount = maxLine - minLine + 1
         const lineText = lineCount === 1 ? 'Line' : 'Lines'
 
@@ -311,8 +325,7 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
         this.currentEndLine = null
 
         // Normalize the range
-        const lineStart = Math.min(start, end)
-        const lineEnd = Math.max(start, end)
+        const { min: lineStart, max: lineEnd } = normalizeLineRange(start, end)
 
         // Call the callback with the selection
         config.onSelectionComplete(lineStart, lineEnd)

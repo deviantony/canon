@@ -57,6 +57,17 @@ Base unit: **4px**
 | `--space-5` | 20px |
 | `--space-6` | 24px |
 
+## Border Radius
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--radius-xs` | 2px | Inline `kbd` elements |
+| `--radius-btn` | 3px | Small buttons, keyboard hints |
+| `--radius-sm` | 4px | Badges, scrollbar thumbs |
+| `--radius-md` | 6px | Compact toggles |
+| `--radius-lg` | 8px | Cards, input bars, annotation widgets |
+| `--radius-pill` | 99px | Pill-shaped count badges |
+
 ## Components
 
 ### Cards
@@ -64,7 +75,7 @@ Base unit: **4px**
 Annotation cards use a consistent pattern:
 - Gold gradient background (`--gradient-card`)
 - 1px gold border (`--accent-gold-muted`)
-- 8px border radius
+- `--radius-lg` border radius
 - Hover: brighter border, enhanced gradient
 
 ### Buttons
@@ -121,7 +132,18 @@ src/web/
     └── Component.module.css  # Co-located component styles
 ```
 
-## CSS Modules Convention
+## CSS Naming Conventions
+
+The codebase uses two naming conventions, each tied to a different styling system:
+
+| System | Convention | Reason | Files |
+|--------|------------|--------|-------|
+| CSS Modules | camelCase | Class names become JS object keys (`styles.cardHeader`) | `*.module.css` |
+| Global stylesheet | kebab-case | Classes set via string literals in imperative DOM code | `globals.css` |
+
+**Why the difference?** Inline annotation widgets and gutter interactions are built with direct DOM manipulation (CodeMirror widgets, `document.createElement`), not React components. These set `element.className = 'inline-annotation-wrapper'` as plain strings — they cannot import CSS Modules. The kebab-case classes in `globals.css` exist exclusively for this imperative code in `inlineAnnotations.ts` and `gutterInteraction.ts`.
+
+### CSS Modules
 
 - Use camelCase for class names: `.cardHeader`, `.lineBadge`
 - Import shared patterns from `base.module.css`:
