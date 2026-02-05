@@ -28,14 +28,15 @@ A browser window opens automatically at `http://localhost:9847`. Browse files, c
 
 ### Update
 
-To update Canon to the latest version:
+To keep Canon up to date, [enable auto-updates](https://code.claude.com/docs/en/discover-plugins#configure-auto-updates) for the plugin.
+
+To update the binary to the latest version:
 
 ```
-/plugin install canon@canon
 /canon:setup
 ```
 
-This updates both the plugin (command files) and the Canon binary.
+Restart Claude Code after updating to ensure changes take effect.
 
 ### Custom Install Location
 
