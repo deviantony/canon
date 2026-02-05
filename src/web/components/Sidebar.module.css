@@ -47,17 +47,49 @@
 
 .resizeHandle {
   position: absolute;
-  right: 0;
+  right: -4px;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 9px;
   cursor: col-resize;
   background: transparent;
-  transition: background 0.15s ease;
   z-index: 10;
 }
 
-.resizeHandle:hover,
-.resizeHandleActive {
-  background: var(--accent-gold);
+.resizeHandle::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 50%;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-gold-muted) 15%,
+    var(--accent-gold) 50%,
+    var(--accent-gold-muted) 85%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity var(--duration-fast) ease, height var(--duration-fast) ease;
+}
+
+.resizeHandle:hover::after,
+.resizeHandleActive::after {
+  opacity: 1;
+  height: 60%;
+}
+
+.resizeHandleActive::after {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-gold) 10%,
+    var(--accent-gold-bright) 50%,
+    var(--accent-gold) 90%,
+    transparent 100%
+  );
+  height: 70%;
 }
