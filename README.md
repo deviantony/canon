@@ -31,8 +31,11 @@ A browser window opens automatically at `http://localhost:9847`. Browse files, c
 To update Canon to the latest version:
 
 ```
+/plugin install canon@canon
 /canon:setup
 ```
+
+This updates both the plugin (command files) and the Canon binary.
 
 ### Custom Install Location
 
@@ -51,5 +54,5 @@ If running Claude Code in a container or over SSH:
 ```bash
 export CANON_PORT=9000
 export CANON_REMOTE=1
-claude  # then run /canon and open the URL manually
+claude  # then run /canon:new and open the URL manually
 ```
