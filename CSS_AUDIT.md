@@ -167,10 +167,157 @@ With consolidation and deduplication, this file could reasonably be **1,200-1,50
 
 ---
 
-## Priority Actions
+## Implementation Plan
 
-1. **High Impact**: Extract repeated radial gradients into CSS custom properties
-2. **High Impact**: Create base `.card` and `.action-btn` classes, refactor components to use them
-3. **Medium Impact**: Consolidate badge styles into single base class with modifiers
-4. **Medium Impact**: Reduce keyframe animations from 21 to ~8-10 reusable ones
-5. **Low Impact**: Consider migrating to CSS Modules for better maintainability
+### Phase 1: Design Tokens & Variable Extraction
+
+Extract repeated values into CSS custom properties and organize into clear categories.
+
+**Scope:**
+- Extract 16 repeated radial gradients into `--gradient-*` variables
+- Consolidate 21 keyframe animations into ~8-10 reusable ones with CSS custom property parameters
+- Reorganize existing `:root` variables into semantic categories:
+  - Primitive colors (`--color-gold-100`, `--color-gold-200`, etc.)
+  - Semantic colors (`--color-accent`, `--color-accent-hover`, etc.)
+  - Spacing scale
+  - Typography
+  - Shadows & effects
+
+**Example:**
+```css
+:root {
+  /* Gradients */
+  --gradient-card: radial-gradient(
+    ellipse 200px 120px at top left,
+    rgba(212, 165, 116, 0.05) 0%,
+    rgba(212, 165, 116, 0.02) 40%,
+    transparent 70%
+  );
+  --gradient-card-hover: radial-gradient(...);
+  --gradient-card-active: radial-gradient(...);
+}
+```
+
+**Expected reduction:** ~200-300 lines
+
+---
+
+### Phase 2: Consolidate Base Patterns
+
+Create shared base classes with BEM-style modifiers to eliminate duplication.
+
+**Scope:**
+- Consolidate 4 card variants into `.card` base + modifiers
+- Consolidate 4 action button variants into `.action-btn` base + modifiers
+- Consolidate 3 badge variants into `.badge` base + modifiers
+- Consolidate 3 text button variants into `.text-btn` base + modifiers
+
+**Example:**
+```css
+/* One base card style */
+.card {
+  position: relative;
+  padding: var(--space-4) var(--space-5);
+  background: var(--gradient-card);
+  border: 1px solid var(--accent-gold-muted);
+  border-radius: 8px;
+  transition: all 0.25s ease;
+}
+.card:hover {
+  border-color: var(--accent-gold);
+  background: var(--gradient-card-hover);
+}
+.card--editing { /* editing state */ }
+.card--highlighted { /* highlighted state */ }
+```
+
+**Expected reduction:** ~400-500 lines
+
+---
+
+### Phase 3: Component Audit
+
+Audit existing components and identify extraction opportunities.
+
+**Scope:**
+- List all 15 React components and their CSS dependencies
+- Identify orphaned/unused CSS classes
+- Identify candidates for new shared components
+- Map which CSS blocks belong to which components
+
+**Deliverable:** Component inventory table showing:
+- Component name
+- CSS classes used
+- Shared vs component-specific styles
+- Recommended module structure
+
+---
+
+### Phase 4: CSS Modules Migration
+
+Split `globals.css` into scoped CSS Modules per component.
+
+**Target structure:**
+```
+src/web/styles/
+├── tokens.css              # Design tokens (imported globally)
+├── reset.css               # Reset & base styles
+├── base.module.css         # Shared .card, .btn, .badge classes
+└── components/
+    ├── Header.module.css
+    ├── Sidebar.module.css
+    ├── AnnotationCard.module.css
+    ├── InlineAnnotation.module.css
+    └── ...
+```
+
+**Migration approach:**
+- Keep `tokens.css` and `reset.css` as global imports
+- Use `composes` in CSS Modules to extend base classes
+- Update React components to import their respective modules
+
+**Example:**
+```css
+/* AnnotationCard.module.css */
+.card {
+  composes: card from '../base.module.css';
+}
+.card:hover {
+  composes: cardHover from '../base.module.css';
+}
+```
+
+```tsx
+// AnnotationCard.tsx
+import styles from './AnnotationCard.module.css';
+<div className={styles.card}>
+```
+
+---
+
+### Phase 5: Design Guide Documentation
+
+Create lightweight documentation describing the design system intent.
+
+**Location:** `docs/design-guide.md`
+
+**Contents:**
+- Color philosophy (warm charcoals, gold accents)
+- Spacing principles
+- Component patterns (cards, buttons, badges)
+- Animation guidelines
+- When to use which variant
+
+**Principle:** Describe intent, not implementation. Keep it under 200 lines.
+
+---
+
+## Success Criteria
+
+| Metric | Before | Target |
+|--------|--------|--------|
+| Total CSS lines | 2,530 | < 1,500 |
+| Monolithic files | 1 | 0 |
+| Repeated gradients | 16 | 0 (use variables) |
+| Duplicated patterns | 4+ each | 1 base + modifiers |
+| Orphaned classes | Unknown | 0 |

@@ -5,6 +5,7 @@ import { useLayout } from '../context/LayoutContext'
 import { useAutoResizeTextarea } from '../hooks/useAutoResizeTextarea'
 import { formatLineBadge } from '../utils/annotationUtils'
 import { getModifierKey } from '../utils/keyboard'
+import styles from './AnnotationCard.module.css'
 
 interface AnnotationCardProps {
   annotation: Annotation
@@ -63,11 +64,17 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
     }
   }
 
+  const cardClasses = [
+    styles.card,
+    isHighlighted ? styles.highlighted : '',
+    isEditing ? styles.editing : '',
+  ].filter(Boolean).join(' ')
+
   return (
-    <div className={`annotation-card ${isHighlighted ? 'highlighted' : ''} ${isEditing ? 'editing' : ''}`}>
-      <div className="annotation-card-header">
+    <div className={cardClasses}>
+      <div className={styles.header}>
         <div
-          className="annotation-line-badge clickable"
+          className={styles.lineBadge}
           onClick={() => onLineClick(annotation.lineStart)}
           title={isFileLevel ? 'Scroll to top' : `Go to line ${annotation.lineStart}`}
         >
@@ -75,11 +82,11 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
           {formatLineBadge(annotation.lineStart, annotation.lineEnd)}
         </div>
         {!isEditing && (
-          <div className="annotation-card-actions">
-            <button className="annotation-card-action" onClick={handleEdit} title="Edit">
+          <div className={styles.actions}>
+            <button className={styles.action} onClick={handleEdit} title="Edit">
               <Pencil size={12} />
             </button>
-            <button className="annotation-card-action delete" onClick={onDelete} title="Delete">
+            <button className={`${styles.action} ${styles.actionDelete}`} onClick={onDelete} title="Delete">
               <Trash2 size={12} />
             </button>
           </div>
@@ -87,7 +94,7 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
       </div>
 
       {isEditing ? (
-        <div className="annotation-card-edit">
+        <div className={styles.edit}>
           <textarea
             ref={textareaRef}
             value={editComment}
@@ -95,21 +102,21 @@ export default function AnnotationCard({ annotation, onUpdate, onDelete, onLineC
             onKeyDown={handleKeyDown}
             placeholder="Add your comment..."
           />
-          <div className="annotation-card-edit-footer">
-            <span className="hint">{getModifierKey()}+Enter</span>
-            <button className="annotation-action-btn delete" onClick={onDelete} title="Delete">
+          <div className={styles.editFooter}>
+            <span className={styles.hint}>{getModifierKey()}+Enter</span>
+            <button className={styles.actionBtnDelete} onClick={onDelete} title="Delete">
               <Trash2 size={11} />
             </button>
-            <button className="annotation-action-btn" onClick={handleCancel}>
+            <button className={styles.actionBtn} onClick={handleCancel}>
               Cancel
             </button>
-            <button className="annotation-action-btn save" onClick={handleSave}>
+            <button className={styles.actionBtnSave} onClick={handleSave}>
               Save
             </button>
           </div>
         </div>
       ) : (
-        <div className="annotation-card-text">
+        <div className={styles.text}>
           {annotation.comment}
         </div>
       )}

@@ -1,0 +1,46 @@
+/* KeyboardHint Component Styles */
+
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-left: var(--space-3);
+}
+
+.hint:hover {
+  border-color: var(--accent-gold-muted);
+  color: var(--accent-gold);
+  background: rgba(212, 165, 116, 0.05);
+}
+
+.hint svg {
+  opacity: 0.7;
+  transition: opacity var(--transition-fast);
+}
+
+.hint:hover svg {
+  opacity: 1;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}

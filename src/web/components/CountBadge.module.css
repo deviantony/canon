@@ -1,0 +1,60 @@
+/* CountBadge Component Styles */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  border-radius: 99px;
+  transition: all 0.25s var(--ease-smooth);
+}
+
+/* Filter variant - refined pill for sidebar toggle */
+.filter {
+  composes: badge;
+  min-width: 18px;
+  height: 17px;
+  padding: 0 6px;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 165, 116, 0.15) 0%,
+    rgba(212, 165, 116, 0.1) 100%
+  );
+  color: var(--accent-gold);
+  margin-left: 6px;
+  box-shadow: inset 0 0 0 1px rgba(212, 165, 116, 0.2);
+}
+
+.filterActive {
+  background: linear-gradient(
+    135deg,
+    var(--accent-gold-bright) 0%,
+    var(--accent-gold) 100%
+  );
+  color: var(--bg-void);
+  box-shadow:
+    0 2px 6px rgba(212, 165, 116, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Header variant - standard size, for header buttons */
+.header {
+  composes: badge;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  background: linear-gradient(
+    135deg,
+    rgba(212, 165, 116, 0.15) 0%,
+    rgba(212, 165, 116, 0.1) 100%
+  );
+  color: var(--accent-gold);
+  box-shadow: inset 0 0 0 1px rgba(212, 165, 116, 0.15);
+}
+
+/* Note: The submit button context styling is handled in Header.module.css */

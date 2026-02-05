@@ -1,0 +1,24 @@
+/* DiffViewer Component Styles */
+
+.diffViewer {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.empty,
+.loading,
+.error {
+  composes: diffViewer;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+}
+
+.diffContent {
+  flex: 1;
+  overflow: auto;
+}

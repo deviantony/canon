@@ -3,6 +3,7 @@ import { useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { FileText, Pencil, Trash2 } from 'lucide-react'
 import { formatShortcut, getModifierKey } from '../utils/keyboard'
+import styles from './FileAnnotationFooter.module.css'
 
 interface FileAnnotationFooterProps {
   filePath: string
@@ -97,23 +98,23 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
   // View mode: has existing annotation, not editing
   if (fileAnnotation && !isEditing) {
     return (
-      <div className="file-annotation-footer has-content">
-        <div className="file-annotation-card">
-          <div className="file-annotation-header">
-            <div className="file-annotation-badge">
+      <div className={styles.hasContent}>
+        <div className={styles.card}>
+          <div className={styles.header}>
+            <div className={styles.badge}>
               <FileText size={10} />
               <span>File</span>
             </div>
-            <div className="file-annotation-actions">
+            <div className={styles.actions}>
               <button
-                className="inline-annotation-action"
+                className={styles.action}
                 onClick={handleEdit}
                 title="Edit"
               >
                 <Pencil size={14} />
               </button>
               <button
-                className="inline-annotation-action delete"
+                className={`${styles.action} ${styles.actionDelete}`}
                 onClick={handleDelete}
                 title="Delete"
               >
@@ -121,7 +122,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
               </button>
             </div>
           </div>
-          <div className="file-annotation-text">
+          <div className={styles.text}>
             {fileAnnotation.comment}
           </div>
         </div>
@@ -132,9 +133,9 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
   // Editing mode
   if (fileAnnotationExpanded || isEditing) {
     return (
-      <div className="file-annotation-footer editing">
-        <div className="file-annotation-edit-card">
-          <div className="file-annotation-badge">
+      <div className={styles.editing}>
+        <div className={styles.editCard}>
+          <div className={styles.badge}>
             <FileText size={10} />
             <span>File</span>
           </div>
@@ -145,17 +146,17 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
             onKeyDown={handleKeyDown}
             placeholder="Add a note about this file..."
           />
-          <div className="file-annotation-edit-actions">
-            <span className="hint">
+          <div className={styles.editActions}>
+            <span className={styles.hint}>
               <kbd>{getModifierKey()}</kbd>
               <span style={{ opacity: 0.5 }}>+</span>
               <kbd>Enter</kbd>
             </span>
-            <button className="file-annotation-btn" onClick={handleCancel}>
+            <button className={styles.btn} onClick={handleCancel}>
               Cancel
             </button>
             <button
-              className="file-annotation-btn save"
+              className={styles.btnSave}
               onClick={handleSave}
               disabled={!comment.trim()}
             >
@@ -169,10 +170,10 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
 
   // Empty state - clickable card placeholder
   return (
-    <div className="file-annotation-footer empty">
-      <div className="file-annotation-input-bar" onClick={handleInputFocus}>
-        <FileText size={14} className="file-annotation-input-icon" />
-        <span className="file-annotation-placeholder">
+    <div className={styles.empty}>
+      <div className={styles.inputBar} onClick={handleInputFocus}>
+        <FileText size={14} className={styles.inputIcon} />
+        <span className={styles.placeholder}>
           Annotate this file... ({formatShortcut('Ctrl+Cmd+C')})
         </span>
       </div>

@@ -4,6 +4,7 @@ import IconToggle from './IconToggle'
 import StatusBadge from './StatusBadge'
 import { formatShortcut } from '../utils/keyboard'
 import type { ChangedFile } from '../../shared/types'
+import styles from './EditorHeader.module.css'
 
 interface EditorHeaderProps {
   filePath: string | null
@@ -38,13 +39,13 @@ export default function EditorHeader({
   }
 
   return (
-    <div className="editor-header">
-      <div className="file-info">
-        <span className="file-path">{filePath}</span>
+    <div className={styles.editorHeader}>
+      <div className={styles.fileInfo}>
+        <span className={styles.filePath}>{filePath}</span>
         <StatusBadge status={fileStatus} />
         {annotationCount > 0 && (
           <span
-            className="file-annotation-count"
+            className={styles.annotationCount}
             title={`${annotationCount} annotation${annotationCount === 1 ? '' : 's'}`}
           >
             <MessageSquare size={12} />

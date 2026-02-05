@@ -1,0 +1,361 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE PATTERNS
+   Shared component foundations - import and compose in component modules
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══ CARD ═══
+   Base card with corner glow gradient. Used by annotation cards, inline
+   annotations, file annotation cards. */
+.card {
+  position: relative;
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
+  background: var(--gradient-card);
+  border: 1px solid var(--accent-gold-muted);
+  border-radius: 8px;
+  transition: all var(--duration-normal) var(--ease-default);
+}
+
+.card:hover {
+  border-color: var(--accent-gold);
+  background: var(--gradient-card-hover);
+}
+
+.cardEditing,
+.cardNew {
+  border-color: var(--accent-gold);
+  background: var(--gradient-card-active);
+}
+
+.cardHighlighted {
+  animation: accentPulse 2s var(--ease-out);
+}
+
+/* ═══ ACTION ICON ═══
+   Small icon button for edit/delete actions. */
+.actionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-default);
+}
+
+.actionIcon:hover {
+  background: var(--bg-active);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.actionIcon:active {
+  transform: scale(0.95);
+}
+
+.actionIconDelete:hover {
+  color: var(--status-error);
+  background: rgba(196, 122, 122, 0.1);
+  border-color: rgba(196, 122, 122, 0.2);
+}
+
+/* ═══ TEXT BUTTON ═══
+   Compact text button for save/cancel actions in edit mode. */
+.textBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s var(--ease-default);
+}
+
+.textBtn:hover {
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.textBtn:active {
+  transform: scale(0.97);
+}
+
+.textBtnSave {
+  composes: textBtn;
+  border-color: var(--accent-gold-muted);
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.textBtnSave:hover:not(:disabled) {
+  border-color: var(--accent-gold);
+  background: var(--color-gold-alpha-08);
+  color: var(--accent-gold-bright);
+}
+
+.textBtnSave:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.textBtnSave:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.textBtnDelete {
+  composes: textBtn;
+  padding: 5px;
+  border-color: transparent;
+}
+
+.textBtnDelete:hover {
+  color: var(--status-error);
+  background: rgba(196, 122, 122, 0.06);
+  border-color: rgba(196, 122, 122, 0.2);
+}
+
+/* ═══ LINE BADGE ═══
+   Line number badge for annotations. */
+.lineBadge {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 2px 10px;
+  background: var(--color-gold-alpha-08);
+  border: 1px solid var(--accent-gold-muted);
+  border-radius: 4px;
+  color: var(--accent-gold-muted);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: all var(--duration-normal) var(--ease-default);
+}
+
+.lineBadgeActive,
+.card:hover .lineBadge,
+.cardEditing .lineBadge,
+.cardNew .lineBadge {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+  background: var(--color-gold-alpha-12);
+}
+
+.lineBadgeHighlighted {
+  color: var(--accent-gold-bright);
+  border-color: var(--accent-gold-bright);
+}
+
+.lineBadgeClickable {
+  cursor: pointer;
+}
+
+.lineBadgeClickable:hover {
+  color: var(--accent-gold-bright);
+  border-color: var(--accent-gold-bright);
+  background: var(--color-gold-alpha-15);
+}
+
+/* ═══ CARD ACTIONS CONTAINER ═══
+   Animated action buttons that appear on card hover. */
+.cardActions {
+  display: flex;
+  gap: var(--space-1);
+  opacity: 0;
+  transform: translateX(4px);
+  transition: all 0.2s var(--ease-smooth);
+}
+
+.card:hover .cardActions {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* ═══ CARD HEADER ═══
+   Standard header layout for cards with badge and actions. */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+/* ═══ CARD TEXT ═══
+   Standard text content styling for cards. */
+.cardText {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin-top: var(--space-2);
+}
+
+/* ═══ CARD TEXTAREA ═══
+   Borderless textarea for inline editing. */
+.cardTextarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 0;
+  margin-top: var(--space-2);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 14px;
+  line-height: 1.8;
+  resize: none;
+  caret-color: var(--accent-gold);
+}
+
+.cardTextarea:focus {
+  outline: none;
+}
+
+.cardTextarea::placeholder {
+  color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.cardTextarea::selection {
+  background: rgba(212, 165, 116, 0.25);
+}
+
+/* ═══ CARD EDIT FOOTER ═══
+   Footer with hint text and action buttons for edit mode. */
+.cardEditFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.hint {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.hint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 4px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  border-radius: 2px;
+  color: var(--text-muted);
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* ═══ BUTTON ═══
+   Standard button for primary actions. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn svg {
+  flex-shrink: 0;
+}
+
+.btnSubmit {
+  composes: btn;
+  background: var(--accent-gold);
+  color: var(--bg-void);
+}
+
+.btnSubmit:hover:not(:disabled) {
+  background: var(--accent-gold-bright);
+}
+
+.btnCancel {
+  composes: btn;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+.btnCancel:hover:not(:disabled) {
+  border-color: var(--border-emphasis);
+  color: var(--text-primary);
+}
+
+.btnSecondary {
+  composes: btn;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-tertiary);
+}
+
+.btnSecondary:hover:not(:disabled) {
+  border-color: var(--status-error);
+  color: var(--status-error);
+}
+
+.btnReviewAll {
+  composes: btn;
+  background: transparent;
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+}
+
+.btnReviewAll:hover:not(:disabled) {
+  border-color: var(--accent-gold-muted);
+  color: var(--accent-gold);
+}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes accentPulse {
+  0% {
+    border-color: var(--accent-gold-bright);
+    background: var(--gradient-card-highlight);
+  }
+  100% {
+    border-color: var(--accent-gold-muted);
+    background: var(--gradient-card);
+  }
+}
