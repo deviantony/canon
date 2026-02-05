@@ -519,19 +519,6 @@ body {
     rgba(212, 165, 116, 0.12) 0%,
     rgba(212, 165, 116, 0.06) 100%
   ) !important;
-  position: relative;
-}
-
-/* Left edge accent on selected lines */
-.cm-selectedAnnotationLine::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--accent-gold);
-  opacity: 0.6;
 }
 
 /* Line numbers - base interactive state */
@@ -563,10 +550,34 @@ body {
   animation: lineSelectionPing 0.4s var(--ease-out);
 }
 
-/* Selected line numbers get accent background */
-.cm-lineNumbers .cm-gutterElement.selection-active {
+/* Selected line numbers get accent background (during drag and persisted) */
+.cm-lineNumbers .cm-gutterElement.selection-active,
+.cm-lineNumbers .cm-gutterElement.selected {
   color: var(--accent-gold) !important;
   background: rgba(212, 165, 116, 0.15);
+}
+
+/* Left bar indicator on gutter elements (selection and annotation) */
+.cm-lineNumbers .cm-gutterElement.selection-active::before,
+.cm-lineNumbers .cm-gutterElement.selected::before,
+.cm-lineNumbers .cm-gutterElement.annotated::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent-gold);
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+/* Annotated lines use muted color until hovered */
+.cm-lineNumbers .cm-gutterElement.annotated::before {
+  background: var(--accent-gold-muted);
+}
+
+.cm-lineNumbers .cm-gutterElement.annotated:hover::before {
+  background: var(--accent-gold);
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

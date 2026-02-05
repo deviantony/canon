@@ -1,7 +1,7 @@
 import { useAnnotations, type Annotation } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { formatLineBadge, sortAnnotations } from '../utils/annotationUtils'
-import { X, FileText, Pencil, Trash2, MessageSquareShare, Eraser } from 'lucide-react'
+import { X, FileText, Trash2, MessageSquareShare, Eraser } from 'lucide-react'
 import styles from './AnnotationSummaryPopover.module.css'
 import baseStyles from '../styles/base.module.css'
 
@@ -10,15 +10,12 @@ interface AnnotationSummaryPopoverProps {
   onNavigate: (file: string, line?: number) => void
 }
 
-// Delay before opening edit mode after navigation
-const EDIT_MODE_DELAY_MS = 100
-
 export default function AnnotationSummaryPopover({
   onSubmit,
   onNavigate,
 }: AnnotationSummaryPopoverProps) {
   const { annotations, removeAnnotation, clearAllAnnotations, getAnnotationsGroupedByFile } = useAnnotations()
-  const { summaryPopoverOpen, setSummaryPopoverOpen, setEditingAnnotationId } = useLayout()
+  const { summaryPopoverOpen, setSummaryPopoverOpen } = useLayout()
 
   if (!summaryPopoverOpen) {
     return null
@@ -45,15 +42,6 @@ export default function AnnotationSummaryPopover({
   function handleAnnotationClick(annotation: Annotation) {
     setSummaryPopoverOpen(false)
     onNavigate(annotation.file, annotation.lineStart)
-  }
-
-  function handleEditClick(e: React.MouseEvent, annotation: { id: string; file: string; lineStart: number }) {
-    e.stopPropagation()
-    setSummaryPopoverOpen(false)
-    onNavigate(annotation.file, annotation.lineStart)
-    setTimeout(() => {
-      setEditingAnnotationId(annotation.id)
-    }, EDIT_MODE_DELAY_MS)
   }
 
   function handleDeleteClick(e: React.MouseEvent, annotationId: string) {
@@ -119,13 +107,6 @@ export default function AnnotationSummaryPopover({
                         {annotation.comment}
                       </div>
                       <div className={styles.annotationActions}>
-                        <button
-                          className={baseStyles.actionIcon}
-                          onClick={(e) => handleEditClick(e, annotation)}
-                          title="Edit"
-                        >
-                          <Pencil size={12} />
-                        </button>
                         <button
                           className={`${baseStyles.actionIcon} ${baseStyles.actionIconDelete}`}
                           onClick={(e) => handleDeleteClick(e, annotation.id)}

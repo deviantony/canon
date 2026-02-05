@@ -1,7 +1,8 @@
-import { EditorView, ViewPlugin, ViewUpdate, Decoration, DecorationSet } from '@codemirror/view'
-import { StateField, StateEffect, RangeSetBuilder } from '@codemirror/state'
+import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
+import { RangeSetBuilder, StateEffect, StateField } from '@codemirror/state'
+import type { Extension } from '@codemirror/state'
 
-// Effects for line selection
+// Effects for line selection and annotation tracking
 const setLineSelection = StateEffect.define<{ start: number; end: number } | null>()
 const setAnnotatedLines = StateEffect.define<Set<number>>()
 
@@ -74,6 +75,35 @@ const selectionHighlightPlugin = ViewPlugin.fromClass(
   },
   {
     decorations: (v) => v.decorations,
+  }
+)
+
+// Plugin to apply gutter indicator classes for both annotations and selections
+const gutterIndicatorPlugin = ViewPlugin.fromClass(
+  class {
+    constructor(view: EditorView) {
+      this.updateGutterClasses(view)
+    }
+
+    update(update: ViewUpdate) {
+      this.updateGutterClasses(update.view)
+    }
+
+    private updateGutterClasses(view: EditorView) {
+      const gutterElements = view.dom.querySelectorAll('.cm-lineNumbers .cm-gutterElement')
+      const annotatedLines = view.state.field(annotatedLinesField)
+      const selection = view.state.field(lineSelectionField)
+      const minLine = selection ? Math.min(selection.start, selection.end) : 0
+      const maxLine = selection ? Math.max(selection.start, selection.end) : 0
+
+      gutterElements.forEach((el) => {
+        const lineNum = parseInt(el.textContent || '0', 10)
+        if (isNaN(lineNum)) return
+
+        el.classList.toggle('annotated', annotatedLines.has(lineNum))
+        el.classList.toggle('selected', selection !== null && lineNum >= minLine && lineNum <= maxLine)
+      })
+    }
   }
 )
 
@@ -292,11 +322,12 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
 }
 
 // Main export function to create all gutter interaction extensions
-export function gutterInteraction(config: GutterInteractionConfig) {
+export function gutterInteraction(config: GutterInteractionConfig): Extension[] {
   return [
     lineSelectionField,
     annotatedLinesField,
     selectionHighlightPlugin,
+    gutterIndicatorPlugin,
     createGutterInteractionPlugin(config),
   ]
 }
