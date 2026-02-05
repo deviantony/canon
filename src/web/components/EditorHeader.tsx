@@ -13,6 +13,9 @@ interface EditorHeaderProps {
   onViewModeChange: (mode: 'code' | 'diff') => void
   isNewFile?: boolean
   fileStatus?: ChangedFile['status']
+  additions?: number
+  deletions?: number
+  lineCount?: number
 }
 
 function getChangesButtonTitle(isNewFile: boolean, canShowDiff: boolean): string {
@@ -28,11 +31,17 @@ export default function EditorHeader({
   onViewModeChange,
   isNewFile = false,
   fileStatus,
+  additions,
+  deletions,
+  lineCount,
 }: EditorHeaderProps) {
   const { getAnnotationsForFile } = useAnnotations()
 
   // Get annotation count for this file
   const annotationCount = filePath ? getAnnotationsForFile(filePath).length : 0
+
+  // Only show diff stats for modified files with actual changes
+  const showDiffStats = fileStatus === 'modified' && (additions !== undefined || deletions !== undefined)
 
   if (!filePath) {
     return null
@@ -40,8 +49,21 @@ export default function EditorHeader({
 
   return (
     <div className={styles.editorHeader}>
-      <div className={styles.fileInfo}>
-        <span className={styles.filePath}>{filePath}</span>
+      <span className={styles.filePath}>{filePath}</span>
+      <div className={styles.metadata}>
+        {showDiffStats && (
+          <span className={styles.diffStats}>
+            {additions !== undefined && additions > 0 && (
+              <span className={styles.additions}>+{additions}</span>
+            )}
+            {deletions !== undefined && deletions > 0 && (
+              <span className={styles.deletions}>−{deletions}</span>
+            )}
+          </span>
+        )}
+        {lineCount !== undefined && lineCount > 0 && (
+          <span className={styles.lineCount}>{lineCount} ln</span>
+        )}
         <StatusBadge status={fileStatus} />
         {annotationCount > 0 && (
           <span
@@ -52,24 +74,24 @@ export default function EditorHeader({
             <span>{annotationCount}</span>
           </span>
         )}
+        <IconToggle
+          value={viewMode}
+          onChange={onViewModeChange}
+          options={[
+            {
+              value: 'diff',
+              icon: <FileDiff size={15} />,
+              title: getChangesButtonTitle(isNewFile, canShowDiff),
+              disabled: !canShowDiff || isNewFile,
+            },
+            {
+              value: 'code',
+              icon: <FileCode size={15} />,
+              title: canShowDiff && !isNewFile ? `View source (${formatShortcut('Ctrl+Cmd+X')})` : 'View source',
+            },
+          ]}
+        />
       </div>
-      <IconToggle
-        value={viewMode}
-        onChange={onViewModeChange}
-        options={[
-          {
-            value: 'diff',
-            icon: <FileDiff size={15} />,
-            title: getChangesButtonTitle(isNewFile, canShowDiff),
-            disabled: !canShowDiff || isNewFile,
-          },
-          {
-            value: 'code',
-            icon: <FileCode size={15} />,
-            title: canShowDiff && !isNewFile ? `View source (${formatShortcut('Ctrl+Cmd+X')})` : 'View source',
-          },
-        ]}
-      />
     </div>
   )
 }

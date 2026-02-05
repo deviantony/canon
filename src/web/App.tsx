@@ -24,6 +24,7 @@ function AppContent() {
   const [gitInfo, setGitInfo] = useState<GitInfo | null>(null)
   const [completionState, setCompletionState] = useState<'submitted' | 'cancelled' | null>(null)
   const [shortcutsModalOpen, setShortcutsModalOpen] = useState(false)
+  const [lineCount, setLineCount] = useState<number | undefined>(undefined)
 
   const { formatAsXml, annotations } = useAnnotations()
   const { clearSelection, setFileAnnotationExpanded } = useLayout()
@@ -47,10 +48,35 @@ function AppContent() {
     loadGitInfo()
   }, [])
 
-  // Get status of selected file
-  const selectedFileStatus = gitInfo?.changedFiles.find(
+  // Fetch line count when file changes
+  useEffect(() => {
+    if (!selectedFile) {
+      setLineCount(undefined)
+      return
+    }
+
+    const currentFile = selectedFile
+    async function loadLineCount() {
+      try {
+        const res = await fetch(`/api/file/${encodeURIComponent(currentFile)}`)
+        if (res.ok) {
+          const data = await res.json()
+          setLineCount(data.lineCount)
+        }
+      } catch {
+        setLineCount(undefined)
+      }
+    }
+    loadLineCount()
+  }, [selectedFile])
+
+  // Get info for selected file from gitInfo
+  const selectedFileInfo = gitInfo?.changedFiles.find(
     (f) => f.path === selectedFile
-  )?.status
+  )
+
+  // Get status of selected file
+  const selectedFileStatus = selectedFileInfo?.status
 
   // Can only show diff for changed files
   const canShowDiff = !!selectedFileStatus
@@ -240,6 +266,9 @@ function AppContent() {
             onViewModeChange={setViewMode}
             isNewFile={isNewFile}
             fileStatus={selectedFileStatus}
+            additions={selectedFileInfo?.additions}
+            deletions={selectedFileInfo?.deletions}
+            lineCount={lineCount}
           />
           <div className={styles.editorPanel}>
             {showDiffViewer ? (

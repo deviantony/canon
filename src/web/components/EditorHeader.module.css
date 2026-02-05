@@ -1,34 +1,64 @@
-/* EditorHeader Component Styles */
+/* EditorHeader Component Styles — Option 3: Asymmetric Weight */
 
 .editorHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
+  gap: var(--space-4);
   padding: 0 var(--space-4);
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
-  height: 45px; /* Matches sidebar-header height exactly */
+  height: 45px;
   flex-shrink: 0;
 }
 
-.fileInfo {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-  flex: 1;
-}
-
+/* File path — primary visual weight on the left */
 .filePath {
-  font-size: 12px;
+  font-size: 13px;
   font-family: var(--font-mono);
   color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
+/* Metadata cluster — right-aligned, compact */
+.metadata {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+/* Diff stats — subtle green/red numbers */
+.diffStats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.additions {
+  color: var(--status-success);
+}
+
+.deletions {
+  color: var(--status-error);
+}
+
+/* Line count — most muted, informational */
+.lineCount {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+/* Annotation count — gold accent, prominent */
 .annotationCount {
   display: inline-flex;
   align-items: center;

@@ -64,7 +64,11 @@ export async function startServer(options: ServerOptions): Promise<Server> {
         if (result.error) {
           return Response.json({ error: result.error }, { status: 400 })
         }
-        return Response.json({ content: result.content, path: filePath })
+        return Response.json({
+          content: result.content,
+          path: filePath,
+          lineCount: result.lineCount,
+        })
       }
 
       // API: Get git info (changed files)

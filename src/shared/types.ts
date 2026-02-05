@@ -3,6 +3,8 @@
 export interface ChangedFile {
   path: string
   status: 'modified' | 'added' | 'deleted' | 'renamed'
+  additions?: number
+  deletions?: number
 }
 
 export interface GitInfo {

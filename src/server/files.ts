@@ -107,33 +107,36 @@ export function getFileTree(workingDirectory: string): FileNode[] {
 export function getFileContent(
   workingDirectory: string,
   filePath: string
-): { content: string; error?: string } {
+): { content: string; lineCount: number; error?: string } {
   try {
     // Prevent directory traversal
     const fullPath = join(workingDirectory, filePath)
     const resolvedPath = resolve(fullPath)
     if (!resolvedPath.startsWith(resolve(workingDirectory))) {
-      return { content: '', error: 'Invalid path' }
+      return { content: '', lineCount: 0, error: 'Invalid path' }
     }
 
     if (!existsSync(fullPath)) {
-      return { content: '', error: 'File not found' }
+      return { content: '', lineCount: 0, error: 'File not found' }
     }
 
     const stat = statSync(fullPath)
     if (stat.isDirectory()) {
-      return { content: '', error: 'Path is a directory' }
+      return { content: '', lineCount: 0, error: 'Path is a directory' }
     }
 
     // Check if file is likely binary
     const content = readFileSync(fullPath)
     if (isBinary(content)) {
-      return { content: '', error: 'Preview not supported for binary files' }
+      return { content: '', lineCount: 0, error: 'Preview not supported for binary files' }
     }
 
-    return { content: content.toString('utf-8') }
+    const contentStr = content.toString('utf-8')
+    const lineCount = contentStr.split('\n').length
+
+    return { content: contentStr, lineCount }
   } catch (err) {
-    return { content: '', error: String(err) }
+    return { content: '', lineCount: 0, error: String(err) }
   }
 }
 

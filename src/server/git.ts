@@ -4,6 +4,12 @@ import type { ChangedFile, GitInfo } from '../shared/types.js'
 
 export type { ChangedFile, GitInfo }
 
+// Internal type for accumulating diff statistics
+interface DiffStats {
+  additions: number
+  deletions: number
+}
+
 // Run a git command and return stdout
 async function runGit(
   workingDirectory: string,
@@ -96,6 +102,57 @@ async function getChangedFiles(workingDirectory: string): Promise<ChangedFile[]>
   return files
 }
 
+// Get diff stats (additions/deletions) for all changed files
+async function getDiffStats(workingDirectory: string): Promise<Map<string, DiffStats>> {
+  const statsMap = new Map<string, DiffStats>()
+
+  // Get stats for staged changes
+  const stagedResult = await runGit(workingDirectory, ['diff', '--numstat', '--cached'])
+  if (stagedResult.exitCode === 0) {
+    parseDiffNumstat(stagedResult.stdout, statsMap)
+  }
+
+  // Get stats for unstaged changes (working tree vs index)
+  const unstagedResult = await runGit(workingDirectory, ['diff', '--numstat'])
+  if (unstagedResult.exitCode === 0) {
+    parseDiffNumstat(unstagedResult.stdout, statsMap)
+  }
+
+  return statsMap
+}
+
+// Parse git diff --numstat output and add to stats map
+function parseDiffNumstat(output: string, statsMap: Map<string, DiffStats>): void {
+  const lines = output.split('\n').filter((l) => l.length > 0)
+
+  for (const line of lines) {
+    // Format: "additions\tdeletions\tfilepath"
+    // Binary files show "-\t-\tfilepath"
+    const parts = line.split('\t')
+    if (parts.length < 3) continue
+
+    const [addStr, delStr, ...pathParts] = parts
+    const filePath = pathParts.join('\t') // Handle paths with tabs
+
+    // Skip binary files
+    if (addStr === '-' || delStr === '-') continue
+
+    const additions = parseInt(addStr, 10) || 0
+    const deletions = parseInt(delStr, 10) || 0
+
+    // Accumulate stats (file might have both staged and unstaged changes)
+    const existing = statsMap.get(filePath)
+    if (existing) {
+      statsMap.set(filePath, {
+        additions: existing.additions + additions,
+        deletions: existing.deletions + deletions,
+      })
+    } else {
+      statsMap.set(filePath, { additions, deletions })
+    }
+  }
+}
+
 // Get git info for the working directory
 export async function getGitInfo(workingDirectory: string): Promise<GitInfo> {
   const isRepo = await isGitRepo(workingDirectory)
@@ -104,9 +161,23 @@ export async function getGitInfo(workingDirectory: string): Promise<GitInfo> {
     return { changedFiles: [] }
   }
 
-  const changedFiles = await getChangedFiles(workingDirectory)
+  const [changedFiles, diffStats] = await Promise.all([
+    getChangedFiles(workingDirectory),
+    getDiffStats(workingDirectory),
+  ])
 
-  return { changedFiles }
+  // Merge diff stats into changed files (only for modified files)
+  const filesWithStats = changedFiles.map((file) => {
+    if (file.status === 'modified') {
+      const stats = diffStats.get(file.path)
+      if (stats) {
+        return { ...file, additions: stats.additions, deletions: stats.deletions }
+      }
+    }
+    return file
+  })
+
+  return { changedFiles: filesWithStats }
 }
 
 // Get the original (HEAD) content of a file
