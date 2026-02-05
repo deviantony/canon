@@ -25,12 +25,12 @@ export async function startServer(options: ServerOptions): Promise<Server> {
     resolveDecision = resolve
   })
 
-  // Check if port is already in use
+  // Check if port is already in use - only one Canon session allowed
   const portCheck = await checkPort(port)
   if (!portCheck.available) {
     throw new Error(
-      `Port ${port} is already in use. Another Canon session may be running.\n` +
-      `Kill it with: kill $(lsof -t -i:${port})`
+      `Port ${port} is already in use. Only one Canon session is allowed at a time.\n` +
+      `Please finish working with your existing session before starting a new one.`
     )
   }
 
