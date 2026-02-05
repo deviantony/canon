@@ -3,13 +3,13 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: var(--overlay-backdrop);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
   padding-top: 12vh;
-  z-index: 1001;
+  z-index: var(--z-modal);
   animation: fadeIn var(--duration-fast) var(--ease-out);
 }
 

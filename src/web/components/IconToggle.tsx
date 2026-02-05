@@ -10,7 +10,7 @@ interface ToggleOption<T extends string> {
 }
 
 interface IconToggleProps<T extends string> {
-  options: [ToggleOption<T>, ToggleOption<T>]
+  options: readonly [ToggleOption<T>, ToggleOption<T>]
   value: T
   onChange: (value: T) => void
   variant?: 'default' | 'compact'

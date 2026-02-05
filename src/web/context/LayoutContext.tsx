@@ -52,6 +52,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   const [editorFullscreen, setEditorFullscreen] = useState(false)
   const [fullscreenHintShown, setFullscreenHintShown] = useState(false)
   const sidebarWasVisibleRef = useRef(true)
+  const sidebarVisibleRef = useRef(sidebarVisible)
+  sidebarVisibleRef.current = sidebarVisible
 
   const toggleSidebar = useCallback(() => {
     setSidebarVisible(prev => !prev)
@@ -72,7 +74,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     setEditorFullscreen(prev => {
       if (!prev) {
         // Entering fullscreen: remember sidebar state and hide it
-        sidebarWasVisibleRef.current = sidebarVisible
+        sidebarWasVisibleRef.current = sidebarVisibleRef.current
         setSidebarVisible(false)
       } else {
         // Exiting fullscreen: restore sidebar state
@@ -80,7 +82,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
       }
       return !prev
     })
-  }, [sidebarVisible])
+  }, [])
 
   const exitFullscreen = useCallback(() => {
     if (editorFullscreen) {

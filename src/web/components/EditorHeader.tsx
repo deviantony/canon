@@ -4,14 +4,14 @@ import { useLayout } from '../context/LayoutContext'
 import IconToggle from './IconToggle'
 import StatusBadge from './StatusBadge'
 import { formatShortcut } from '../utils/keyboard'
-import type { ChangedFile } from '../../shared/types'
+import type { ChangedFile, ViewMode } from '../../shared/types'
 import styles from './EditorHeader.module.css'
 
 interface EditorHeaderProps {
   filePath: string | null
   canShowDiff: boolean
-  viewMode: 'code' | 'diff'
-  onViewModeChange: (mode: 'code' | 'diff') => void
+  viewMode: ViewMode
+  onViewModeChange: (mode: ViewMode) => void
   isNewFile?: boolean
   fileStatus?: ChangedFile['status']
   additions?: number

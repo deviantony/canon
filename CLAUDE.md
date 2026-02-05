@@ -22,11 +22,11 @@ npm run build:web
 make install
 
 # Cross-platform compilation
-npm run build:linux      # Linux x64
-npm run build:mac-arm    # macOS ARM64
-npm run build:mac-x64    # macOS x64
-npm run build:windows    # Windows x64
-npm run build:all        # All platforms
+npm run build:linux-x64      # Linux x64
+npm run build:linux-arm64    # Linux ARM64
+npm run build:darwin-arm64   # macOS ARM64
+npm run build:windows-x64    # Windows x64
+npm run build:all            # All platforms
 ```
 
 ## Architecture
@@ -61,7 +61,7 @@ src/
     │   ├── AnnotationContext.tsx  # Annotation CRUD + XML formatting
     │   └── LayoutContext.tsx      # UI state (sidebar, selection)
     ├── components/       # React components
-    ├── hooks/            # useEditorInteraction, useAutoResizeTextarea
+    ├── hooks/            # useEditorInteraction, useInlineAnnotations
     ├── utils/            # Gutter interaction, CodeMirror theme
     └── styles/globals.css # Design system with CSS variables
 ```
@@ -83,6 +83,13 @@ Two React Context providers:
 | `/api/git/diff/:path` | File-specific unified diff |
 | `/api/git/original/:path` | Original file content (HEAD) |
 | `/api/feedback` | Submit annotations (resolves CLI Promise) |
+
+## Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `CANON_PORT` | `9847` | HTTP server port |
+| `CANON_REMOTE` | unset | Set to `1` to skip auto-opening browser |
 
 ## Key Dependencies
 

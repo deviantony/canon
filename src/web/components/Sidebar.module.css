@@ -53,7 +53,7 @@
   width: 9px;
   cursor: col-resize;
   background: transparent;
-  z-index: 10;
+  z-index: var(--z-float);
 }
 
 .resizeHandle::after {

@@ -1,5 +1,5 @@
 import { EditorView, Decoration, DecorationSet, WidgetType } from '@codemirror/view'
-import { StateField, StateEffect, EditorState } from '@codemirror/state'
+import { StateField, StateEffect, EditorState, Facet } from '@codemirror/state'
 import type { Annotation } from '../context/AnnotationContext'
 import { formatLineBadge } from './annotationUtils'
 import { getModifierKey } from './keyboard'
@@ -24,10 +24,37 @@ export interface AnnotationCallbacks {
   onLineClick: (line: number) => void
 }
 
-let globalCallbacks: AnnotationCallbacks | null = null
+// Facet to provide callbacks to widgets via EditorState (avoids global mutable state)
+export const annotationCallbacksFacet = Facet.define<AnnotationCallbacks | null, AnnotationCallbacks | null>({
+  combine: values => values.find(v => v != null) ?? null
+})
 
-export function setAnnotationCallbacks(callbacks: AnnotationCallbacks) {
-  globalCallbacks = callbacks
+// --- Shared helpers ---
+
+function createKeyboardHint(): HTMLSpanElement {
+  const hint = document.createElement('span')
+  hint.className = 'inline-annotation-hint'
+  const kbd1 = document.createElement('kbd')
+  kbd1.textContent = getModifierKey()
+  const kbdPlus = document.createElement('span')
+  kbdPlus.textContent = '+'
+  kbdPlus.style.cssText = 'opacity: 0.5; margin: 0 2px;'
+  const kbd2 = document.createElement('kbd')
+  kbd2.textContent = 'Enter'
+  hint.appendChild(kbd1)
+  hint.appendChild(kbdPlus)
+  hint.appendChild(kbd2)
+  return hint
+}
+
+function setupTextareaAutoResize(textarea: HTMLTextAreaElement, minHeight?: number) {
+  const resize = () => {
+    textarea.style.height = 'auto'
+    const height = minHeight ? Math.max(minHeight, textarea.scrollHeight) : textarea.scrollHeight
+    textarea.style.height = height + 'px'
+  }
+  textarea.addEventListener('input', resize)
+  resize()
 }
 
 // Widget for displaying an existing annotation
@@ -47,7 +74,7 @@ class AnnotationWidget extends WidgetType {
     )
   }
 
-  toDOM() {
+  toDOM(view: EditorView) {
     // Outer wrapper with padding - CodeMirror measures this for gutter alignment
     // Using padding instead of margin because margins aren't included in height calculations
     const outer = document.createElement('div')
@@ -72,7 +99,7 @@ class AnnotationWidget extends WidgetType {
     editBtn.title = 'Edit'
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation()
-      this.startEditing(wrapper)
+      this.startEditing(wrapper, view)
     })
 
     const deleteBtn = document.createElement('button')
@@ -81,7 +108,7 @@ class AnnotationWidget extends WidgetType {
     deleteBtn.title = 'Delete'
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation()
-      globalCallbacks?.onDelete(this.annotation.id)
+      view.state.facet(annotationCallbacksFacet)?.onDelete(this.annotation.id)
     })
 
     actions.appendChild(editBtn)
@@ -101,9 +128,10 @@ class AnnotationWidget extends WidgetType {
     return outer
   }
 
-  startEditing(inner: HTMLElement) {
+  startEditing(inner: HTMLElement, view: EditorView) {
     // Get the outer wrapper to replace when cancelling
-    const outer = inner.parentElement!
+    const outer = inner.parentElement
+    if (!outer) return
 
     inner.innerHTML = ''
     inner.className = 'inline-annotation editing'
@@ -116,25 +144,14 @@ class AnnotationWidget extends WidgetType {
     const actions = document.createElement('div')
     actions.className = 'inline-annotation-edit-actions'
 
-    const hint = document.createElement('span')
-    hint.className = 'inline-annotation-hint'
-    const kbd1 = document.createElement('kbd')
-    kbd1.textContent = getModifierKey()
-    const kbdPlus = document.createElement('span')
-    kbdPlus.textContent = '+'
-    kbdPlus.style.cssText = 'opacity: 0.5; margin: 0 2px;'
-    const kbd2 = document.createElement('kbd')
-    kbd2.textContent = 'Enter'
-    hint.appendChild(kbd1)
-    hint.appendChild(kbdPlus)
-    hint.appendChild(kbd2)
+    const hint = createKeyboardHint()
 
     const cancelBtn = document.createElement('button')
     cancelBtn.className = 'inline-annotation-btn'
     cancelBtn.textContent = 'Cancel'
     cancelBtn.addEventListener('click', () => {
       // Re-render the original widget (replaces outer wrapper)
-      const newDom = this.toDOM()
+      const newDom = this.toDOM(view)
       outer.replaceWith(newDom)
     })
 
@@ -144,7 +161,7 @@ class AnnotationWidget extends WidgetType {
     saveBtn.addEventListener('click', () => {
       const value = textarea.value.trim()
       if (value) {
-        globalCallbacks?.onUpdate(this.annotation.id, value)
+        view.state.facet(annotationCallbacksFacet)?.onUpdate(this.annotation.id, value)
       }
     })
 
@@ -158,13 +175,7 @@ class AnnotationWidget extends WidgetType {
     textarea.focus()
     textarea.setSelectionRange(textarea.value.length, textarea.value.length)
 
-    // Auto-resize
-    const resize = () => {
-      textarea.style.height = 'auto'
-      textarea.style.height = textarea.scrollHeight + 'px'
-    }
-    textarea.addEventListener('input', resize)
-    resize()
+    setupTextareaAutoResize(textarea)
 
     // Keyboard shortcuts
     textarea.addEventListener('keydown', (e) => {
@@ -172,10 +183,10 @@ class AnnotationWidget extends WidgetType {
         e.preventDefault()
         const value = textarea.value.trim()
         if (value) {
-          globalCallbacks?.onUpdate(this.annotation.id, value)
+          view.state.facet(annotationCallbacksFacet)?.onUpdate(this.annotation.id, value)
         }
       } else if (e.key === 'Escape') {
-        const newDom = this.toDOM()
+        const newDom = this.toDOM(view)
         outer.replaceWith(newDom)
       }
     })
@@ -199,7 +210,7 @@ class NewAnnotationWidget extends WidgetType {
     return other.lineStart === this.lineStart && other.lineEnd === this.lineEnd
   }
 
-  toDOM() {
+  toDOM(view: EditorView) {
     // Outer wrapper with padding - CodeMirror measures this for gutter alignment
     const outer = document.createElement('div')
     outer.className = 'inline-annotation-wrapper'
@@ -218,24 +229,13 @@ class NewAnnotationWidget extends WidgetType {
     const actions = document.createElement('div')
     actions.className = 'inline-annotation-edit-actions'
 
-    const hint = document.createElement('span')
-    hint.className = 'inline-annotation-hint'
-    const kbd1 = document.createElement('kbd')
-    kbd1.textContent = getModifierKey()
-    const kbdPlus = document.createElement('span')
-    kbdPlus.textContent = '+'
-    kbdPlus.style.cssText = 'opacity: 0.5; margin: 0 2px;'
-    const kbd2 = document.createElement('kbd')
-    kbd2.textContent = 'Enter'
-    hint.appendChild(kbd1)
-    hint.appendChild(kbdPlus)
-    hint.appendChild(kbd2)
+    const hint = createKeyboardHint()
 
     const cancelBtn = document.createElement('button')
     cancelBtn.className = 'inline-annotation-btn'
     cancelBtn.textContent = 'Cancel'
     cancelBtn.addEventListener('click', () => {
-      globalCallbacks?.onCancel()
+      view.state.facet(annotationCallbacksFacet)?.onCancel()
     })
 
     const saveBtn = document.createElement('button')
@@ -245,7 +245,7 @@ class NewAnnotationWidget extends WidgetType {
       const value = textarea.value.trim()
       if (value) {
         const lineEnd = this.lineEnd !== this.lineStart ? this.lineEnd : undefined
-        globalCallbacks?.onSave(this.lineStart, lineEnd, value)
+        view.state.facet(annotationCallbacksFacet)?.onSave(this.lineStart, lineEnd, value)
       }
     })
 
@@ -259,17 +259,13 @@ class NewAnnotationWidget extends WidgetType {
 
     outer.appendChild(wrapper)
 
-    // Focus after a tick to ensure it's in the DOM
+    // Focus after a tick — unlike edit mode (where the textarea replaces existing DOM),
+    // new annotation widgets are inserted by CodeMirror and need a frame to mount
     setTimeout(() => {
       textarea.focus()
     }, 0)
 
-    // Auto-resize
-    const resize = () => {
-      textarea.style.height = 'auto'
-      textarea.style.height = Math.max(60, textarea.scrollHeight) + 'px'
-    }
-    textarea.addEventListener('input', resize)
+    setupTextareaAutoResize(textarea, 60)
 
     // Keyboard shortcuts
     textarea.addEventListener('keydown', (e) => {
@@ -278,10 +274,10 @@ class NewAnnotationWidget extends WidgetType {
         const value = textarea.value.trim()
         if (value) {
           const lineEnd = this.lineEnd !== this.lineStart ? this.lineEnd : undefined
-          globalCallbacks?.onSave(this.lineStart, lineEnd, value)
+          view.state.facet(annotationCallbacksFacet)?.onSave(this.lineStart, lineEnd, value)
         }
       } else if (e.key === 'Escape') {
-        globalCallbacks?.onCancel()
+        view.state.facet(annotationCallbacksFacet)?.onCancel()
       }
     })
 

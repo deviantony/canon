@@ -50,6 +50,9 @@
   --bg-elevated: #161616;
   --bg-hover: #1a1a1a;
   --bg-active: #1e1e1e;
+  --bg-fullscreen: #000000;
+  --bg-floating: rgba(17, 17, 17, 0.85);
+  --overlay-backdrop: rgba(0, 0, 0, 0.6);
 
   /* ═══ TEXT HIERARCHY ═══ */
   --text-primary: #e8e8e8;
@@ -125,6 +128,13 @@
 
   /* Transitions (convenience) */
   --transition-fast: var(--duration-fast) var(--ease-default);
+
+  /* ═══ Z-INDEX SCALE ═══ */
+  --z-float: 10;
+  --z-local-overlay: 100;
+  --z-overlay: 1000;
+  --z-modal: 1001;
+  --z-top: 10000;
 
   /* ═══ SHADOWS ═══ */
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
@@ -586,7 +596,7 @@ body {
 .line-selection-indicator {
   position: fixed;
   pointer-events: none;
-  z-index: 10000;
+  z-index: var(--z-top);
   display: flex;
   align-items: center;
   gap: 6px;

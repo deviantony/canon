@@ -24,3 +24,6 @@ export interface FeedbackResult {
   feedback: string
   cancelled: boolean
 }
+
+export type ViewMode = 'code' | 'diff'
+export type CompletionType = 'submitted' | 'cancelled'

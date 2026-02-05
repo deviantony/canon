@@ -36,26 +36,12 @@ This comprehensive audit of the Canon codebase identified **65 specific issues**
 
 ## 1. Server & CLI Issues
 
-### 1.1 Error Handling Inconsistencies
+### ~~1.1 Error Handling Inconsistencies~~ PARTIALLY RESOLVED
 
-**Severity: HIGH**
+**Severity: HIGH** | **Status: 1.1.1 and 1.1.3 FIXED**
 
-#### 1.1.1 Inconsistent API Response Status Codes
-**Location:** `src/server/index.ts`
-
-```typescript
-// Line 65 - Returns 400 on error (correct)
-if (result.error) {
-  return Response.json({ error: result.error }, { status: 400 })
-}
-
-// Line 85 - Missing status code (incorrect - defaults to 200)
-if (result.error) {
-  return Response.json({ error: result.error, content: '' })
-}
-```
-
-**Impact:** Clients cannot reliably detect errors from `/api/git/original/:path` endpoint.
+#### ~~1.1.1 Inconsistent API Response Status Codes~~ FIXED
+Added `{ status: 400 }` to `/api/git/original/:path` error response.
 
 #### 1.1.2 Different Error Response Structures
 | Module | Error Pattern |
@@ -66,206 +52,104 @@ if (result.error) {
 
 **Recommendation:** Standardize on consistent error response structure across all modules.
 
-#### 1.1.3 Silent Failures
-**Location:** `src/server/index.ts:154-157`
-```typescript
-// Browser opening fails silently with empty catch block
-try {
-  // spawn browser
-} catch {}  // Silent failure
-```
+#### ~~1.1.3 Silent Failures~~ FIXED
+Added `console.warn` to browser-open catch block.
 
-**Recommendation:** Log warning when browser fails to open.
+### 1.2 Async/Await Pattern Inconsistency — WON'T FIX
 
-### 1.2 Async/Await Pattern Inconsistency
-
-**Severity: MEDIUM**
+**Severity: MEDIUM** | **Status: WON'T FIX** (sync file I/O is appropriate for Bun's performance model; mixing sync/async is idiomatic here)
 
 - `files.ts`: ALL functions are synchronous (uses `readFileSync`, `readdirSync`)
 - `git.ts`: ALL functions are async (uses `Bun.spawn`)
 - `server/index.ts`: MIXED - sync and async handlers in same fetch function
 
-**Recommendation:** Consider making file operations async for consistency and better performance with large repositories.
+### 1.3 Large Fetch Handler Monolith — WON'T FIX
 
-### 1.3 Large Fetch Handler Monolith
+**Severity: MEDIUM** | **Status: WON'T FIX** (handler is sequential and readable; routing abstraction adds complexity without proportional benefit for this server size)
 
-**Severity: MEDIUM**
 **Location:** `src/server/index.ts:39-108`
 
 Single fetch handler with 10 sequential if statements handling multiple concerns (file serving, git operations, API endpoints).
-
-**Recommendation:** Extract route handlers into separate functions or use a routing pattern.
 
 ---
 
 ## 2. React Component Issues
 
-### 2.1 Unused Custom Hook
+### ~~2.1 Unused Custom Hook~~ RESOLVED
 
-**Severity: HIGH**
-**Location:** `src/web/hooks/useAutoResizeTextarea.ts`
+**Severity: HIGH** | **Status: FIXED**
 
-The `useAutoResizeTextarea` hook exists but is **NOT USED** anywhere in the codebase. Instead, the same logic is duplicated inline in:
-- `FileAnnotationFooter.tsx` (lines 37-42)
-- `App.tsx` fullscreen modal
+Deleted unused `useAutoResizeTextarea.ts` hook file. Inline implementations remain where needed (imperative DOM code cannot use React hooks).
 
-**Recommendation:** Use the existing hook instead of duplicating logic.
+### 2.2 Excessive Props in EditorHeader — WON'T FIX
 
-### 2.2 Excessive Props in EditorHeader
+**Severity: MEDIUM** | **Status: WON'T FIX** (9 props is reasonable for this component; splitting would add indirection without clear benefit)
 
-**Severity: MEDIUM**
 **Location:** `src/web/components/EditorHeader.tsx`
 
-Component receives 9 props:
-```typescript
-interface EditorHeaderProps {
-  filePath: string | null
-  canShowDiff: boolean
-  viewMode: 'code' | 'diff'
-  onViewModeChange: (mode: 'code' | 'diff') => void
-  isNewFile?: boolean
-  fileStatus?: ChangedFile['status']
-  additions?: number
-  deletions?: number
-  lineCount?: number
-}
-```
+### 2.3 Keyboard Event Handler Fragmentation — WON'T FIX
 
-**Recommendation:** Split into smaller components or move file selection state to Context.
+**Severity: MEDIUM** | **Status: WON'T FIX** (handlers are co-located with the components that own them; centralizing would increase coupling)
 
-### 2.3 Keyboard Event Handler Fragmentation
+Keyboard event handling is spread across 4 locations, each contextually appropriate for its component.
 
-**Severity: MEDIUM**
+### 2.4 App.tsx State Proliferation — WON'T FIX
 
-Keyboard event handling is spread across 4 locations:
-1. `App.tsx` (lines 166-233) - main shortcuts
-2. `LayoutContext.tsx` (lines 117-150) - Ctrl+Cmd+S, Ctrl+Cmd+V
-3. `KeyboardShortcutsModal.tsx` (lines 37-49) - Escape handler
-4. `FileAnnotationFooter.tsx` (lines 90-96) - textarea-specific
+**Severity: MEDIUM** | **Status: WON'T FIX** (local state in App.tsx is appropriate; moving to Context would add indirection for values only used here)
 
-**Recommendation:** Consolidate keyboard handling into a single location or use a keyboard shortcuts manager.
-
-### 2.4 App.tsx State Proliferation
-
-**Severity: MEDIUM**
-**Location:** `src/web/App.tsx`
-
-App.tsx has 8 local state values that could be candidates for Context:
-- `selectedFile`, `viewMode` - editor state
-- `shortcutsModalOpen` - UI modal state
-- `lineCount`, `floatingHeaderDimmed` - derived/UI state
-
-**Recommendation:** Consider moving editor-related state to Context.
+App.tsx has 8 local state values that are either derived or only consumed locally.
 
 ---
 
 ## 3. State Management Issues
 
-### 3.1 LayoutContext State Fragmentation
+### 3.1 LayoutContext State Fragmentation — WON'T FIX
 
-**Severity: MEDIUM**
-**Location:** `src/web/context/LayoutContext.tsx:45-53`
+**Severity: MEDIUM** | **Status: WON'T FIX** (individual `useState` calls are idiomatic React; `useReducer` would add boilerplate without measurable perf gain at this scale)
 
-9 separate `useState` calls instead of consolidated state:
-```typescript
-const [sidebarVisible, setSidebarVisible] = useState(true)
-const [sidebarWidth, setSidebarWidthState] = useState(DEFAULT_SIDEBAR_WIDTH)
-const [selectedLines, setSelectedLines] = useState<LineSelection | null>(null)
-// ... 6 more useState calls
-```
+9 separate `useState` calls in LayoutContext. Re-renders are acceptable given the component tree size.
 
-**Impact:** Any state change triggers re-renders of all context consumers.
+### ~~3.2 toggleEditorFullscreen Dependency Issue~~ RESOLVED
 
-**Recommendation:** Group related state or use `useReducer`.
+**Severity: MEDIUM** | **Status: FIXED**
 
-### 3.2 toggleEditorFullscreen Dependency Issue
-
-**Severity: MEDIUM**
-**Location:** `src/web/context/LayoutContext.tsx`
-
-```typescript
-const toggleEditorFullscreen = useCallback(() => {
-  setEditorFullscreen(prev => {
-    if (!prev) {
-      sidebarWasVisibleRef.current = sidebarVisible  // Captures current value
-      setSidebarVisible(false)
-    } else {
-      setSidebarVisible(sidebarWasVisibleRef.current)
-    }
-    return !prev
-  })
-}, [sidebarVisible])  // Function recreated when sidebarVisible changes
-```
-
-**Impact:** The keyboard handler `useEffect` that depends on `toggleEditorFullscreen` is recreated frequently.
+Added `sidebarVisibleRef` to read current sidebar state without capturing it as a dependency. `toggleEditorFullscreen` now has `[]` dependencies, eliminating unnecessary `useEffect` re-registrations.
 
 ---
 
 ## 4. TypeScript Type Issues
 
-### 4.1 Type Duplication Opportunities
+### ~~4.1 Type Duplication Opportunities~~ PARTIALLY RESOLVED
 
-**Severity: MEDIUM**
+**Severity: MEDIUM** | **Status: PARTIALLY FIXED**
 
-#### Implicit Types Used Multiple Times
-```typescript
-// App.tsx line 31
-const [viewMode, setViewMode] = useState<'code' | 'diff'>('code')
+Extracted `ViewMode` and `CompletionType` to `src/shared/types.ts`. Updated `App.tsx`, `EditorHeader.tsx`, and `CompletionScreen.tsx` to use the shared types.
 
-// EditorHeader line 14
-viewMode: 'code' | 'diff'
+DiffStats consolidation deferred (internal to git.ts, low impact).
 
-// Should extract:
-type ViewMode = 'code' | 'diff'
-```
+### ~~4.2 IconToggle Tuple Enforcement~~ RESOLVED
 
-Same issue with completion state: `'submitted' | 'cancelled' | null`
+**Severity: LOW** | **Status: FIXED**
 
-#### DiffStats Not Exported
-**Location:** `src/server/git.ts:8-11`
+Added `readonly` to tuple type: `readonly [ToggleOption<T>, ToggleOption<T>]`.
 
-`DiffStats` is internal but duplicates structure of `ChangedFile` (additions/deletions).
+### ~~4.3 Unsafe Type Assertion~~ RESOLVED
 
-**Recommendation:** Export `DiffStats` or consolidate with `ChangedFile`.
+**Severity: LOW** | **Status: FIXED**
 
-### 4.2 IconToggle Tuple Enforcement
+Replaced `as keyof typeof styles` cast with an explicit `statusStyles` lookup record that maps status strings to CSS module classes with a safe fallback.
 
-**Severity: LOW**
-**Location:** `src/web/components/IconToggle.tsx`
+### 4.4 Missing Type Definitions — PARTIALLY RESOLVED
 
-```typescript
-interface IconToggleProps<T extends string> {
-  options: [ToggleOption<T>, ToggleOption<T>]  // Tuple - not enforced at runtime
-}
-```
-
-**Recommendation:** Use `readonly [ToggleOption<T>, ToggleOption<T>]` or add runtime validation.
-
-### 4.3 Unsafe Type Assertion
-
-**Severity: LOW**
-**Location:** `src/web/components/StatusBadge.tsx:18`
-
-```typescript
-as keyof typeof styles  // Unsafe - no validation that status is in styles keys
-```
-
-### 4.4 Missing Type Definitions
-
-| Type | Locations Used | Recommendation |
-|------|----------------|----------------|
-| `LineRange` | Multiple files | Create `{ start: number; end: number }` |
-| `ViewMode` | App.tsx, EditorHeader | Create `'code' \| 'diff'` |
-| `CompletionType` | App.tsx, CompletionScreen | Create `'submitted' \| 'cancelled'` |
-| `BadgeVariant` | CountBadge | Create `'filter' \| 'header'` |
+**Status:** `ViewMode` and `CompletionType` extracted to `shared/types.ts` (see 4.1). Remaining types (`LineRange`, `BadgeVariant`) are each used in only one location — extraction would add indirection without reducing duplication. **WON'T FIX** remaining.
 
 ---
 
 ## 5. CSS & Styling Issues
 
-### 5.1 Naming Convention Inconsistency
+### 5.1 Naming Convention Inconsistency — DEFERRED
 
-**Severity: HIGH**
+**Severity: HIGH** | **Status: DEFERRED** (high-effort, moderate regression risk, cosmetic-only impact)
 
 | File | Convention | Example |
 |------|------------|---------|
@@ -273,192 +157,113 @@ as keyof typeof styles  // Unsafe - no validation that status is in styles keys
 | `globals.css` | kebab-case | `.inline-annotation`, `.inline-annotation-wrapper` |
 | Component modules | Mixed | Mostly camelCase |
 
-**Recommendation:** Standardize on one convention (camelCase for CSS modules is common).
+**Note:** The kebab-case in `globals.css` is used by imperative DOM code (`inlineAnnotations.ts`) which sets `className` strings directly. Renaming those would require updating both the CSS and the JS class name strings. CSS module files already mostly use camelCase. The risk of breaking class name references across the codebase outweighs the cosmetic benefit.
 
-### 5.2 Duplicate CSS Patterns
+### ~~5.2 Duplicate CSS Patterns~~ PARTIALLY RESOLVED
 
-**Severity: HIGH**
+**Severity: HIGH** | **Status: Badge and textarea deduplication FIXED**
 
-#### Badge Styling (4 implementations)
-Nearly identical code in:
-1. `styles/base.module.css:129-171` - `.lineBadge`
-2. `styles/globals.css:305-321` - `.inline-annotation-badge`
-3. `components/AnnotationSummaryPopover.module.css:119-136` - `.lineBadge`
-4. `components/FileAnnotationFooter.module.css:67-89` - `.badge`
+#### ~~Badge Styling~~ FIXED (2 of 4)
+- `AnnotationSummaryPopover.module.css` now uses `composes: lineBadge from base.module.css`
+- `FileAnnotationFooter.module.css` now uses `composes: lineBadge from base.module.css` (retains unique `gap: 4px`)
+- `globals.css` `.inline-annotation-badge` must remain separate (imperative DOM cannot use CSS modules)
+- `base.module.css` `.lineBadge` is the canonical source
 
-All implement identical properties:
-```css
-padding: 2px 10px;
-background: var(--color-gold-alpha-08);
-border: 1px solid var(--accent-gold-muted);
-border-radius: 4px;
-/* ... 8 more identical properties */
-```
+#### ~~Textarea Styling~~ FIXED (1 of 4)
+- `FileAnnotationFooter.tsx` now uses `baseStyles.cardTextarea` className directly
+- `globals.css` `.inline-annotation-textarea` must remain separate (imperative DOM)
+- `App.module.css` `.annotationModalTextarea` has legitimate differences (bordered, larger, resizable)
 
-#### Action Button Styling (3+ implementations)
-- `globals.css:351-373` - `.inline-annotation-action`
-- `base.module.css:35-57` - `.actionIcon`
-- `App.module.css:145-163` - `.floatingExitBtn`
-- `App.module.css:298-316` - `.annotationModalClose`
+#### Action Button Styling (unchanged - legitimate variations)
+- `globals.css` `.inline-annotation-action` — imperative DOM, must remain
+- `base.module.css` `.actionIcon` — canonical CSS module source
+- `App.module.css` buttons have different sizes/shapes for their contexts
 
-#### Textarea Styling (4 implementations)
-- `base.module.css:210-237` - `.cardTextarea`
-- `globals.css:443-472` - `.inline-annotation-textarea`
-- `FileAnnotationFooter.module.css:132-159` - `.editCard textarea`
-- `App.module.css:322-350` - `.annotationModalTextarea`
+#### Keyframe Animations (intentional duplication)
+CSS Modules scope `@keyframes` names, so each module must define its own copy (per `docs/design-guide.md`). Not a defect.
 
-#### Duplicate Keyframe Animations
-- `@keyframes fadeSlideIn` - defined in 4 files
-- `@keyframes fadeIn` - defined in 3 files
-- `@keyframes accentPulse` - defined in 2 files
+### ~~5.3 Hard-Coded Values~~ PARTIALLY RESOLVED
 
-### 5.3 Hard-Coded Values
+**Severity: MEDIUM** | **Status: Colors FIXED, border-radius DEFERRED**
 
-**Severity: MEDIUM**
+#### ~~Hard-Coded Colors~~ FIXED
+Added `--bg-fullscreen`, `--bg-floating`, `--overlay-backdrop` CSS variables to globals.css. Replaced all hard-coded color values in `App.module.css`, `AnnotationSummaryPopover.module.css`, and `KeyboardShortcutsModal.module.css`.
 
-#### Hard-Coded Colors
-| Location | Value | Should Be |
-|----------|-------|-----------|
-| `App.module.css:40` | `#000` | `var(--bg-void)` |
-| `App.module.css:101` | `rgba(17, 17, 17, 0.85)` | CSS variable |
-| `App.module.css:226` | `rgba(0, 0, 0, 0.6)` | `var(--overlay-dark)` |
-| `AnnotationSummaryPopover.module.css:6` | `rgba(0, 0, 0, 0.6)` | Variable |
-| `KeyboardShortcutsModal.module.css:6` | `rgba(0, 0, 0, 0.7)` | Variable (different opacity!) |
+#### Hard-Coded Border Radius — DEFERRED
+22 instances of hard-coded border-radius values. To be addressed as part of a future CSS design token pass.
 
-#### Hard-Coded Border Radius (22 instances)
-Values like `2px`, `3px`, `4px`, `5px`, `6px`, `7px`, `8px`, `20px`, `99px` should use CSS variables.
+### ~~5.4 Inconsistent Overlay Opacity~~ RESOLVED
 
-### 5.4 Inconsistent Overlay Opacity
-- `AnnotationSummaryPopover.module.css`: 60%
-- `KeyboardShortcutsModal.module.css`: 70%
-- `App.module.css`: 60%
+**Status: FIXED**
 
-### 5.5 No Z-Index Management Strategy
+All overlays now use `var(--overlay-backdrop)` (standardized at 60% opacity).
 
-**Severity: MEDIUM**
+### ~~5.5 No Z-Index Management Strategy~~ RESOLVED
 
-Z-index values scattered without clear hierarchy:
-- 10000: `.line-selection-indicator`
-- 1001: KeyboardShortcutsModal `.overlay`
-- 1000: AnnotationSummaryPopover `.overlay`
-- 100: `.annotationModalBackdrop`
-- 10: `.floatingHeader`
+**Severity: MEDIUM** | **Status: FIXED**
 
-**Recommendation:** Define z-index scale as CSS variables.
+Defined z-index scale as CSS variables in globals.css:
+- `--z-float: 10` (floating headers, resize handles)
+- `--z-local-overlay: 100` (overlays within fullscreen context)
+- `--z-overlay: 1000` (full-page overlays)
+- `--z-modal: 1001` (modals above overlays)
+- `--z-top: 10000` (topmost indicators)
+
+Replaced all hard-coded z-index values across `App.module.css`, `AnnotationSummaryPopover.module.css`, `KeyboardShortcutsModal.module.css`, `Sidebar.module.css`, and `globals.css`. Internal component stacking (z-index 1, 2) left as-is.
 
 ---
 
 ## 6. Utility Function Issues
 
-### 6.1 Global Mutable State
+### ~~6.1 Global Mutable State~~ RESOLVED
 
-**Severity: CRITICAL**
-**Location:** `src/web/utils/inlineAnnotations.ts:27-31`
+**Severity: CRITICAL** | **Status: FIXED**
 
-```typescript
-let globalCallbacks: AnnotationCallbacks | null = null
+Replaced module-level `globalCallbacks` mutable variable with a CodeMirror `Facet` (`annotationCallbacksFacet`). Widgets now read callbacks from `view.state.facet()` at event time. The hook uses a `Compartment` to reconfigure the facet when callbacks change.
 
-export function setAnnotationCallbacks(callbacks: AnnotationCallbacks) {
-  globalCallbacks = callbacks
-}
-```
+### ~~6.2 Code Duplication in Utilities~~ RESOLVED
 
-**Issues:**
-- No thread-safety or concurrent access protection
-- If multiple editors used simultaneously, callbacks may get overwritten
-- Makes testing difficult
-- No documentation explaining why global state was chosen
+**Severity: HIGH** | **Status: FIXED**
 
-**Recommendation:** Pass callbacks through CodeMirror's Extension system or React Context.
+Extracted shared helpers in both files:
+- `gutterInteraction.ts`: `queryGutterElements()`, `parseLineNumber()`, `normalizeLineRange()`
+- `inlineAnnotations.ts`: `createKeyboardHint()`, `setupTextareaAutoResize()`
 
-### 6.2 Code Duplication in Utilities
+### ~~6.3 Unsafe DOM Navigation~~ RESOLVED
 
-**Severity: HIGH**
+**Severity: MEDIUM** | **Status: FIXED**
 
-#### gutterInteraction.ts (3 duplications each):
-1. Gutter element query: `.cm-lineNumbers .cm-gutterElement`
-2. Line number min/max normalization logic
-3. Line number parsing from DOM elements
+Replaced non-null assertion `inner.parentElement!` with null check and early return.
 
-#### inlineAnnotations.ts:
-1. Textarea auto-resize logic (2 occurrences)
-2. Keyboard shortcut handlers (2 occurrences)
-3. Hint element construction (2 occurrences)
-4. Textarea value trim & validation (4 occurrences)
+### 6.4 Missing Documentation — WON'T FIX
 
-### 6.3 Unsafe DOM Navigation
+**Severity: MEDIUM** | **Status: WON'T FIX** (code is self-documenting; adding JSDoc to these internal utilities would be low-value overhead)
 
-**Severity: MEDIUM**
-**Location:** `src/web/utils/inlineAnnotations.ts:106`
+### ~~6.5 Focus Timing Inconsistency~~ RESOLVED
 
-```typescript
-const outer = inner.parentElement!  // Non-null assertion without validation
-```
+**Severity: LOW** | **Status: FIXED**
 
-### 6.4 Missing Documentation
-
-**Severity: MEDIUM**
-
-- `languageExtensions.ts` - Only export is undocumented
-- `gutterInteraction.ts` - Plugin classes undocumented
-- `inlineAnnotations.ts` - StateField purpose undocumented
-
-### 6.5 Focus Timing Inconsistency
-
-**Severity: LOW**
-**Location:** `src/web/utils/inlineAnnotations.ts`
-
-```typescript
-// Line 158 - Direct focus
-textarea.focus()
-
-// Line 264 - setTimeout focus
-setTimeout(() => { textarea.focus() }, 0)
-```
+Added comment explaining the intentional difference: edit mode replaces existing DOM (direct focus works), while new annotation widgets are inserted by CodeMirror and need a frame to mount before focus.
 
 ---
 
 ## 7. Build & Configuration Issues
 
-### 7.1 Documentation/Implementation Mismatch
+### ~~7.1 Documentation/Implementation Mismatch~~ RESOLVED
 
-**Severity: CRITICAL**
-**Location:** `CLAUDE.md` vs `package.json`
+**Severity: CRITICAL** | **Status: FIXED**
 
-| Documented Command | Actual Script Name |
-|-------------------|-------------------|
-| `npm run build:linux` | `npm run build:linux-x64` |
-| `npm run build:mac-arm` | `npm run build:darwin-arm64` |
-| `npm run build:mac-x64` | Not found |
-| `npm run build:windows` | `npm run build:windows-x64` |
+Updated `CLAUDE.md` build commands to match actual `package.json` script names (`build:linux-x64`, `build:linux-arm64`, `build:darwin-arm64`, `build:windows-x64`). Removed non-existent `build:mac-x64`.
 
-**Impact:** Users following documentation receive "script not found" errors.
+### ~~7.2 Loose Version Pinning~~ RESOLVED
 
-### 7.2 Loose Version Pinning
+**Severity: HIGH** | **Status: FIXED**
 
-**Severity: HIGH**
+Pinned `@types/bun` to `^1.3.8` in package.json. Pinned `bun-version` to `1.3.8` in CI workflow.
 
-#### package.json:33
-```json
-"@types/bun": "latest"
-```
+### 7.3 Outdated Dependencies — WON'T FIX
 
-#### .github/workflows/release.yml:18
-```yaml
-bun-version: latest
-```
-
-**Impact:** Non-reproducible builds. Different versions could produce different binaries.
-
-### 7.3 Outdated Dependencies
-
-**Severity: MEDIUM**
-
-| Package | Current | Latest |
-|---------|---------|--------|
-| `react` | 18.3.1 | 19.2.4 |
-| `react-dom` | 18.3.1 | 19.2.4 |
-| `vite` | 6.0.7 | 7.3.1 |
+**Severity: MEDIUM** | **Status: WON'T FIX** (major version upgrades carry breaking change risk; current versions are stable and functional)
 
 ---
 
@@ -466,70 +271,62 @@ bun-version: latest
 
 ### 8.1 High-Priority Duplications
 
-| Pattern | Occurrences | Location |
-|---------|-------------|----------|
-| Badge styling | 4 | CSS files |
-| Textarea styling | 4 | CSS files |
-| Action button styling | 4 | CSS files |
-| Card container styling | 4 | CSS files |
-| Auto-resize textarea logic | 2 | JS files |
-| Keyboard hint DOM creation | 2 | inlineAnnotations.ts |
-| Line range normalization | 3 | gutterInteraction.ts |
-| Gutter element query | 3 | gutterInteraction.ts |
-| Keyframe animations | 10+ | CSS files |
+| Pattern | Occurrences | Location | Status |
+|---------|-------------|----------|--------|
+| Badge styling | 4 | CSS files | 2 of 4 consolidated via `composes` |
+| Textarea styling | 4 | CSS files | 1 of 4 consolidated via className |
+| Action button styling | 4 | CSS files | Legitimate variations |
+| Card container styling | 4 | CSS files | Legitimate variations |
+| ~~Auto-resize textarea logic~~ | ~~2~~ | ~~JS files~~ | **FIXED** — `setupTextareaAutoResize()` |
+| ~~Keyboard hint DOM creation~~ | ~~2~~ | ~~inlineAnnotations.ts~~ | **FIXED** — `createKeyboardHint()` |
+| ~~Line range normalization~~ | ~~3~~ | ~~gutterInteraction.ts~~ | **FIXED** — `normalizeLineRange()` |
+| ~~Gutter element query~~ | ~~3~~ | ~~gutterInteraction.ts~~ | **FIXED** — `queryGutterElements()` |
+| Keyframe animations | 10+ | CSS files | Intentional (CSS Modules scoping) |
 
-### 8.2 Path Decoding in Server
+### ~~8.2 Path Decoding in Server~~ RESOLVED
 
-**Location:** `src/server/index.ts`
-```typescript
-// Line 62
-decodeURIComponent(url.pathname.slice('/api/file/'.length))
+**Status: FIXED**
 
-// Line 82
-decodeURIComponent(url.pathname.slice('/api/git/original/'.length))
-```
+Extracted `extractPathParam(url, prefix)` helper. Both call sites now use it.
 
-**Recommendation:** Extract to helper function.
+### 8.3 Duplicate Annotation Grouping Logic — FALSE POSITIVE
 
-### 8.3 Duplicate Annotation Grouping Logic
+**Status: WON'T FIX** (no duplication exists)
 
-- `groupAnnotationsByFile()` in `src/web/utils/annotationUtils.ts`
-- Called and partially reimplemented in `src/web/context/AnnotationContext.tsx`
+`AnnotationContext.tsx` imports and calls `groupAnnotationsByFile()` from `annotationUtils.ts` — it does not reimplement it. Both `getAnnotationsGroupedByFile()` and `formatAsXml()` are clean delegation.
 
 ---
 
 ## 9. Documentation Issues
 
-### 9.1 Outdated CLAUDE.md
+### ~~9.1 Outdated CLAUDE.md~~ RESOLVED
 
-- Build script names don't match package.json
-- Missing some environment variables
-- Missing API endpoint documentation updates
+**Status: FIXED**
 
-### 9.2 Missing Code Documentation
+- ~~Build script names don't match package.json~~ **FIXED** (Critical 7.1)
+- ~~Missing environment variables~~ **FIXED** — added `CANON_PORT` and `CANON_REMOTE` documentation
+- ~~Stale hook reference~~ **FIXED** — updated `useAutoResizeTextarea` → `useInlineAnnotations`
+- API endpoint table was already accurate
 
-| Location | Issue |
-|----------|-------|
-| `src/web/utils/languageExtensions.ts` | No JSDoc on only export |
-| `src/web/utils/gutterInteraction.ts` | Plugin classes undocumented |
-| `src/web/utils/inlineAnnotations.ts` | StateField purpose unclear |
-| `src/server/git.ts` | DiffStats interface undocumented |
+### 9.2 Missing Code Documentation — WON'T FIX
+
+**Status: WON'T FIX** (same items as 6.4 — code is self-documenting; adding JSDoc to internal utilities is low-value overhead)
 
 ---
 
 ## Appendix: Files Requiring Most Attention
 
-| File | Issues | Priority |
-|------|--------|----------|
-| `src/server/index.ts` | Error handling, route organization | High |
-| `src/web/context/LayoutContext.tsx` | State fragmentation, dependencies | High |
-| `src/web/utils/inlineAnnotations.ts` | Global state, duplication | High |
-| `src/web/utils/gutterInteraction.ts` | Duplication, documentation | Medium |
-| `src/web/styles/globals.css` | Naming, hard-coded values | Medium |
-| `src/web/App.tsx` | State proliferation | Medium |
-| `src/web/components/EditorHeader.tsx` | Excessive props | Medium |
-| `CLAUDE.md` | Script name mismatches | Critical |
-| `package.json` | Version pinning | High |
+| File | Issues | Status |
+|------|--------|--------|
+| `src/server/index.ts` | ~~Error handling~~, ~~path decoding~~ | Fixed (route org won't fix) |
+| `src/web/context/LayoutContext.tsx` | ~~toggleEditorFullscreen dep~~ | Fixed (state fragmentation won't fix) |
+| `src/web/utils/inlineAnnotations.ts` | ~~Global state~~, ~~duplication~~, ~~DOM guard~~, ~~focus comment~~ | All fixed |
+| `src/web/utils/gutterInteraction.ts` | ~~Duplication~~ | Fixed (docs won't fix) |
+| `src/web/styles/globals.css` | ~~Hard-coded colors~~, ~~z-index~~ | Fixed (naming deferred) |
+| `src/web/App.tsx` | ~~Type duplication~~ | Fixed (state proliferation won't fix) |
+| `src/web/components/EditorHeader.tsx` | Props count | Won't fix |
+| `CLAUDE.md` | ~~Script names~~, ~~env vars~~, ~~stale hook ref~~ | All fixed |
+| `package.json` | ~~Version pinning~~ | Fixed |
 
 ---
 
