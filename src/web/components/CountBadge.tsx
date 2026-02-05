@@ -1,3 +1,5 @@
+import styles from './CountBadge.module.css'
+
 interface CountBadgeProps {
   count: number
   /** 'filter' for sidebar filter buttons, 'header' for main header buttons */
@@ -12,10 +14,11 @@ interface CountBadgeProps {
  * - Header variant: standard size, used in header action buttons
  */
 export default function CountBadge({ count, variant = 'filter', active = false }: CountBadgeProps) {
-  const className = `count-badge count-badge--${variant}${active ? ' count-badge--active' : ''}`
+  const variantClass = variant === 'header' ? styles.header : styles.filter
+  const activeClass = active && variant === 'filter' ? styles.filterActive : ''
 
   return (
-    <span className={className}>
+    <span className={`${variantClass} ${activeClass}`}>
       {count}
     </span>
   )

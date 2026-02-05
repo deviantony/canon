@@ -12,6 +12,7 @@ import KeyboardShortcutsModal from './components/KeyboardShortcutsModal'
 import { AnnotationProvider, useAnnotations } from './context/AnnotationContext'
 import { LayoutProvider, useLayout } from './context/LayoutContext'
 import type { FeedbackResult, GitInfo } from '../shared/types'
+import styles from './App.module.css'
 
 // Delay to allow file content to load before scrolling
 const NAVIGATION_SCROLL_DELAY_MS = 100
@@ -211,13 +212,13 @@ function AppContent() {
   }
 
   return (
-    <div className="app">
+    <div className={styles.app}>
       <Header
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         onShowShortcuts={() => setShortcutsModalOpen(true)}
       />
-      <main className="main">
+      <main className={styles.main}>
         <Sidebar
           showChangedOnly={showChangedOnly}
           setShowChangedOnly={setShowChangedOnly}
@@ -231,7 +232,7 @@ function AppContent() {
             gitInfo={gitInfo}
           />
         </Sidebar>
-        <div className="content-area">
+        <div className={styles.contentArea}>
           <EditorHeader
             filePath={selectedFile}
             canShowDiff={canShowDiff}
@@ -240,7 +241,7 @@ function AppContent() {
             isNewFile={isNewFile}
             fileStatus={selectedFileStatus}
           />
-          <div className="editor-panel">
+          <div className={styles.editorPanel}>
             {showDiffViewer ? (
               <DiffViewer
                 ref={diffViewerRef}

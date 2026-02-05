@@ -1,31 +1,35 @@
+import styles from './CompletionScreen.module.css'
+
 interface CompletionScreenProps {
   type: 'submitted' | 'cancelled'
 }
 
 export default function CompletionScreen({ type }: CompletionScreenProps) {
   const isSubmitted = type === 'submitted'
+  const screenClass = `${styles.screen} ${isSubmitted ? styles.submitted : styles.cancelled}`
+  const sealClass = `${styles.seal} ${isSubmitted ? styles.sealSubmitted : styles.sealCancelled}`
 
   return (
-    <div className="completion-screen" data-type={type}>
+    <div className={screenClass}>
       {/* Background texture overlay */}
-      <div className="completion-bg-texture" />
+      <div className={styles.bgTexture} />
 
       {/* Main content container */}
-      <div className="completion-content">
+      <div className={styles.content}>
         {/* The Seal - central visual element */}
-        <div className="completion-seal" data-type={type}>
+        <div className={sealClass}>
           {/* Animated rings for submitted state */}
           {isSubmitted && (
             <>
-              <div className="seal-ring seal-ring-1" />
-              <div className="seal-ring seal-ring-2" />
-              <div className="seal-ring seal-ring-3" />
+              <div className={styles.sealRing1} />
+              <div className={styles.sealRing2} />
+              <div className={styles.sealRing3} />
             </>
           )}
 
           {/* Core seal with icon */}
-          <div className="seal-core">
-            <div className="seal-icon">
+          <div className={styles.sealCore}>
+            <div className={styles.sealIcon}>
               {isSubmitted ? (
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -61,16 +65,16 @@ export default function CompletionScreen({ type }: CompletionScreenProps) {
         </div>
 
         {/* Typography section */}
-        <div className="completion-text">
-          <span className="completion-label">
+        <div className={styles.text}>
+          <span className={styles.label}>
             {isSubmitted ? 'REVIEW COMPLETE' : 'REVIEW DISMISSED'}
           </span>
 
-          <h1 className="completion-title">
+          <h1 className={styles.title}>
             {isSubmitted ? 'Feedback Submitted' : 'Session Cancelled'}
           </h1>
 
-          <p className="completion-message">
+          <p className={styles.message}>
             {isSubmitted
               ? 'Your annotations have been delivered to Claude Code.'
               : 'No feedback was recorded for this session.'}
@@ -78,10 +82,10 @@ export default function CompletionScreen({ type }: CompletionScreenProps) {
         </div>
 
         {/* Footer instruction */}
-        <div className="completion-footer">
-          <div className="completion-divider" />
-          <p className="completion-instruction">
-            You can now close this tab and return to <span className="completion-highlight">Claude Code</span>
+        <div className={styles.footer}>
+          <div className={styles.divider} />
+          <p className={styles.instruction}>
+            You can now close this tab and return to <span className={styles.highlight}>Claude Code</span>
           </p>
         </div>
       </div>

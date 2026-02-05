@@ -8,6 +8,7 @@ import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutt
 import { useEditorInteraction } from '../hooks/useEditorInteraction'
 import { useInlineAnnotations } from '../hooks/useInlineAnnotations'
 import type { ChangedFile } from '../../shared/types'
+import styles from './DiffViewer.module.css'
 
 interface DiffViewerProps {
   filePath: string | null
@@ -173,7 +174,7 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
 
   if (!filePath) {
     return (
-      <div className="diff-viewer empty">
+      <div className={styles.empty}>
         <p>Select a file to view its diff</p>
       </div>
     )
@@ -181,7 +182,7 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
 
   if (loading) {
     return (
-      <div className="diff-viewer loading">
+      <div className={styles.loading}>
         <p>Loading diff for {filePath}...</p>
       </div>
     )
@@ -189,15 +190,15 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
 
   if (error) {
     return (
-      <div className="diff-viewer error">
+      <div className={styles.error}>
         <p>{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="diff-viewer">
-      <div className="diff-content" ref={containerRef} />
+    <div className={styles.diffViewer}>
+      <div className={styles.diffContent} ref={containerRef} />
     </div>
   )
 })

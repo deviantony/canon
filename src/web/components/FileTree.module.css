@@ -1,0 +1,140 @@
+/* FileTree Component Styles */
+
+.fileTree {
+  padding: var(--space-2);
+}
+
+.loading,
+.error {
+  padding: var(--space-6);
+  color: var(--text-tertiary);
+  font-size: 13px;
+  text-align: center;
+}
+
+.error {
+  color: var(--status-error);
+}
+
+.empty {
+  padding: var(--space-10) var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.empty p {
+  margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TREE NODE — SEAMLESS HOVER & SELECTION
+   ───────────────────────────────────────────────────────────────────────────── */
+.treeNode {
+  --slide-distance: 2px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px 12px;
+  margin: 1px 0;
+  cursor: pointer;
+  user-select: none;
+  animation: fadeSlideIn 0.2s ease-out both;
+}
+
+/* Staggered animation delay */
+.treeNode:nth-child(1) { animation-delay: 0ms; }
+.treeNode:nth-child(2) { animation-delay: 20ms; }
+.treeNode:nth-child(3) { animation-delay: 40ms; }
+.treeNode:nth-child(4) { animation-delay: 60ms; }
+.treeNode:nth-child(5) { animation-delay: 80ms; }
+.treeNode:nth-child(6) { animation-delay: 100ms; }
+.treeNode:nth-child(7) { animation-delay: 120ms; }
+.treeNode:nth-child(8) { animation-delay: 140ms; }
+.treeNode:nth-child(n+9) { animation-delay: 160ms; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(var(--slide-distance, -6px)); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* File icon - color only states */
+.fileIcon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.treeNode:hover .fileIcon {
+  color: var(--text-secondary);
+}
+
+.selected .fileIcon {
+  color: var(--accent-gold);
+}
+
+/* File name - color only states */
+.fileName {
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  color: var(--text-tertiary);
+  transition: color 0.15s ease;
+}
+
+.treeNode:hover .fileName {
+  color: var(--text-primary);
+}
+
+.selected .fileName {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ANNOTATION BADGES — COMPACT PILLS
+   ───────────────────────────────────────────────────────────────────────────── */
+.annotationBadge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  background: rgba(212, 165, 116, 0.15);
+  border-radius: 99px;
+  color: var(--accent-gold);
+  font-size: 10px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.annotationBadge svg {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   FOLDER ITEMS
+   ───────────────────────────────────────────────────────────────────────────── */
+.folder .fileName {
+  color: var(--text-secondary);
+}
+
+.folder .fileIcon {
+  color: var(--text-tertiary);
+}
+
+.folder:hover .fileIcon {
+  color: var(--text-secondary);
+}
+
+.folder.selected .fileIcon {
+  color: var(--accent-gold);
+}

@@ -3,6 +3,7 @@ import { useLayout } from '../context/LayoutContext'
 import { Diff, FolderTree } from 'lucide-react'
 import IconToggle from './IconToggle'
 import { formatShortcut } from '../utils/keyboard'
+import styles from './Sidebar.module.css'
 
 interface SidebarProps {
   children: ReactNode
@@ -55,10 +56,10 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
   return (
     <aside
       ref={sidebarRef}
-      className="sidebar"
+      className={styles.sidebar}
       style={{ width: sidebarWidth }}
     >
-      <div className="sidebar-header">
+      <div className={styles.sidebarHeader}>
         <IconToggle
           value={showChangedOnly ? 'changed' : 'all'}
           onChange={(v) => setShowChangedOnly(v === 'changed')}
@@ -78,11 +79,11 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
           ]}
         />
       </div>
-      <div className="sidebar-content">
+      <div className={styles.sidebarContent}>
         {children}
       </div>
       <div
-        className={`sidebar-resize-handle ${isResizing ? 'active' : ''}`}
+        className={`${styles.resizeHandle} ${isResizing ? styles.resizeHandleActive : ''}`}
         onMouseDown={handleMouseDown}
       />
     </aside>

@@ -6,6 +6,7 @@ import { baseEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
 import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutterInteraction'
 import { useEditorInteraction } from '../hooks/useEditorInteraction'
 import { useInlineAnnotations } from '../hooks/useInlineAnnotations'
+import styles from './CodeViewer.module.css'
 
 interface CodeViewerProps {
   filePath: string | null
@@ -143,7 +144,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
   if (!filePath) {
     return (
-      <div className="code-viewer empty">
+      <div className={styles.empty}>
         <p>Select a file to view its contents</p>
       </div>
     )
@@ -151,7 +152,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
   if (loading) {
     return (
-      <div className="code-viewer loading">
+      <div className={styles.loading}>
         <p>Loading {filePath}...</p>
       </div>
     )
@@ -159,15 +160,15 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
 
   if (error) {
     return (
-      <div className="code-viewer error">
+      <div className={styles.error}>
         <p>{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="code-viewer">
-      <div className="code-content codemirror-container" ref={editorRef} />
+    <div className={styles.codeViewer}>
+      <div className={`${styles.codeContent} ${styles.codemirrorContainer}`} ref={editorRef} />
     </div>
   )
 })

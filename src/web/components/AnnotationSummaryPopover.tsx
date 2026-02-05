@@ -2,6 +2,8 @@ import { useAnnotations, type Annotation } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import { formatLineBadge, sortAnnotations } from '../utils/annotationUtils'
 import { X, FileText, Pencil, Trash2, MessageSquareShare, Eraser } from 'lucide-react'
+import styles from './AnnotationSummaryPopover.module.css'
+import baseStyles from '../styles/base.module.css'
 
 interface AnnotationSummaryPopoverProps {
   onSubmit: () => void
@@ -70,20 +72,20 @@ export default function AnnotationSummaryPopover({
   }
 
   return (
-    <div className="summary-popover-overlay" onClick={handleOverlayClick}>
-      <div className="summary-popover">
-        <div className="summary-popover-header">
-          <span className="summary-popover-title">
+    <div className={styles.overlay} onClick={handleOverlayClick}>
+      <div className={styles.popover}>
+        <div className={styles.header}>
+          <span className={styles.title}>
             Review All ({annotations.length})
           </span>
-          <button className="summary-popover-close" onClick={handleClose} title="Close">
+          <button className={styles.closeBtn} onClick={handleClose} title="Close">
             <X size={16} />
           </button>
         </div>
 
-        <div className="summary-popover-content">
+        <div className={styles.content}>
           {annotations.length === 0 ? (
-            <div className="summary-empty">
+            <div className={styles.empty}>
               <p>No annotations yet</p>
               <p style={{ marginTop: 'var(--space-2)', fontSize: '13px' }}>
                 Click line numbers in the code to add annotations
@@ -95,9 +97,9 @@ export default function AnnotationSummaryPopover({
               const sorted = sortAnnotations(fileAnnotations)
 
               return (
-                <div key={file} className="summary-file-group">
+                <div key={file} className={styles.fileGroup}>
                   <div
-                    className="summary-file-name"
+                    className={styles.fileName}
                     onClick={() => handleFileClick(file)}
                     title={`Go to ${file}`}
                   >
@@ -106,26 +108,26 @@ export default function AnnotationSummaryPopover({
                   {sorted.map((annotation) => (
                     <div
                       key={annotation.id}
-                      className="summary-annotation"
+                      className={styles.annotation}
                       onClick={() => handleAnnotationClick(annotation)}
                     >
-                      <div className="annotation-line-badge">
+                      <div className={styles.lineBadge}>
                         {annotation.lineStart === 0 && <FileText size={10} style={{ marginRight: 4 }} />}
                         {formatLineBadge(annotation.lineStart, annotation.lineEnd)}
                       </div>
-                      <div className="summary-annotation-text">
+                      <div className={styles.annotationText}>
                         {annotation.comment}
                       </div>
-                      <div className="summary-annotation-actions">
+                      <div className={styles.annotationActions}>
                         <button
-                          className="summary-annotation-action"
+                          className={baseStyles.actionIcon}
                           onClick={(e) => handleEditClick(e, annotation)}
                           title="Edit"
                         >
                           <Pencil size={12} />
                         </button>
                         <button
-                          className="summary-annotation-action delete"
+                          className={`${baseStyles.actionIcon} ${baseStyles.actionIconDelete}`}
                           onClick={(e) => handleDeleteClick(e, annotation.id)}
                           title="Delete"
                         >
@@ -140,9 +142,9 @@ export default function AnnotationSummaryPopover({
           )}
         </div>
 
-        <div className="summary-popover-footer">
+        <div className={styles.footer}>
           <button
-            className="btn secondary"
+            className={baseStyles.btnSecondary}
             onClick={handleClearAll}
             disabled={annotations.length === 0}
             title="Clear all annotations"
@@ -151,7 +153,7 @@ export default function AnnotationSummaryPopover({
             Clear All
           </button>
           <button
-            className="btn submit"
+            className={baseStyles.btnSubmit}
             onClick={handleSubmitClick}
             disabled={annotations.length === 0}
           >

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { X, Command } from 'lucide-react'
 import { formatKey } from '../utils/keyboard'
+import styles from './KeyboardShortcutsModal.module.css'
 
 interface ShortcutItem {
   keys: string[]
@@ -82,39 +83,39 @@ export default function KeyboardShortcutsModal({
   ]
 
   return (
-    <div className="shortcuts-modal-overlay" onClick={onClose}>
+    <div className={styles.overlay} onClick={onClose}>
       <div
         ref={modalRef}
-        className="shortcuts-modal"
+        className={styles.modal}
         onClick={(e) => e.stopPropagation()}
         tabIndex={-1}
       >
         {/* Header */}
-        <div className="shortcuts-modal-header">
-          <div className="shortcuts-modal-title">
+        <div className={styles.header}>
+          <div className={styles.title}>
             <Command size={14} />
             <span>Keyboard Shortcuts</span>
           </div>
-          <button className="shortcuts-modal-close" onClick={onClose}>
+          <button className={styles.closeBtn} onClick={onClose}>
             <X size={16} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="shortcuts-modal-content">
+        <div className={styles.content}>
           {shortcutGroups.map((group) => (
-            <div key={group.title} className="shortcuts-group">
-              <h3 className="shortcuts-group-title">{group.title}</h3>
-              <div className="shortcuts-list">
+            <div key={group.title} className={styles.group}>
+              <h3 className={styles.groupTitle}>{group.title}</h3>
+              <div className={styles.list}>
                 {group.shortcuts.map((shortcut, idx) => (
                   <div
                     key={idx}
-                    className={`shortcut-row ${shortcut.available === false ? 'unavailable' : ''}`}
+                    className={`${styles.row} ${shortcut.available === false ? styles.unavailable : ''}`}
                   >
-                    <span className="shortcut-label">{shortcut.label}</span>
-                    <div className="shortcut-keys">
+                    <span className={styles.label}>{shortcut.label}</span>
+                    <div className={styles.keys}>
                       {shortcut.keys.map((key, keyIdx) => (
-                        <kbd key={keyIdx} className="shortcut-key">
+                        <kbd key={keyIdx} className={styles.key}>
                           {formatKey(key)}
                         </kbd>
                       ))}
@@ -127,8 +128,8 @@ export default function KeyboardShortcutsModal({
         </div>
 
         {/* Footer */}
-        <div className="shortcuts-modal-footer">
-          <span className="shortcuts-hint">
+        <div className={styles.footer}>
+          <span className={styles.hint}>
             Press <kbd>esc</kbd> to close
           </span>
         </div>

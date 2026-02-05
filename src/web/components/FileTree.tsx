@@ -4,6 +4,7 @@ import { File, Folder, FolderOpen, MessageSquare } from 'lucide-react'
 import type { FileNode, ChangedFile, GitInfo } from '../../shared/types'
 import { useAnnotations } from '../context/AnnotationContext'
 import StatusBadge from './StatusBadge'
+import styles from './FileTree.module.css'
 
 // Header: 52px, Sidebar header: 45px, Padding: 16px
 const FIXED_OFFSET = 52 + 45 + 16
@@ -30,19 +31,19 @@ interface FileTreeProps {
 function FileIcon({ isDirectory, isOpen }: { isDirectory: boolean; isOpen: boolean }) {
   if (isDirectory) {
     return isOpen ? (
-      <FolderOpen size={14} className="file-icon" />
+      <FolderOpen size={14} className={styles.fileIcon} />
     ) : (
-      <Folder size={14} className="file-icon" />
+      <Folder size={14} className={styles.fileIcon} />
     )
   }
-  return <File size={14} className="file-icon" />
+  return <File size={14} className={styles.fileIcon} />
 }
 
 function AnnotationBadge({ count }: { count: number }) {
   if (count === 0) return null
 
   return (
-    <span className="annotation-badge" title={`${count} annotation${count === 1 ? '' : 's'}`}>
+    <span className={styles.annotationBadge} title={`${count} annotation${count === 1 ? '' : 's'}`}>
       <MessageSquare size={10} />
       <span>{count}</span>
     </span>
@@ -51,13 +52,17 @@ function AnnotationBadge({ count }: { count: number }) {
 
 function Node({ node, style, dragHandle }: NodeRendererProps<FileNode & { annotationCount?: number }>) {
   const data = node.data
+  const nodeClasses = [
+    styles.treeNode,
+    node.isSelected ? styles.selected : '',
+    data.isDirectory ? styles.folder : '',
+  ].filter(Boolean).join(' ')
 
   return (
     <div
       ref={dragHandle}
       style={style}
-      className={`tree-node ${node.isSelected ? 'selected' : ''}`}
-      data-folder={data.isDirectory ? 'true' : undefined}
+      className={nodeClasses}
       onClick={() => {
         if (data.isDirectory) {
           node.toggle()
@@ -67,7 +72,7 @@ function Node({ node, style, dragHandle }: NodeRendererProps<FileNode & { annota
       }}
     >
       <FileIcon isDirectory={data.isDirectory} isOpen={node.isOpen} />
-      <span className="file-name">{data.name}</span>
+      <span className={styles.fileName}>{data.name}</span>
       {!data.isDirectory && <AnnotationBadge count={data.annotationCount || 0} />}
       <StatusBadge status={data.status} />
     </div>
@@ -163,23 +168,23 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, 
   }, [allFiles, gitInfo, showChangedOnly, getAnnotationsForFile])
 
   if (loading) {
-    return <div className="file-tree-loading">Loading files...</div>
+    return <div className={styles.loading}>Loading files...</div>
   }
 
   if (error) {
-    return <div className="file-tree-error">{error}</div>
+    return <div className={styles.error}>{error}</div>
   }
 
   if (showChangedOnly && displayTree.length === 0) {
     return (
-      <div className="file-tree-empty">
+      <div className={styles.empty}>
         <p>No changes detected</p>
       </div>
     )
   }
 
   return (
-    <div className="file-tree">
+    <div className={styles.fileTree}>
       <Tree
         data={displayTree}
         openByDefault={showChangedOnly}
