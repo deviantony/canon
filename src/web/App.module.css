@@ -56,7 +56,7 @@
 
 /* Vignette effect — subtle darkening at edges */
 .fullscreenOverlay::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -234,8 +234,12 @@
 }
 
 @keyframes backdropFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .annotationModal {
@@ -268,11 +272,7 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--border-subtle);
-  background: linear-gradient(
-    180deg,
-    rgba(212, 165, 116, 0.06) 0%,
-    transparent 100%
-  );
+  background: linear-gradient(180deg, rgba(212, 165, 116, 0.06) 0%, transparent 100%);
 }
 
 .annotationModalIcon {

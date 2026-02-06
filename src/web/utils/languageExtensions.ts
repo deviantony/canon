@@ -1,10 +1,10 @@
-import { Extension } from '@codemirror/state'
-import { javascript } from '@codemirror/lang-javascript'
 import { css } from '@codemirror/lang-css'
 import { html } from '@codemirror/lang-html'
+import { javascript } from '@codemirror/lang-javascript'
 import { json } from '@codemirror/lang-json'
 import { markdown } from '@codemirror/lang-markdown'
 import { python } from '@codemirror/lang-python'
+import type { Extension } from '@codemirror/state'
 
 export function getLanguageExtension(filePath: string): Extension | null {
   const ext = filePath.split('.').pop()?.toLowerCase()

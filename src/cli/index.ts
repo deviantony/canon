@@ -1,5 +1,5 @@
-import { startServer } from '../server/index.js'
 import pkg from '../../package.json'
+import { startServer } from '../server/index.js'
 
 const DEFAULT_PORT = 9847
 
@@ -10,9 +10,7 @@ async function main(): Promise<void> {
     process.exit(0)
   }
 
-  const port = process.env.CANON_PORT
-    ? parseInt(process.env.CANON_PORT)
-    : DEFAULT_PORT
+  const port = process.env.CANON_PORT ? parseInt(process.env.CANON_PORT, 10) : DEFAULT_PORT
   const isRemote = process.env.CANON_REMOTE === '1'
   const workingDirectory = process.cwd()
 

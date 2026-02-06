@@ -9,6 +9,7 @@ interface KeyboardHintProps {
 export default function KeyboardHint({ onClick }: KeyboardHintProps) {
   return (
     <button
+      type="button"
       className={styles.hint}
       onClick={onClick}
       title={`Keyboard shortcuts (${formatShortcut('Cmd+K')})`}

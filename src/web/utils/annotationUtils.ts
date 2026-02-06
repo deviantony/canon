@@ -1,4 +1,4 @@
-import { Annotation } from '../context/AnnotationContext'
+import type { Annotation } from '../context/AnnotationContext'
 
 /**
  * Format a line badge string for display (e.g., "File", "L42", "L10-15")

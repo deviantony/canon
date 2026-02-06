@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react'
-import { sortAnnotations, groupAnnotationsByFile } from '../utils/annotationUtils'
+import { createContext, type ReactNode, useCallback, useContext, useState } from 'react'
+import { groupAnnotationsByFile, sortAnnotations } from '../utils/annotationUtils'
 
 function escapeXml(str: string): string {
   return str
@@ -46,13 +46,11 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
       }
       setAnnotations((prev) => [...prev, annotation])
     },
-    []
+    [],
   )
 
   const updateAnnotation = useCallback((id: string, comment: string) => {
-    setAnnotations((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, comment } : a))
-    )
+    setAnnotations((prev) => prev.map((a) => (a.id === id ? { ...a, comment } : a)))
   }, [])
 
   const removeAnnotation = useCallback((id: string) => {
@@ -65,17 +63,17 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
 
   const getAnnotationsForFile = useCallback(
     (file: string) => annotations.filter((a) => a.file === file),
-    [annotations]
+    [annotations],
   )
 
   const getAnnotationsGroupedByFile = useCallback(
     () => groupAnnotationsByFile(annotations),
-    [annotations]
+    [annotations],
   )
 
   const getFileAnnotation = useCallback(
     (file: string) => annotations.find((a) => a.file === file && a.lineStart === 0),
-    [annotations]
+    [annotations],
   )
 
   const formatAsXml = useCallback(() => {

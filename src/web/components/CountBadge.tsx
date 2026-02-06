@@ -17,9 +17,5 @@ export default function CountBadge({ count, variant = 'filter', active = false }
   const variantClass = variant === 'header' ? styles.header : styles.filter
   const activeClass = active && variant === 'filter' ? styles.filterActive : ''
 
-  return (
-    <span className={`${variantClass} ${activeClass}`}>
-      {count}
-    </span>
-  )
+  return <span className={`${variantClass} ${activeClass}`}>{count}</span>
 }
