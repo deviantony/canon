@@ -108,15 +108,15 @@ export default function KeyboardShortcutsModal({
             <div key={group.title} className={styles.group}>
               <h3 className={styles.groupTitle}>{group.title}</h3>
               <div className={styles.list}>
-                {group.shortcuts.map((shortcut, idx) => (
+                {group.shortcuts.map((shortcut) => (
                   <div
-                    key={idx}
+                    key={shortcut.label}
                     className={`${styles.row} ${shortcut.available === false ? styles.unavailable : ''}`}
                   >
                     <span className={styles.label}>{shortcut.label}</span>
                     <div className={styles.keys}>
-                      {shortcut.keys.map((key, keyIdx) => (
-                        <kbd key={keyIdx} className={styles.key}>
+                      {shortcut.keys.map((key) => (
+                        <kbd key={key} className={styles.key}>
                           {formatKey(key)}
                         </kbd>
                       ))}

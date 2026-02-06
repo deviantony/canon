@@ -20,15 +20,8 @@
     "rules": {
       "recommended": true,
       "a11y": {
-        "noSvgWithoutTitle": "off",
         "useKeyWithClickEvents": "off",
         "noStaticElementInteractions": "off"
-      },
-      "suspicious": {
-        "noArrayIndexKey": "off"
-      },
-      "style": {
-        "noNonNullAssertion": "off"
       }
     }
   },

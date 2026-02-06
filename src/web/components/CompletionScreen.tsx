@@ -33,6 +33,7 @@ export default function CompletionScreen({ type }: CompletionScreenProps) {
             <div className={styles.sealIcon}>
               {isSubmitted ? (
                 <svg
+                  aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
                   width="32"
                   height="32"
@@ -47,6 +48,7 @@ export default function CompletionScreen({ type }: CompletionScreenProps) {
                 </svg>
               ) : (
                 <svg
+                  aria-hidden="true"
                   xmlns="http://www.w3.org/2000/svg"
                   width="28"
                   height="28"
