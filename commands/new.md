@@ -8,7 +8,8 @@ allowed-tools: Bash(command:*), Bash(canon:*)
 First, verify the Canon binary is installed by running:
 
 ```bash
-command -v canon >/dev/null 2>&1 && echo "INSTALLED" || echo "NOT_INSTALLED"
+CANON_BIN="${CANON_BIN_DIR:-$HOME/.local/bin}/canon"
+[ -x "$CANON_BIN" ] && echo "INSTALLED" || echo "NOT_INSTALLED"
 ```
 
 If the output is "NOT_INSTALLED", stop immediately and tell the user:
@@ -22,7 +23,8 @@ Do not proceed further if the binary is not installed.
 Only if the binary is installed, run:
 
 ```bash
-canon
+CANON_BIN="${CANON_BIN_DIR:-$HOME/.local/bin}/canon"
+"$CANON_BIN"
 ```
 
 ## Your Task

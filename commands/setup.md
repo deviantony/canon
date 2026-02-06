@@ -124,22 +124,8 @@ else
 fi
 ```
 
-### 7. PATH Reminder
-
-If the install directory is not in PATH, remind the user:
-
-```bash
-if ! echo "$PATH" | grep -q "$INSTALL_DIR"; then
-  echo ""
-  echo "Note: $INSTALL_DIR is not in your PATH."
-  echo "Add this to your shell profile (.bashrc, .zshrc, etc.):"
-  echo "  export PATH=\"\$PATH:$INSTALL_DIR\""
-fi
-```
-
 ## Summary
 
 After completing all steps, report:
 - The installed version
 - The installation location
-- Whether PATH needs to be updated
