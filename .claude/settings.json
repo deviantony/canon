@@ -5,5 +5,18 @@
     "ralph-loop@claude-plugins-official": true,
     "canon@canon": true,
     "typescript-lsp@claude-plugins-official": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run format:fix 2>/dev/null; exit 0"
+          }
+        ]
+      }
+    ]
   }
 }

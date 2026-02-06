@@ -9,7 +9,7 @@ Canon is an interactive code review tool for Claude Code sessions. It provides a
 ## Development Commands
 
 - **Dependencies**: Managed with Bun (`bun install`, `bun add <pkg>`). Do not use npm.
-- `make dev` is managed by the developer — do NOT run it yourself.
+- `make dev` starts the backend server + Vite dev server in parallel — do NOT run it yourself; the developer manages this.
 
 ```bash
 # Full build: web assets → embed → compile binary
@@ -21,11 +21,17 @@ bun run build:web
 # Type check
 bunx tsc --noEmit
 
-# Lint (check only)
+# Lint with Biome (check only)
 bun run lint
 
 # Lint and auto-fix
 bun run lint:fix
+
+# Format with Biome (check only)
+bun run format
+
+# Format and auto-fix
+bun run format:fix
 
 # Install binary to ~/.local/bin
 make install
@@ -40,12 +46,12 @@ bun run build:all            # All platforms
 
 ## Testing
 
-No test suite exists. Validate changes with `bunx tsc --noEmit`, `bun run lint`, and manual testing.
+No test suite exists. Validate changes with `bunx tsc --noEmit`, `bun run lint`, `bun run format`, and manual testing.
 
 ## Styling
 
 - **CSS Modules** (`.module.css`) for component styles, `globals.css` for design tokens
-- **Design system**: Dark theme with gold accents ("warm minimalism") — see `docs/design-guide.md`
+- **Design system**: Dark theme with gold accents ("warm minimalism") — see `docs/design-guide.md` and `docs/SPECS.md`
 - Always use CSS variables from `globals.css` for colors, spacing, borders, and radii
 
 ## Architecture
@@ -72,7 +78,7 @@ src/
 │   ├── index.ts          # HTTP server, API routes, asset serving
 │   ├── git.ts            # Git operations (diff, status, branch)
 │   ├── files.ts          # File tree, gitignore parsing
-│   └── embedded-assets.ts # Auto-generated (DO NOT EDIT)
+│   └── embedded-assets.ts # Auto-generated, gitignored (DO NOT EDIT)
 ├── shared/types.ts       # Shared TypeScript interfaces
 └── web/
     ├── App.tsx           # Root component
@@ -81,7 +87,7 @@ src/
     │   └── LayoutContext.tsx      # UI state (sidebar, selection)
     ├── components/       # React components
     ├── hooks/            # useEditorInteraction, useInlineAnnotations
-    ├── utils/            # Gutter interaction, CodeMirror theme, inline annotations
+    ├── utils/            # Gutter interaction, CodeMirror theme, inline annotations, keyboard, language extensions
     └── styles/globals.css # Design system with CSS variables
 ```
 
@@ -112,10 +118,12 @@ Two React Context providers:
 
 ## Key Dependencies
 
-- **CodeMirror 6**: `@codemirror/view`, `@codemirror/state`, `@codemirror/merge` (for diff view)
+- **CodeMirror 6**: Editor core; `@codemirror/merge` provides the side-by-side diff view
 - **react-arborist**: Virtualized file tree
-- **lucide-react**: Icons
+- **Biome**: Linter and formatter (replaces ESLint/Prettier — do not install those)
 
 ## Integration
 
-Canon integrates as a Claude Code slash command via `commands/new.md`. The command `/canon:new` runs the `canon` binary and captures XML-formatted feedback output.
+Canon integrates as a Claude Code slash command:
+- `/canon:new` — Opens an annotation session to review code changes (`commands/new.md`)
+- `/canon:setup` — Installs or updates the Canon binary (`commands/setup.md`)
