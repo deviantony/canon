@@ -8,15 +8,17 @@ Canon is an interactive code review tool for Claude Code sessions. It provides a
 
 ## Development Commands
 
-```bash
-# Development (runs CLI server + Vite dev server with HMR)
-make dev
+- `make dev` is managed by the developer — do NOT run it yourself.
 
+```bash
 # Full build: web assets → embed → compile binary
 npm run build
 
 # Build web assets only
 npm run build:web
+
+# Type check
+npx tsc --noEmit
 
 # Install binary to ~/.local/bin
 make install
@@ -28,6 +30,16 @@ npm run build:darwin-arm64   # macOS ARM64
 npm run build:windows-x64    # Windows x64
 npm run build:all            # All platforms
 ```
+
+## Testing
+
+No test suite exists. Validate changes with `npx tsc --noEmit` and manual testing.
+
+## Styling
+
+- **CSS Modules** (`.module.css`) for component styles, `globals.css` for design tokens
+- **Design system**: Dark theme with gold accents ("warm minimalism") — see `docs/design-guide.md`
+- Always use CSS variables from `globals.css` for colors, spacing, borders, and radii
 
 ## Architecture
 
@@ -62,7 +74,7 @@ src/
     │   └── LayoutContext.tsx      # UI state (sidebar, selection)
     ├── components/       # React components
     ├── hooks/            # useEditorInteraction, useInlineAnnotations
-    ├── utils/            # Gutter interaction, CodeMirror theme
+    ├── utils/            # Gutter interaction, CodeMirror theme, inline annotations
     └── styles/globals.css # Design system with CSS variables
 ```
 
