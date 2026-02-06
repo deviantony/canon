@@ -211,7 +211,7 @@ canon/
 make dev
 
 # Build binary
-npm run build
+bun run build
 
 # Install to ~/.local/bin
 make install

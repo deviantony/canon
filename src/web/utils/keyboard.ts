@@ -5,8 +5,7 @@
 
 // Detect Mac platform once at module load
 export const isMac =
-  typeof navigator !== 'undefined' &&
-  navigator.platform.toUpperCase().indexOf('MAC') >= 0
+  typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
 /**
  * Format a single key for display based on platform

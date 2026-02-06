@@ -1,8 +1,8 @@
-import { ReactNode, useRef, useCallback, useEffect, useState } from 'react'
-import { useLayout } from '../context/LayoutContext'
 import { Diff, FolderTree } from 'lucide-react'
-import IconToggle from './IconToggle'
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
+import { useLayout } from '../context/LayoutContext'
 import { formatShortcut } from '../utils/keyboard'
+import IconToggle from './IconToggle'
 import styles from './Sidebar.module.css'
 
 interface SidebarProps {
@@ -13,7 +13,13 @@ interface SidebarProps {
   changedCount: number
 }
 
-export default function Sidebar({ children, showChangedOnly, setShowChangedOnly, hasChanges, changedCount }: SidebarProps) {
+export default function Sidebar({
+  children,
+  showChangedOnly,
+  setShowChangedOnly,
+  hasChanges,
+  changedCount,
+}: SidebarProps) {
   const { sidebarVisible, sidebarWidth, setSidebarWidth } = useLayout()
   const [isResizing, setIsResizing] = useState(false)
   const sidebarRef = useRef<HTMLDivElement>(null)
@@ -23,11 +29,14 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
     setIsResizing(true)
   }, [])
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing) return
-    const newWidth = e.clientX
-    setSidebarWidth(newWidth)
-  }, [isResizing, setSidebarWidth])
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing) return
+      const newWidth = e.clientX
+      setSidebarWidth(newWidth)
+    },
+    [isResizing, setSidebarWidth],
+  )
 
   const handleMouseUp = useCallback(() => {
     setIsResizing(false)
@@ -54,11 +63,7 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
   }
 
   return (
-    <aside
-      ref={sidebarRef}
-      className={styles.sidebar}
-      style={{ width: sidebarWidth }}
-    >
+    <aside ref={sidebarRef} className={styles.sidebar} style={{ width: sidebarWidth }}>
       <div className={styles.sidebarHeader}>
         <IconToggle
           value={showChangedOnly ? 'changed' : 'all'}
@@ -79,9 +84,7 @@ export default function Sidebar({ children, showChangedOnly, setShowChangedOnly,
           ]}
         />
       </div>
-      <div className={styles.sidebarContent}>
-        {children}
-      </div>
+      <div className={styles.sidebarContent}>{children}</div>
       <div
         className={`${styles.resizeHandle} ${isResizing ? styles.resizeHandleActive : ''}`}
         onMouseDown={handleMouseDown}

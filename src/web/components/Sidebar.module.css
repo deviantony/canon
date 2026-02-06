@@ -57,7 +57,7 @@
 }
 
 .resizeHandle::after {
-  content: '';
+  content: "";
   position: absolute;
   left: 50%;
   top: 50%;
@@ -73,7 +73,9 @@
     transparent 100%
   );
   opacity: 0;
-  transition: opacity var(--duration-fast) ease, height var(--duration-fast) ease;
+  transition:
+    opacity var(--duration-fast) ease,
+    height var(--duration-fast) ease;
 }
 
 .resizeHandle:hover::after,

@@ -65,7 +65,7 @@
 }
 
 .badge {
-  composes: lineBadge from '../styles/base.module.css';
+  composes: lineBadge from "../styles/base.module.css";
   gap: 4px;
 }
 
@@ -105,8 +105,14 @@
 }
 
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(var(--slide-distance, -6px)); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(var(--slide-distance, -6px));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .editCard .badge {

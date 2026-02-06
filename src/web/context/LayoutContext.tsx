@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { isMac } from '../utils/keyboard'
 
 export interface LineSelection {
@@ -56,7 +64,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   sidebarVisibleRef.current = sidebarVisible
 
   const toggleSidebar = useCallback(() => {
-    setSidebarVisible(prev => !prev)
+    setSidebarVisible((prev) => !prev)
   }, [])
 
   const setSidebarWidth = useCallback((width: number) => {
@@ -71,7 +79,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   }, [])
 
   const toggleEditorFullscreen = useCallback(() => {
-    setEditorFullscreen(prev => {
+    setEditorFullscreen((prev) => {
       if (!prev) {
         // Entering fullscreen: remember sidebar state and hide it
         sidebarWasVisibleRef.current = sidebarVisibleRef.current
@@ -121,8 +129,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     function handleKeyDown(e: KeyboardEvent) {
       // macOS: Ctrl+Cmd+S, Windows/Linux: Ctrl+Alt+S
       const isShortcut = isMac
-        ? (e.ctrlKey && e.metaKey && e.key.toLowerCase() === 's')
-        : (e.ctrlKey && e.altKey && e.key.toLowerCase() === 's')
+        ? e.ctrlKey && e.metaKey && e.key.toLowerCase() === 's'
+        : e.ctrlKey && e.altKey && e.key.toLowerCase() === 's'
 
       if (isShortcut) {
         e.preventDefault()
@@ -138,8 +146,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const isShortcut = isMac
-        ? (e.ctrlKey && e.metaKey && e.key.toLowerCase() === 'v')
-        : (e.ctrlKey && e.altKey && e.key.toLowerCase() === 'v')
+        ? e.ctrlKey && e.metaKey && e.key.toLowerCase() === 'v'
+        : e.ctrlKey && e.altKey && e.key.toLowerCase() === 'v'
 
       if (isShortcut) {
         e.preventDefault()

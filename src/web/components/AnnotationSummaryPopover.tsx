@@ -1,9 +1,9 @@
-import { useAnnotations, type Annotation } from '../context/AnnotationContext'
+import { Eraser, FileText, MessageSquareShare, Trash2, X } from 'lucide-react'
+import { type Annotation, useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
-import { formatLineBadge, sortAnnotations } from '../utils/annotationUtils'
-import { X, FileText, Trash2, MessageSquareShare, Eraser } from 'lucide-react'
-import styles from './AnnotationSummaryPopover.module.css'
 import baseStyles from '../styles/base.module.css'
+import { formatLineBadge, sortAnnotations } from '../utils/annotationUtils'
+import styles from './AnnotationSummaryPopover.module.css'
 
 interface AnnotationSummaryPopoverProps {
   onSubmit: () => void
@@ -14,7 +14,8 @@ export default function AnnotationSummaryPopover({
   onSubmit,
   onNavigate,
 }: AnnotationSummaryPopoverProps) {
-  const { annotations, removeAnnotation, clearAllAnnotations, getAnnotationsGroupedByFile } = useAnnotations()
+  const { annotations, removeAnnotation, clearAllAnnotations, getAnnotationsGroupedByFile } =
+    useAnnotations()
   const { summaryPopoverOpen, setSummaryPopoverOpen } = useLayout()
 
   if (!summaryPopoverOpen) {
@@ -63,10 +64,8 @@ export default function AnnotationSummaryPopover({
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.popover}>
         <div className={styles.header}>
-          <span className={styles.title}>
-            Review All ({annotations.length})
-          </span>
-          <button className={styles.closeBtn} onClick={handleClose} title="Close">
+          <span className={styles.title}>Review All ({annotations.length})</span>
+          <button type="button" className={styles.closeBtn} onClick={handleClose} title="Close">
             <X size={16} />
           </button>
         </div>
@@ -100,14 +99,15 @@ export default function AnnotationSummaryPopover({
                       onClick={() => handleAnnotationClick(annotation)}
                     >
                       <div className={styles.lineBadge}>
-                        {annotation.lineStart === 0 && <FileText size={10} style={{ marginRight: 4 }} />}
+                        {annotation.lineStart === 0 && (
+                          <FileText size={10} style={{ marginRight: 4 }} />
+                        )}
                         {formatLineBadge(annotation.lineStart, annotation.lineEnd)}
                       </div>
-                      <div className={styles.annotationText}>
-                        {annotation.comment}
-                      </div>
+                      <div className={styles.annotationText}>{annotation.comment}</div>
                       <div className={styles.annotationActions}>
                         <button
+                          type="button"
                           className={`${baseStyles.actionIcon} ${baseStyles.actionIconDelete}`}
                           onClick={(e) => handleDeleteClick(e, annotation.id)}
                           title="Delete"
@@ -125,6 +125,7 @@ export default function AnnotationSummaryPopover({
 
         <div className={styles.footer}>
           <button
+            type="button"
             className={baseStyles.btnSecondary}
             onClick={handleClearAll}
             disabled={annotations.length === 0}
@@ -134,6 +135,7 @@ export default function AnnotationSummaryPopover({
             Clear All
           </button>
           <button
+            type="button"
             className={baseStyles.btnSubmit}
             onClick={handleSubmitClick}
             disabled={annotations.length === 0}

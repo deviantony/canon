@@ -8,32 +8,39 @@ Canon is an interactive code review tool for Claude Code sessions. It provides a
 
 ## Development Commands
 
+- **Dependencies**: Managed with Bun (`bun install`, `bun add <pkg>`). Do not use npm.
 - `make dev` is managed by the developer — do NOT run it yourself.
 
 ```bash
 # Full build: web assets → embed → compile binary
-npm run build
+bun run build
 
 # Build web assets only
-npm run build:web
+bun run build:web
 
 # Type check
-npx tsc --noEmit
+bunx tsc --noEmit
+
+# Lint (check only)
+bun run lint
+
+# Lint and auto-fix
+bun run lint:fix
 
 # Install binary to ~/.local/bin
 make install
 
 # Cross-platform compilation
-npm run build:linux-x64      # Linux x64
-npm run build:linux-arm64    # Linux ARM64
-npm run build:darwin-arm64   # macOS ARM64
-npm run build:windows-x64    # Windows x64
-npm run build:all            # All platforms
+bun run build:linux-x64      # Linux x64
+bun run build:linux-arm64    # Linux ARM64
+bun run build:darwin-arm64   # macOS ARM64
+bun run build:windows-x64    # Windows x64
+bun run build:all            # All platforms
 ```
 
 ## Testing
 
-No test suite exists. Validate changes with `npx tsc --noEmit` and manual testing.
+No test suite exists. Validate changes with `bunx tsc --noEmit`, `bun run lint`, and manual testing.
 
 ## Styling
 

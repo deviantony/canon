@@ -1,21 +1,21 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { X, Minimize2, FileText, Pencil, Trash2, FileDiff, FileCode } from 'lucide-react'
-import FileTree from './components/FileTree'
-import CodeViewer, { CodeViewerRef } from './components/CodeViewer'
-import DiffViewer, { DiffViewerRef } from './components/DiffViewer'
-import FileAnnotationFooter from './components/FileAnnotationFooter'
-import EditorHeader from './components/EditorHeader'
-import IconToggle from './components/IconToggle'
-import Header from './components/Header'
-import Sidebar from './components/Sidebar'
+import { FileCode, FileDiff, FileText, Minimize2, Pencil, Trash2, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { CompletionType, FeedbackResult, GitInfo, ViewMode } from '../shared/types'
+import styles from './App.module.css'
 import AnnotationSummaryPopover from './components/AnnotationSummaryPopover'
+import CodeViewer, { type CodeViewerRef } from './components/CodeViewer'
 import CompletionScreen from './components/CompletionScreen'
+import DiffViewer, { type DiffViewerRef } from './components/DiffViewer'
+import EditorHeader from './components/EditorHeader'
+import FileAnnotationFooter from './components/FileAnnotationFooter'
+import FileTree from './components/FileTree'
+import Header from './components/Header'
+import IconToggle from './components/IconToggle'
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal'
+import Sidebar from './components/Sidebar'
 import { AnnotationProvider, useAnnotations } from './context/AnnotationContext'
 import { LayoutProvider, useLayout } from './context/LayoutContext'
-import type { FeedbackResult, GitInfo, ViewMode, CompletionType } from '../shared/types'
-import { getModifierKey, formatShortcut } from './utils/keyboard'
-import styles from './App.module.css'
+import { formatShortcut, getModifierKey } from './utils/keyboard'
 
 // Delay to allow file content to load before scrolling
 const NAVIGATION_SCROLL_DELAY_MS = 100
@@ -98,9 +98,7 @@ function AppContent() {
   }, [selectedFile])
 
   // Get info for selected file from gitInfo
-  const selectedFileInfo = gitInfo?.changedFiles.find(
-    (f) => f.path === selectedFile
-  )
+  const selectedFileInfo = gitInfo?.changedFiles.find((f) => f.path === selectedFile)
 
   // Get status of selected file
   const selectedFileStatus = selectedFileInfo?.status
@@ -117,7 +115,7 @@ function AppContent() {
   // Clear selection when changing files
   useEffect(() => {
     clearSelection()
-  }, [selectedFile, clearSelection])
+  }, [clearSelection])
 
   // Auto-switch to 'code' mode for new files
   useEffect(() => {
@@ -131,7 +129,7 @@ function AppContent() {
     if (gitInfo && !hasChanges && showChangedOnly) {
       setShowChangedOnly(false)
     }
-  }, [gitInfo, hasChanges])
+  }, [gitInfo, hasChanges, showChangedOnly])
 
   // Submit/cancel handlers (defined before keyboard shortcuts so they can be used there)
   const sendFeedback = useCallback(async (payload: FeedbackResult): Promise<void> => {
@@ -172,7 +170,7 @@ function AppContent() {
         if (e.ctrlKey && e.metaKey) return
         e.preventDefault()
         e.stopPropagation()
-        setShortcutsModalOpen(prev => !prev)
+        setShortcutsModalOpen((prev) => !prev)
         return
       }
 
@@ -230,32 +228,52 @@ function AppContent() {
 
     document.addEventListener('keydown', handleKeyDown, { capture: true })
     return () => document.removeEventListener('keydown', handleKeyDown, { capture: true })
-  }, [showChangedOnly, hasChanges, viewMode, canShowDiff, isNewFile, selectedFile, setFileAnnotationExpanded, handleSubmit, handleCancel, annotations])
+  }, [
+    showChangedOnly,
+    hasChanges,
+    viewMode,
+    canShowDiff,
+    isNewFile,
+    selectedFile,
+    setFileAnnotationExpanded,
+    handleSubmit,
+    handleCancel,
+    annotations,
+  ])
 
   // Scroll to line in the current viewer
-  const scrollToLine = useCallback((line: number) => {
-    if (viewMode === 'diff' && canShowDiff && !isNewFile) {
-      diffViewerRef.current?.scrollToLine(line)
-    } else {
-      codeViewerRef.current?.scrollToLine(line)
-    }
-  }, [viewMode, canShowDiff, isNewFile])
+  const scrollToLine = useCallback(
+    (line: number) => {
+      if (viewMode === 'diff' && canShowDiff && !isNewFile) {
+        diffViewerRef.current?.scrollToLine(line)
+      } else {
+        codeViewerRef.current?.scrollToLine(line)
+      }
+    },
+    [viewMode, canShowDiff, isNewFile],
+  )
 
   // Handle navigation from summary popover
-  const handleNavigate = useCallback((file: string, line?: number) => {
-    setSelectedFile(file)
-    if (line !== undefined && line > 0) {
-      setTimeout(() => {
-        scrollToLine(line)
-      }, NAVIGATION_SCROLL_DELAY_MS)
-    }
-  }, [scrollToLine])
+  const handleNavigate = useCallback(
+    (file: string, line?: number) => {
+      setSelectedFile(file)
+      if (line !== undefined && line > 0) {
+        setTimeout(() => {
+          scrollToLine(line)
+        }, NAVIGATION_SCROLL_DELAY_MS)
+      }
+    },
+    [scrollToLine],
+  )
 
   // Handle line click from margin panel
-  const handleLineClick = useCallback((line: number) => {
-    // File-level annotations (line 0) scroll to top (line 1)
-    scrollToLine(Math.max(line, 1))
-  }, [scrollToLine])
+  const handleLineClick = useCallback(
+    (line: number) => {
+      // File-level annotations (line 0) scroll to top (line 1)
+      scrollToLine(Math.max(line, 1))
+    },
+    [scrollToLine],
+  )
 
   // Auto-dim floating header in fullscreen after inactivity
   useEffect(() => {
@@ -330,7 +348,14 @@ function AppContent() {
     }
     setFileAnnotationExpanded(false)
     setIsEditingModalAnnotation(false)
-  }, [selectedFile, modalAnnotationText, fileAnnotation, updateAnnotation, addAnnotation, setFileAnnotationExpanded])
+  }, [
+    selectedFile,
+    modalAnnotationText,
+    fileAnnotation,
+    updateAnnotation,
+    addAnnotation,
+    setFileAnnotationExpanded,
+  ])
 
   const handleModalDelete = useCallback(() => {
     if (fileAnnotation) {
@@ -346,15 +371,18 @@ function AppContent() {
     setIsEditingModalAnnotation(false)
   }, [setFileAnnotationExpanded])
 
-  const handleModalKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      handleModalSave()
-    } else if (e.key === 'Escape') {
-      e.preventDefault()
-      handleModalClose()
-    }
-  }, [handleModalSave, handleModalClose])
+  const handleModalKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        handleModalSave()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        handleModalClose()
+      }
+    },
+    [handleModalSave, handleModalClose],
+  )
 
   // Determine which viewer to show
   const showDiffViewer = viewMode === 'diff' && canShowDiff && !isNewFile
@@ -412,15 +440,10 @@ function AppContent() {
               />
             )}
           </div>
-          {selectedFile && (
-            <FileAnnotationFooter filePath={selectedFile} />
-          )}
+          {selectedFile && <FileAnnotationFooter filePath={selectedFile} />}
         </div>
       </main>
-      <AnnotationSummaryPopover
-        onSubmit={handleSubmit}
-        onNavigate={handleNavigate}
-      />
+      <AnnotationSummaryPopover onSubmit={handleSubmit} onNavigate={handleNavigate} />
       <KeyboardShortcutsModal
         isOpen={shortcutsModalOpen}
         onClose={() => setShortcutsModalOpen(false)}
@@ -433,9 +456,7 @@ function AppContent() {
       {editorFullscreen && selectedFile && (
         <div className={styles.fullscreenOverlay}>
           {/* Floating header pill */}
-          <div
-            className={`${styles.floatingHeader} ${floatingHeaderDimmed ? styles.dimmed : ''}`}
-          >
+          <div className={`${styles.floatingHeader} ${floatingHeaderDimmed ? styles.dimmed : ''}`}>
             <span className={styles.floatingFilePath}>{selectedFile}</span>
             {lineCount !== undefined && lineCount > 0 && (
               <span className={styles.floatingLineCount}>{lineCount} ln</span>
@@ -446,12 +467,21 @@ function AppContent() {
                 value={viewMode}
                 onChange={setViewMode}
                 options={[
-                  { value: 'diff', icon: <FileDiff size={13} />, title: `View changes (${formatShortcut('Ctrl+Cmd+X')})` },
-                  { value: 'code', icon: <FileCode size={13} />, title: `View source (${formatShortcut('Ctrl+Cmd+X')})` },
+                  {
+                    value: 'diff',
+                    icon: <FileDiff size={13} />,
+                    title: `View changes (${formatShortcut('Ctrl+Cmd+X')})`,
+                  },
+                  {
+                    value: 'code',
+                    icon: <FileCode size={13} />,
+                    title: `View source (${formatShortcut('Ctrl+Cmd+X')})`,
+                  },
                 ]}
               />
             )}
             <button
+              type="button"
               className={styles.floatingExitBtn}
               onClick={exitFullscreen}
               title="Exit focus mode (Esc)"
@@ -481,22 +511,15 @@ function AppContent() {
 
             {/* Annotation modal — command palette style */}
             {fileAnnotationExpanded && (
-              <div
-                className={styles.annotationModalBackdrop}
-                onClick={handleModalClose}
-              >
-                <div
-                  className={styles.annotationModal}
-                  onClick={(e) => e.stopPropagation()}
-                >
+              <div className={styles.annotationModalBackdrop} onClick={handleModalClose}>
+                <div className={styles.annotationModal} onClick={(e) => e.stopPropagation()}>
                   <div className={styles.annotationModalHeader}>
                     <div className={styles.annotationModalIcon}>
                       <FileText size={14} />
                     </div>
-                    <span className={styles.annotationModalTitle}>
-                      File Annotation
-                    </span>
+                    <span className={styles.annotationModalTitle}>File Annotation</span>
                     <button
+                      type="button"
                       className={styles.annotationModalClose}
                       onClick={handleModalClose}
                     >
@@ -521,6 +544,7 @@ function AppContent() {
                         </div>
                         <div className={styles.annotationModalContentActions}>
                           <button
+                            type="button"
                             className={styles.annotationModalBtn}
                             onClick={() => {
                               setIsEditingModalAnnotation(true)
@@ -532,6 +556,7 @@ function AppContent() {
                             Edit
                           </button>
                           <button
+                            type="button"
                             className={styles.annotationModalBtn}
                             onClick={handleModalDelete}
                           >
@@ -552,12 +577,14 @@ function AppContent() {
                       </div>
                       <div className={styles.annotationModalActions}>
                         <button
+                          type="button"
                           className={styles.annotationModalBtn}
                           onClick={handleModalClose}
                         >
                           Cancel
                         </button>
                         <button
+                          type="button"
                           className={`${styles.annotationModalBtn} ${styles.primary}`}
                           onClick={handleModalSave}
                           disabled={!modalAnnotationText.trim()}

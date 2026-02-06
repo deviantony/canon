@@ -1,5 +1,5 @@
-import { existsSync } from 'fs'
-import { join } from 'path'
+import { existsSync } from 'node:fs'
+import { join } from 'node:path'
 import type { ChangedFile, GitInfo } from '../shared/types.js'
 
 export type { ChangedFile, GitInfo }
@@ -13,7 +13,7 @@ interface DiffStats {
 // Run a git command and return stdout
 async function runGit(
   workingDirectory: string,
-  args: string[]
+  args: string[],
 ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   const proc = Bun.spawn(['git', ...args], {
     cwd: workingDirectory,
@@ -183,7 +183,7 @@ export async function getGitInfo(workingDirectory: string): Promise<GitInfo> {
 // Get the original (HEAD) content of a file
 export async function getOriginalContent(
   workingDirectory: string,
-  filePath: string
+  filePath: string,
 ): Promise<{ content: string; error?: string }> {
   const result = await runGit(workingDirectory, ['show', `HEAD:${filePath}`])
 

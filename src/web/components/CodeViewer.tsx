@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
-import { EditorView, lineNumbers, highlightActiveLine } from '@codemirror/view'
-import { EditorState, Extension } from '@codemirror/state'
-import { getLanguageExtension } from '../utils/languageExtensions'
-import { baseEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
-import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutterInteraction'
+import { EditorState, type Extension } from '@codemirror/state'
+import { EditorView, highlightActiveLine, lineNumbers } from '@codemirror/view'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { useEditorInteraction } from '../hooks/useEditorInteraction'
 import { useInlineAnnotations } from '../hooks/useInlineAnnotations'
+import { baseEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
+import { scrollToLine as cmScrollToLine, gutterInteraction } from '../utils/gutterInteraction'
+import { getLanguageExtension } from '../utils/languageExtensions'
 import styles from './CodeViewer.module.css'
 
 interface CodeViewerProps {
@@ -17,22 +17,18 @@ export interface CodeViewerRef {
   scrollToLine: (line: number) => void
 }
 
-const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewer({
-  filePath,
-  onLineClick,
-}, ref) {
+const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewer(
+  { filePath, onLineClick },
+  ref,
+) {
   const [content, setContent] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
 
-  const {
-    handleSelectionComplete,
-    updateAnnotations,
-    clearSelectionIfNeeded,
-    annotations,
-  } = useEditorInteraction({ filePath })
+  const { handleSelectionComplete, updateAnnotations, clearSelectionIfNeeded } =
+    useEditorInteraction({ filePath })
 
   const { extension: inlineAnnotationExtension, registerView } = useInlineAnnotations({
     filePath,
@@ -126,14 +122,22 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
     return () => {
       view.destroy()
     }
-  }, [content, filePath, error, handleSelectionComplete, updateAnnotations, inlineAnnotationExtension, registerView])
+  }, [
+    content,
+    filePath,
+    error,
+    handleSelectionComplete,
+    updateAnnotations,
+    inlineAnnotationExtension,
+    registerView,
+  ])
 
   // Update annotated lines when annotations change
   useEffect(() => {
     if (viewRef.current) {
       updateAnnotations(viewRef.current)
     }
-  }, [annotations, updateAnnotations])
+  }, [updateAnnotations])
 
   // Clear selection in editor when layout selection is cleared
   useEffect(() => {

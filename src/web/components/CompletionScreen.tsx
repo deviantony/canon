@@ -33,9 +33,9 @@ export default function CompletionScreen({ type }: CompletionScreenProps) {
           <div className={styles.sealCore}>
             <div className={styles.sealIcon}>
               {isSubmitted ? (
-                <Check size={32} strokeWidth={2.5} />
+                <Check aria-hidden="true" size={32} strokeWidth={2.5} />
               ) : (
-                <X size={28} strokeWidth={2} />
+                <X aria-hidden="true" size={28} strokeWidth={2} />
               )}
             </div>
           </div>
@@ -62,7 +62,8 @@ export default function CompletionScreen({ type }: CompletionScreenProps) {
         <div className={styles.footer}>
           <div className={styles.divider} />
           <p className={styles.instruction}>
-            You can now close this tab and return to <span className={styles.highlight}>Claude Code</span>
+            You can now close this tab and return to{' '}
+            <span className={styles.highlight}>Claude Code</span>
           </p>
         </div>
       </div>

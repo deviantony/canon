@@ -1,7 +1,7 @@
-import { getFileTree, getFileContent } from './files.js'
-import { getGitInfo, getOriginalContent } from './git.js'
-import { embeddedAssets } from './embedded-assets.js'
 import type { FeedbackResult } from '../shared/types.js'
+import { embeddedAssets } from './embedded-assets.js'
+import { getFileContent, getFileTree } from './files.js'
+import { getGitInfo, getOriginalContent } from './git.js'
 
 export type { FeedbackResult }
 
@@ -34,7 +34,7 @@ export async function startServer(options: ServerOptions): Promise<Server> {
   if (!portCheck.available) {
     throw new Error(
       `Port ${port} is already in use. Only one Canon session is allowed at a time.\n` +
-      `Please finish working with your existing session before starting a new one.`
+        `Please finish working with your existing session before starting a new one.`,
     )
   }
 
@@ -93,7 +93,7 @@ export async function startServer(options: ServerOptions): Promise<Server> {
 
       // Serve embedded assets
       // Try exact path first
-      let assetPath = url.pathname
+      const assetPath = url.pathname
       let asset = embeddedAssets[assetPath]
 
       // For root, serve index.html
