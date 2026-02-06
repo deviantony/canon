@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync, statSync, existsSync } from 'fs'
-import { join, relative, resolve } from 'path'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { join, relative, resolve } from 'node:path'
 import type { FileNode } from '../shared/types.js'
 
 // Common patterns to ignore (fallback if no .gitignore)
@@ -56,7 +56,7 @@ function buildTree(
   workingDirectory: string,
   ignorePatterns: string[],
   maxDepth: number = 10,
-  currentDepth: number = 0
+  currentDepth: number = 0,
 ): FileNode[] {
   if (currentDepth >= maxDepth) return []
 
@@ -82,7 +82,7 @@ function buildTree(
         workingDirectory,
         ignorePatterns,
         maxDepth,
-        currentDepth + 1
+        currentDepth + 1,
       )
     }
 
@@ -106,7 +106,7 @@ export function getFileTree(workingDirectory: string): FileNode[] {
 
 export function getFileContent(
   workingDirectory: string,
-  filePath: string
+  filePath: string,
 ): { content: string; lineCount: number; error?: string } {
   try {
     // Prevent directory traversal

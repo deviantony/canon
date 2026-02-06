@@ -23,7 +23,7 @@
 
 /* Radial gradient glow for submitted state */
 .submitted::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -36,8 +36,15 @@
 }
 
 @keyframes sealGlow {
-  0%, 100% { opacity: 0.6; transform: translate(-50%, -60%) scale(1); }
-  50% { opacity: 1; transform: translate(-50%, -60%) scale(1.05); }
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: translate(-50%, -60%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -60%) scale(1.05);
+  }
 }
 
 /* Main content wrapper */
@@ -96,8 +103,14 @@
 }
 
 @keyframes ringPulse {
-  0% { transform: scale(1); opacity: 0.6; }
-  100% { transform: scale(2.5); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
 }
 
 /* Core seal element */
@@ -112,8 +125,14 @@
 }
 
 @keyframes sealAppear {
-  from { transform: scale(0.8); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Submitted seal styling */
@@ -194,8 +213,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .submitted .title {

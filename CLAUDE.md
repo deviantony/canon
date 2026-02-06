@@ -20,6 +20,12 @@ npm run build:web
 # Type check
 npx tsc --noEmit
 
+# Lint (check only)
+npm run lint
+
+# Lint and auto-fix
+npm run lint:fix
+
 # Install binary to ~/.local/bin
 make install
 
@@ -33,7 +39,7 @@ npm run build:all            # All platforms
 
 ## Testing
 
-No test suite exists. Validate changes with `npx tsc --noEmit` and manual testing.
+No test suite exists. Validate changes with `npx tsc --noEmit`, `npm run lint`, and manual testing.
 
 ## Styling
 

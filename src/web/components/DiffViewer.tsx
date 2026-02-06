@@ -1,13 +1,13 @@
-import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react'
-import { lineNumbers, EditorView } from '@codemirror/view'
-import { EditorState, Extension } from '@codemirror/state'
 import { MergeView } from '@codemirror/merge'
-import { getLanguageExtension } from '../utils/languageExtensions'
-import { diffEditorTheme, cyberpunkSyntax } from '../utils/codemirrorTheme'
-import { gutterInteraction, scrollToLine as cmScrollToLine } from '../utils/gutterInteraction'
+import { EditorState, type Extension } from '@codemirror/state'
+import { EditorView, lineNumbers } from '@codemirror/view'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import type { ChangedFile } from '../../shared/types'
 import { useEditorInteraction } from '../hooks/useEditorInteraction'
 import { useInlineAnnotations } from '../hooks/useInlineAnnotations'
-import type { ChangedFile } from '../../shared/types'
+import { cyberpunkSyntax, diffEditorTheme } from '../utils/codemirrorTheme'
+import { scrollToLine as cmScrollToLine, gutterInteraction } from '../utils/gutterInteraction'
+import { getLanguageExtension } from '../utils/languageExtensions'
 import styles from './DiffViewer.module.css'
 
 interface DiffViewerProps {
@@ -20,11 +20,10 @@ export interface DiffViewerRef {
   scrollToLine: (line: number) => void
 }
 
-const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewer({
-  filePath,
-  status,
-  onLineClick,
-}, ref) {
+const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewer(
+  { filePath, status, onLineClick },
+  ref,
+) {
   const [original, setOriginal] = useState<string>('')
   const [modified, setModified] = useState<string>('')
   const [loading, setLoading] = useState(false)
@@ -32,12 +31,8 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
   const containerRef = useRef<HTMLDivElement>(null)
   const mergeViewRef = useRef<MergeView | null>(null)
 
-  const {
-    handleSelectionComplete,
-    updateAnnotations,
-    clearSelectionIfNeeded,
-    annotations,
-  } = useEditorInteraction({ filePath })
+  const { handleSelectionComplete, updateAnnotations, clearSelectionIfNeeded } =
+    useEditorInteraction({ filePath })
 
   const { extension: inlineAnnotationExtension, registerView } = useInlineAnnotations({
     filePath,
@@ -156,14 +151,24 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
     return () => {
       mergeView.destroy()
     }
-  }, [original, modified, filePath, error, loading, handleSelectionComplete, updateAnnotations, inlineAnnotationExtension, registerView])
+  }, [
+    original,
+    modified,
+    filePath,
+    error,
+    loading,
+    handleSelectionComplete,
+    updateAnnotations,
+    inlineAnnotationExtension,
+    registerView,
+  ])
 
   // Update annotated lines when annotations change (on modified side)
   useEffect(() => {
     if (mergeViewRef.current) {
       updateAnnotations(mergeViewRef.current.b)
     }
-  }, [annotations, updateAnnotations])
+  }, [updateAnnotations])
 
   // Clear selection in editor when layout selection is cleared
   useEffect(() => {

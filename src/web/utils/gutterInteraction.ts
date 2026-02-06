@@ -1,6 +1,12 @@
-import { Decoration, DecorationSet, EditorView, ViewPlugin, ViewUpdate } from '@codemirror/view'
-import { RangeSetBuilder, StateEffect, StateField } from '@codemirror/state'
 import type { Extension } from '@codemirror/state'
+import { RangeSetBuilder, StateEffect, StateField } from '@codemirror/state'
+import {
+  Decoration,
+  type DecorationSet,
+  EditorView,
+  ViewPlugin,
+  type ViewUpdate,
+} from '@codemirror/view'
 
 // Effects for line selection and annotation tracking
 const setLineSelection = StateEffect.define<{ start: number; end: number } | null>()
@@ -14,7 +20,7 @@ function queryGutterElements(view: EditorView) {
 
 function parseLineNumber(el: Element): number | null {
   const num = parseInt(el.textContent || '0', 10)
-  return isNaN(num) ? null : num
+  return Number.isNaN(num) ? null : num
 }
 
 function normalizeLineRange(start: number, end: number) {
@@ -66,7 +72,10 @@ const selectionHighlightPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if (update.docChanged || update.state.field(lineSelectionField) !== update.startState.field(lineSelectionField)) {
+      if (
+        update.docChanged ||
+        update.state.field(lineSelectionField) !== update.startState.field(lineSelectionField)
+      ) {
         this.decorations = this.buildDecorations(update.view)
       }
     }
@@ -93,7 +102,7 @@ const selectionHighlightPlugin = ViewPlugin.fromClass(
   },
   {
     decorations: (v) => v.decorations,
-  }
+  },
 )
 
 // Plugin to apply gutter indicator classes for both annotations and selections
@@ -120,10 +129,13 @@ const gutterIndicatorPlugin = ViewPlugin.fromClass(
         if (lineNum === null) return
 
         el.classList.toggle('annotated', annotatedLines.has(lineNum))
-        el.classList.toggle('selected', selection !== null && lineNum >= minLine && lineNum <= maxLine)
+        el.classList.toggle(
+          'selected',
+          selection !== null && lineNum >= minLine && lineNum <= maxLine,
+        )
       })
     }
-  }
+  },
 )
 
 // Gutter interaction plugin for click/drag selection
@@ -330,7 +342,7 @@ function createGutterInteractionPlugin(config: GutterInteractionConfig) {
         // Call the callback with the selection
         config.onSelectionComplete(lineStart, lineEnd)
       }
-    }
+    },
   )
 }
 

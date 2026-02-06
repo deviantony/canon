@@ -1,10 +1,10 @@
-import { Tree, NodeRendererProps } from 'react-arborist'
-import { useState, useEffect, useMemo } from 'react'
 import { File, Folder, FolderOpen, MessageSquare } from 'lucide-react'
-import type { FileNode, ChangedFile, GitInfo } from '../../shared/types'
+import { useEffect, useMemo, useState } from 'react'
+import { type NodeRendererProps, Tree } from 'react-arborist'
+import type { ChangedFile, FileNode, GitInfo } from '../../shared/types'
 import { useAnnotations } from '../context/AnnotationContext'
-import StatusBadge from './StatusBadge'
 import styles from './FileTree.module.css'
+import StatusBadge from './StatusBadge'
 
 // Header: 52px, Sidebar header: 45px, Padding: 16px
 const FIXED_OFFSET = 52 + 45 + 16
@@ -50,13 +50,19 @@ function AnnotationBadge({ count }: { count: number }) {
   )
 }
 
-function Node({ node, style, dragHandle }: NodeRendererProps<FileNode & { annotationCount?: number }>) {
+function Node({
+  node,
+  style,
+  dragHandle,
+}: NodeRendererProps<FileNode & { annotationCount?: number }>) {
   const data = node.data
   const nodeClasses = [
     styles.treeNode,
     node.isSelected ? styles.selected : '',
     data.isDirectory ? styles.folder : '',
-  ].filter(Boolean).join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <div
@@ -112,7 +118,12 @@ function filterToChanged(nodes: FileNode[], changedPaths: Set<string>): FileNode
     .filter((n): n is FileNode => n !== null)
 }
 
-export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, gitInfo }: FileTreeProps) {
+export default function FileTree({
+  onSelectFile,
+  selectedFile,
+  showChangedOnly,
+  gitInfo,
+}: FileTreeProps) {
   const [allFiles, setAllFiles] = useState<FileNode[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -141,7 +152,10 @@ export default function FileTree({ onSelectFile, selectedFile, showChangedOnly, 
     function addAnnotationCounts(nodes: FileNode[]): FileNode[] {
       return nodes.map((node) => {
         if (node.isDirectory) {
-          return { ...node, children: node.children ? addAnnotationCounts(node.children) : undefined }
+          return {
+            ...node,
+            children: node.children ? addAnnotationCounts(node.children) : undefined,
+          }
         }
         const annotations = getAnnotationsForFile(node.path)
         return { ...node, annotationCount: annotations.length }

@@ -86,7 +86,8 @@ export default function CompletionScreen({ type }: CompletionScreenProps) {
         <div className={styles.footer}>
           <div className={styles.divider} />
           <p className={styles.instruction}>
-            You can now close this tab and return to <span className={styles.highlight}>Claude Code</span>
+            You can now close this tab and return to{' '}
+            <span className={styles.highlight}>Claude Code</span>
           </p>
         </div>
       </div>

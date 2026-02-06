@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import styles from './IconToggle.module.css'
 
 interface ToggleOption<T extends string> {
@@ -22,9 +22,8 @@ export default function IconToggle<T extends string>({
   onChange,
   variant = 'default',
 }: IconToggleProps<T>) {
-  const containerClass = variant === 'compact'
-    ? `${styles.iconToggle} ${styles.compact}`
-    : styles.iconToggle
+  const containerClass =
+    variant === 'compact' ? `${styles.iconToggle} ${styles.compact}` : styles.iconToggle
 
   return (
     <div className={containerClass}>
@@ -33,6 +32,7 @@ export default function IconToggle<T extends string>({
         const showBadge = option.badge !== undefined && option.badge > 0 && isActive
         return (
           <button
+            type="button"
             key={option.value}
             className={`${styles.btn} ${isActive ? styles.active : ''}`}
             onClick={() => onChange(option.value)}

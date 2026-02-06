@@ -1,5 +1,5 @@
-import { EditorView, Decoration, DecorationSet, WidgetType } from '@codemirror/view'
-import { StateField, StateEffect, EditorState, Facet } from '@codemirror/state'
+import { type EditorState, Facet, StateEffect, StateField } from '@codemirror/state'
+import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view'
 import type { Annotation } from '../context/AnnotationContext'
 import { formatLineBadge } from './annotationUtils'
 import { getModifierKey } from './keyboard'
@@ -25,8 +25,11 @@ export interface AnnotationCallbacks {
 }
 
 // Facet to provide callbacks to widgets via EditorState (avoids global mutable state)
-export const annotationCallbacksFacet = Facet.define<AnnotationCallbacks | null, AnnotationCallbacks | null>({
-  combine: values => values.find(v => v != null) ?? null
+export const annotationCallbacksFacet = Facet.define<
+  AnnotationCallbacks | null,
+  AnnotationCallbacks | null
+>({
+  combine: (values) => values.find((v) => v != null) ?? null,
 })
 
 // --- Shared helpers ---
@@ -51,7 +54,7 @@ function setupTextareaAutoResize(textarea: HTMLTextAreaElement, minHeight?: numb
   const resize = () => {
     textarea.style.height = 'auto'
     const height = minHeight ? Math.max(minHeight, textarea.scrollHeight) : textarea.scrollHeight
-    textarea.style.height = height + 'px'
+    textarea.style.height = `${height}px`
   }
   textarea.addEventListener('input', resize)
   resize()
@@ -61,7 +64,7 @@ function setupTextareaAutoResize(textarea: HTMLTextAreaElement, minHeight?: numb
 class AnnotationWidget extends WidgetType {
   constructor(
     readonly annotation: Annotation,
-    readonly isHighlighted: boolean
+    readonly isHighlighted: boolean,
   ) {
     super()
   }
@@ -95,7 +98,8 @@ class AnnotationWidget extends WidgetType {
 
     const editBtn = document.createElement('button')
     editBtn.className = 'inline-annotation-action'
-    editBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>'
+    editBtn.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>'
     editBtn.title = 'Edit'
     editBtn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -104,7 +108,8 @@ class AnnotationWidget extends WidgetType {
 
     const deleteBtn = document.createElement('button')
     deleteBtn.className = 'inline-annotation-action delete'
-    deleteBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>'
+    deleteBtn.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>'
     deleteBtn.title = 'Delete'
     deleteBtn.addEventListener('click', (e) => {
       e.stopPropagation()
@@ -201,7 +206,7 @@ class AnnotationWidget extends WidgetType {
 class NewAnnotationWidget extends WidgetType {
   constructor(
     readonly lineStart: number,
-    readonly lineEnd: number
+    readonly lineEnd: number,
   ) {
     super()
   }
@@ -220,7 +225,10 @@ class NewAnnotationWidget extends WidgetType {
 
     const badge = document.createElement('span')
     badge.className = 'inline-annotation-badge'
-    badge.textContent = formatLineBadge(this.lineStart, this.lineEnd !== this.lineStart ? this.lineEnd : undefined)
+    badge.textContent = formatLineBadge(
+      this.lineStart,
+      this.lineEnd !== this.lineStart ? this.lineEnd : undefined,
+    )
 
     const textarea = document.createElement('textarea')
     textarea.className = 'inline-annotation-textarea'
@@ -294,13 +302,13 @@ function buildDecorations(
   state: EditorState,
   annotations: Annotation[],
   filePath: string,
-  selectedLines: { start: number; end: number } | null
+  selectedLines: { start: number; end: number } | null,
 ): DecorationSet {
   const decorations: Array<{ pos: number; decoration: Decoration }> = []
 
   // Filter to line-based annotations for this file (file-level shown in footer)
   const lineAnnotations = annotations
-    .filter(a => a.file === filePath && a.lineStart > 0)
+    .filter((a) => a.file === filePath && a.lineStart > 0)
     .sort((a, b) => a.lineStart - b.lineStart)
 
   for (const annotation of lineAnnotations) {
@@ -342,9 +350,7 @@ function buildDecorations(
   // Sort by position and create RangeSet
   decorations.sort((a, b) => a.pos - b.pos)
 
-  return Decoration.set(
-    decorations.map(d => d.decoration.range(d.pos))
-  )
+  return Decoration.set(decorations.map((d) => d.decoration.range(d.pos)))
 }
 
 // State field to track annotations and selected lines
@@ -388,12 +394,7 @@ const inlineAnnotationField = StateField.define<InlineAnnotationState>({
   provide(field) {
     return EditorView.decorations.compute([field], (state) => {
       const value = state.field(field)
-      return buildDecorations(
-        state,
-        value.annotations,
-        value.filePath,
-        value.selectedLines
-      )
+      return buildDecorations(state, value.annotations, value.filePath, value.selectedLines)
     })
   },
 })
@@ -402,7 +403,7 @@ const inlineAnnotationField = StateField.define<InlineAnnotationState>({
 export function updateInlineAnnotations(
   view: EditorView,
   annotations: Annotation[],
-  filePath: string
+  filePath: string,
 ) {
   view.dispatch({
     effects: setAnnotationsEffect.of({ annotations, filePath }),
@@ -411,7 +412,7 @@ export function updateInlineAnnotations(
 
 export function updateSelectedLines(
   view: EditorView,
-  selectedLines: { start: number; end: number } | null
+  selectedLines: { start: number; end: number } | null,
 ) {
   view.dispatch({
     effects: setSelectedLinesEffect.of(selectedLines),

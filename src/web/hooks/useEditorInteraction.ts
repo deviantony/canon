@@ -1,9 +1,9 @@
-import { useRef, useEffect, useCallback } from 'react'
 import type { EditorView } from '@codemirror/view'
+import { useCallback, useEffect, useRef } from 'react'
 import { useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
-import { updateAnnotatedLines, clearLineSelection } from '../utils/gutterInteraction'
 import { getAnnotatedLineNumbers } from '../utils/annotationUtils'
+import { clearLineSelection, updateAnnotatedLines } from '../utils/gutterInteraction'
 
 interface UseEditorInteractionOptions {
   filePath: string | null
@@ -44,20 +44,17 @@ export function useEditorInteraction({
     (start: number, end: number) => {
       setSelectedLines({ start, end })
     },
-    [setSelectedLines]
+    [setSelectedLines],
   )
 
   // Update annotated lines - uses refs to stay stable across annotation changes
-  const updateAnnotations = useCallback(
-    (view: EditorView) => {
-      const currentFilePath = filePathRef.current
-      if (!currentFilePath) return
-      const fileAnnotations = getAnnotationsRef.current(currentFilePath)
-      const lines = getAnnotatedLineNumbers(fileAnnotations)
-      updateAnnotatedLines(view, lines)
-    },
-    []
-  )
+  const updateAnnotations = useCallback((view: EditorView) => {
+    const currentFilePath = filePathRef.current
+    if (!currentFilePath) return
+    const fileAnnotations = getAnnotationsRef.current(currentFilePath)
+    const lines = getAnnotatedLineNumbers(fileAnnotations)
+    updateAnnotatedLines(view, lines)
+  }, [])
 
   // Clear selection in editor when layout selection is cleared
   const clearSelectionIfNeeded = useCallback(
@@ -66,7 +63,7 @@ export function useEditorInteraction({
         clearLineSelection(view)
       }
     },
-    [selectedLines]
+    [selectedLines],
   )
 
   return {

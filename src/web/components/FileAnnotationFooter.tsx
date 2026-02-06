@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect } from 'react'
+import { FileText, Pencil, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
-import { FileText, Pencil, Trash2 } from 'lucide-react'
+import baseStyles from '../styles/base.module.css'
 import { formatShortcut, getModifierKey } from '../utils/keyboard'
 import styles from './FileAnnotationFooter.module.css'
-import baseStyles from '../styles/base.module.css'
 
 interface FileAnnotationFooterProps {
   filePath: string
@@ -24,7 +24,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
     setIsEditing(false)
     setComment('')
     setFileAnnotationExpanded(false)
-  }, [filePath, setFileAnnotationExpanded])
+  }, [setFileAnnotationExpanded])
 
   // Focus textarea when expanded or editing
   useEffect(() => {
@@ -37,9 +37,9 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
     }
-  }, [comment])
+  }, [])
 
   function handleInputFocus() {
     if (fileAnnotation) {
@@ -108,6 +108,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
             </div>
             <div className={styles.actions}>
               <button
+                type="button"
                 className={baseStyles.actionIcon}
                 onClick={handleEdit}
                 title="Edit"
@@ -115,6 +116,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
                 <Pencil size={14} />
               </button>
               <button
+                type="button"
                 className={`${baseStyles.actionIcon} ${baseStyles.actionIconDelete}`}
                 onClick={handleDelete}
                 title="Delete"
@@ -123,9 +125,7 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
               </button>
             </div>
           </div>
-          <div className={baseStyles.cardText}>
-            {fileAnnotation.comment}
-          </div>
+          <div className={baseStyles.cardText}>{fileAnnotation.comment}</div>
         </div>
       </div>
     )
@@ -154,10 +154,11 @@ export default function FileAnnotationFooter({ filePath }: FileAnnotationFooterP
               <span style={{ opacity: 0.5 }}>+</span>
               <kbd>Enter</kbd>
             </span>
-            <button className={baseStyles.textBtn} onClick={handleCancel}>
+            <button type="button" className={baseStyles.textBtn} onClick={handleCancel}>
               Cancel
             </button>
             <button
+              type="button"
               className={baseStyles.textBtnSave}
               onClick={handleSave}
               disabled={!comment.trim()}

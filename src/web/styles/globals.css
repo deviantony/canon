@@ -4,12 +4,12 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Import fonts: Geist for UI, JetBrains Mono for code */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 /* Geist font (fallback to system fonts if not available) */
 @font-face {
-  font-family: 'Geist';
-  src: local('Geist'), local('GeistVF');
+  font-family: "Geist";
+  src: local("Geist"), local("GeistVF");
   font-weight: 100 900;
   font-display: swap;
 }
@@ -100,8 +100,8 @@
   );
 
   /* ═══ TYPOGRAPHY ═══ */
-  --font-display: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, Monaco, monospace;
+  --font-display: "Geist", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, Monaco, monospace;
 
   /* ═══ SPACING ═══ */
   --space-1: 4px;
@@ -237,16 +237,23 @@ body {
   0% {
     box-shadow: 0 0 0 0 rgba(212, 165, 116, 0.6);
   }
-  70%, 100% {
+  70%,
+  100% {
     box-shadow: 0 0 0 8px rgba(212, 165, 116, 0);
   }
 }
 
 /* indicatorPulse: Floating indicator pulse */
 @keyframes indicatorPulse {
-  0% { transform: translate(12px, -50%) scale(1); }
-  50% { transform: translate(12px, -50%) scale(1.05); }
-  100% { transform: translate(12px, -50%) scale(1); }
+  0% {
+    transform: translate(12px, -50%) scale(1);
+  }
+  50% {
+    transform: translate(12px, -50%) scale(1.05);
+  }
+  100% {
+    transform: translate(12px, -50%) scale(1);
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -527,38 +534,37 @@ body {
 
 /* Selection band - semi-transparent gold stripe across selected lines */
 .cm-selectedAnnotationLine {
-  background: linear-gradient(
-    90deg,
-    rgba(212, 165, 116, 0.12) 0%,
-    rgba(212, 165, 116, 0.06) 100%
-  ) !important;
+  background: linear-gradient(90deg, rgba(212, 165, 116, 0.12) 0%, rgba(212, 165, 116, 0.06) 100%);
 }
 
 /* Line numbers - base interactive state */
 .cm-lineNumbers .cm-gutterElement {
   cursor: pointer;
-  transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
   border-radius: var(--radius-xs);
   position: relative;
 }
 
 .cm-lineNumbers .cm-gutterElement:hover {
-  color: var(--accent-gold) !important;
+  color: var(--accent-gold);
   background: rgba(212, 165, 116, 0.1);
 }
 
 /* During selection - prevent text selection and show crosshair */
 .cm-line-selecting {
   user-select: none;
-  cursor: ns-resize !important;
+  cursor: ns-resize;
 }
 
 .cm-line-selecting .cm-lineNumbers .cm-gutterElement {
-  cursor: ns-resize !important;
+  cursor: ns-resize;
 }
 
 .cm-lineNumbers .cm-gutterElement.selection-start {
-  color: var(--accent-gold-bright) !important;
+  color: var(--accent-gold-bright);
   background: rgba(212, 165, 116, 0.2);
   animation: lineSelectionPing 0.4s var(--ease-out);
 }
@@ -566,7 +572,7 @@ body {
 /* Selected line numbers get accent background (during drag and persisted) */
 .cm-lineNumbers .cm-gutterElement.selection-active,
 .cm-lineNumbers .cm-gutterElement.selected {
-  color: var(--accent-gold) !important;
+  color: var(--accent-gold);
   background: rgba(212, 165, 116, 0.15);
 }
 
@@ -574,7 +580,7 @@ body {
 .cm-lineNumbers .cm-gutterElement.selection-active::before,
 .cm-lineNumbers .cm-gutterElement.selected::before,
 .cm-lineNumbers .cm-gutterElement.annotated::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 0;
@@ -660,5 +666,7 @@ button:focus-visible {
 }
 
 button:focus-visible {
-  box-shadow: 0 0 0 2px var(--bg-void), 0 0 0 4px var(--accent-gold-muted);
+  box-shadow:
+    0 0 0 2px var(--bg-void),
+    0 0 0 4px var(--accent-gold-muted);
 }

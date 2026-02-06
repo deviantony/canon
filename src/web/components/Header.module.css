@@ -25,14 +25,19 @@
 }
 
 .logoWordmark::after {
-  content: '_';
+  content: "_";
   animation: cursorBlink 1s step-end infinite;
   margin-left: 1px;
 }
 
 @keyframes cursorBlink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .versionBadge {

@@ -1,5 +1,5 @@
+import { Command, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import { X, Command } from 'lucide-react'
 import { formatKey } from '../utils/keyboard'
 import styles from './KeyboardShortcutsModal.module.css'
 
@@ -97,7 +97,7 @@ export default function KeyboardShortcutsModal({
             <Command size={14} />
             <span>Keyboard Shortcuts</span>
           </div>
-          <button className={styles.closeBtn} onClick={onClose}>
+          <button type="button" className={styles.closeBtn} onClick={onClose}>
             <X size={16} />
           </button>
         </div>

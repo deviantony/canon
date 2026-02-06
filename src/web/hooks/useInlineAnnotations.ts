@@ -1,15 +1,15 @@
-import { useEffect, useCallback, useRef, useMemo } from 'react'
-import { EditorView } from '@codemirror/view'
 import { Compartment } from '@codemirror/state'
+import type { EditorView } from '@codemirror/view'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
+import type { AnnotationCallbacks } from '../utils/inlineAnnotations'
 import {
   annotationCallbacksFacet,
+  inlineAnnotations,
   updateInlineAnnotations,
   updateSelectedLines,
-  inlineAnnotations,
 } from '../utils/inlineAnnotations'
-import type { AnnotationCallbacks } from '../utils/inlineAnnotations'
 
 interface UseInlineAnnotationsProps {
   filePath: string | null
@@ -60,29 +60,38 @@ export function useInlineAnnotations({ filePath, onLineClick }: UseInlineAnnotat
     callbacksRef.current = callbacks
     if (viewRef.current) {
       viewRef.current.dispatch({
-        effects: callbacksCompartment.reconfigure(
-          annotationCallbacksFacet.of(callbacks)
-        )
+        effects: callbacksCompartment.reconfigure(annotationCallbacksFacet.of(callbacks)),
       })
     }
-  }, [filePath, addAnnotation, updateAnnotation, removeAnnotation, setSelectedLines, onLineClick, callbacksCompartment])
+  }, [
+    filePath,
+    addAnnotation,
+    updateAnnotation,
+    removeAnnotation,
+    setSelectedLines,
+    onLineClick,
+    callbacksCompartment,
+  ])
 
   // Register the view and sync state - stable callback that uses refs
-  const registerView = useCallback((view: EditorView) => {
-    viewRef.current = view
-    // Apply current callbacks to the newly created view
-    if (callbacksRef.current) {
-      view.dispatch({
-        effects: callbacksCompartment.reconfigure(
-          annotationCallbacksFacet.of(callbacksRef.current)
-        )
-      })
-    }
-    if (filePathRef.current) {
-      updateInlineAnnotations(view, annotationsRef.current, filePathRef.current)
-      updateSelectedLines(view, selectedLinesRef.current)
-    }
-  }, [callbacksCompartment])
+  const registerView = useCallback(
+    (view: EditorView) => {
+      viewRef.current = view
+      // Apply current callbacks to the newly created view
+      if (callbacksRef.current) {
+        view.dispatch({
+          effects: callbacksCompartment.reconfigure(
+            annotationCallbacksFacet.of(callbacksRef.current),
+          ),
+        })
+      }
+      if (filePathRef.current) {
+        updateInlineAnnotations(view, annotationsRef.current, filePathRef.current)
+        updateSelectedLines(view, selectedLinesRef.current)
+      }
+    },
+    [callbacksCompartment],
+  )
 
   // Update annotations when they change
   useEffect(() => {
@@ -99,10 +108,10 @@ export function useInlineAnnotations({ filePath, onLineClick }: UseInlineAnnotat
   }, [selectedLines])
 
   // Memoize the extension so it doesn't change on every render
-  const extension = useMemo(() => [
-    inlineAnnotations(),
-    callbacksCompartment.of(annotationCallbacksFacet.of(null)),
-  ], [callbacksCompartment])
+  const extension = useMemo(
+    () => [inlineAnnotations(), callbacksCompartment.of(annotationCallbacksFacet.of(null))],
+    [callbacksCompartment],
+  )
 
   return {
     extension,

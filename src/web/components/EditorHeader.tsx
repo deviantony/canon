@@ -1,11 +1,11 @@
-import { FileDiff, FileCode, MessageSquare, Maximize2 } from 'lucide-react'
+import { FileCode, FileDiff, Maximize2, MessageSquare } from 'lucide-react'
+import type { ChangedFile, ViewMode } from '../../shared/types'
 import { useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
+import { formatShortcut } from '../utils/keyboard'
+import styles from './EditorHeader.module.css'
 import IconToggle from './IconToggle'
 import StatusBadge from './StatusBadge'
-import { formatShortcut } from '../utils/keyboard'
-import type { ChangedFile, ViewMode } from '../../shared/types'
-import styles from './EditorHeader.module.css'
 
 interface EditorHeaderProps {
   filePath: string | null
@@ -43,7 +43,8 @@ export default function EditorHeader({
   const annotationCount = filePath ? getAnnotationsForFile(filePath).length : 0
 
   // Only show diff stats for modified files with actual changes
-  const showDiffStats = fileStatus === 'modified' && (additions !== undefined || deletions !== undefined)
+  const showDiffStats =
+    fileStatus === 'modified' && (additions !== undefined || deletions !== undefined)
 
   if (!filePath) {
     return null
@@ -89,11 +90,15 @@ export default function EditorHeader({
             {
               value: 'code',
               icon: <FileCode size={15} />,
-              title: canShowDiff && !isNewFile ? `View source (${formatShortcut('Ctrl+Cmd+X')})` : 'View source',
+              title:
+                canShowDiff && !isNewFile
+                  ? `View source (${formatShortcut('Ctrl+Cmd+X')})`
+                  : 'View source',
             },
           ]}
         />
         <button
+          type="button"
           className={styles.fullscreenBtn}
           onClick={toggleEditorFullscreen}
           title={`Focus mode (${formatShortcut('Ctrl+Cmd+V')})`}
