@@ -15,10 +15,10 @@
 
 ## Install
 
-Install the Claude marketplace and plugin first:
+Install the plugin from the [claude-plugins](https://github.com/deviantony/claude-plugins) marketplace:
 
 ```bash
-claude plugin marketplace add deviantony/canon
+claude plugin marketplace add deviantony/claude-plugins
 claude plugin install -s project canon@canon
 ```
 
@@ -41,7 +41,7 @@ A browser window opens automatically at `http://localhost:9847`. Browse files, c
 To update Canon, update the marketplace and plugin:
 
 ```bash
-claude plugin marketplace update canon
+claude plugin marketplace update claude-plugins
 claude plugin update -s project canon@canon
 ```
 
