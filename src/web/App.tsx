@@ -17,9 +17,6 @@ import { AnnotationProvider, useAnnotations } from './context/AnnotationContext'
 import { LayoutProvider, useLayout } from './context/LayoutContext'
 import { formatShortcut, getModifierKey } from './utils/keyboard'
 
-// Delay to allow file content to load before scrolling
-const NAVIGATION_SCROLL_DELAY_MS = 100
-
 // Fullscreen mode configuration
 const FULLSCREEN_HEADER_DIM_TIMEOUT_MS = 2000
 const FULLSCREEN_HEADER_HOVER_ZONE_PX = 100
@@ -253,17 +250,29 @@ function AppContent() {
     [viewMode, canShowDiff, isNewFile],
   )
 
-  // Handle navigation from summary popover
+  // Handle navigation from summary popover — always switch to code mode
+  const [pendingScroll, setPendingScroll] = useState<{ file: string; line: number } | null>(null)
+
   const handleNavigate = useCallback(
     (file: string, line?: number) => {
+      const targetLine = line !== undefined && line > 0 ? line : null
+      const isSameFile = file === selectedFile
+      const isCodeMode = viewMode !== 'diff' || !canShowDiff || isNewFile
+
       setSelectedFile(file)
-      if (line !== undefined && line > 0) {
-        setTimeout(() => {
-          scrollToLine(line)
-        }, NAVIGATION_SCROLL_DELAY_MS)
+      setViewMode('code')
+
+      if (targetLine) {
+        if (isSameFile && isCodeMode) {
+          // Editor already exists for this file in code mode — scroll directly
+          codeViewerRef.current?.scrollToLine(targetLine)
+        } else {
+          // Editor will be (re)created — let it scroll on mount
+          setPendingScroll({ file, line: targetLine })
+        }
       }
     },
-    [scrollToLine],
+    [selectedFile, viewMode, canShowDiff, isNewFile],
   )
 
   // Handle line click from margin panel
@@ -437,6 +446,9 @@ function AppContent() {
                 ref={codeViewerRef}
                 filePath={selectedFile}
                 onLineClick={handleLineClick}
+                scrollToLineOnMount={
+                  pendingScroll?.file === selectedFile ? pendingScroll.line : null
+                }
               />
             )}
           </div>

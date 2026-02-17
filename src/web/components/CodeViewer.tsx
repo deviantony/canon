@@ -11,6 +11,7 @@ import styles from './CodeViewer.module.css'
 interface CodeViewerProps {
   filePath: string | null
   onLineClick?: (line: number) => void
+  scrollToLineOnMount?: number | null
 }
 
 export interface CodeViewerRef {
@@ -18,7 +19,7 @@ export interface CodeViewerRef {
 }
 
 const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewer(
-  { filePath, onLineClick },
+  { filePath, onLineClick, scrollToLineOnMount },
   ref,
 ) {
   const [content, setContent] = useState<string>('')
@@ -26,6 +27,8 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
   const [error, setError] = useState<string | null>(null)
   const editorRef = useRef<HTMLDivElement>(null)
   const viewRef = useRef<EditorView | null>(null)
+  const scrollToLineOnMountRef = useRef(scrollToLineOnMount)
+  scrollToLineOnMountRef.current = scrollToLineOnMount
 
   const { handleSelectionComplete, updateAnnotations, clearSelectionIfNeeded } =
     useEditorInteraction({ filePath })
@@ -118,6 +121,12 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
     // Update annotations immediately after creating editor
     updateAnnotations(view)
     registerView(view)
+
+    // Scroll to requested line (e.g. navigating from annotation summary).
+    // Read from ref to avoid adding it as a dependency.
+    if (scrollToLineOnMountRef.current) {
+      cmScrollToLine(view, scrollToLineOnMountRef.current)
+    }
 
     return () => {
       view.destroy()
