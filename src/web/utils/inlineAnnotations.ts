@@ -198,7 +198,7 @@ class AnnotationWidget extends WidgetType {
   }
 
   ignoreEvent() {
-    return false
+    return true
   }
 }
 
@@ -293,7 +293,7 @@ class NewAnnotationWidget extends WidgetType {
   }
 
   ignoreEvent() {
-    return false
+    return true
   }
 }
 
