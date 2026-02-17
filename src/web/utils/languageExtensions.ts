@@ -1,9 +1,11 @@
 import { css } from '@codemirror/lang-css'
+import { go } from '@codemirror/lang-go'
 import { html } from '@codemirror/lang-html'
 import { javascript } from '@codemirror/lang-javascript'
 import { json } from '@codemirror/lang-json'
 import { markdown } from '@codemirror/lang-markdown'
 import { python } from '@codemirror/lang-python'
+import { yaml } from '@codemirror/lang-yaml'
 import type { Extension } from '@codemirror/state'
 
 export function getLanguageExtension(filePath: string): Extension | null {
@@ -32,9 +34,14 @@ export function getLanguageExtension(filePath: string): Extension | null {
     case 'md':
     case 'mdx':
       return markdown()
+    case 'go':
+      return go()
     case 'py':
     case 'pyw':
       return python()
+    case 'yaml':
+    case 'yml':
+      return yaml()
     default:
       return null
   }
