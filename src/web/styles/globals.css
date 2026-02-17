@@ -529,6 +529,31 @@ body {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   CODEMIRROR DIFF — COLLAPSED UNCHANGED LINES
+   Specificity 0-4-0 to override @codemirror/merge base theme (0-3-0)
+   ───────────────────────────────────────────────────────────────────────────── */
+
+.cm-mergeView .cm-editor .cm-collapsedLines.cm-collapsedLines {
+  background: var(--bg-surface);
+  color: var(--text-tertiary);
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 4px 12px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.cm-mergeView .cm-editor .cm-collapsedLines.cm-collapsedLines:hover {
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    CODEMIRROR GUTTER INTERACTION — ENHANCED SELECTION FEEDBACK
    ───────────────────────────────────────────────────────────────────────────── */
 

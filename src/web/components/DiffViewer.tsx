@@ -139,6 +139,7 @@ const DiffViewer = forwardRef<DiffViewerRef, DiffViewerProps>(function DiffViewe
         extensions: modifiedExtensions,
       },
       parent: containerRef.current,
+      collapseUnchanged: { margin: 3, minSize: 4 },
       gutter: true,
     })
 
