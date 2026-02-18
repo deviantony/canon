@@ -24,6 +24,8 @@ export default function AnnotationSummaryPopover({
 
   const byFile = getAnnotationsGroupedByFile()
   const sortedFiles = Array.from(byFile.keys()).sort()
+  const actionCount = annotations.filter((a) => a.kind !== 'question').length
+  const questionCount = annotations.filter((a) => a.kind === 'question').length
 
   function handleClose() {
     setSummaryPopoverOpen(false)
@@ -64,7 +66,16 @@ export default function AnnotationSummaryPopover({
     <div className={styles.overlay} onClick={handleOverlayClick}>
       <div className={styles.popover}>
         <div className={styles.header}>
-          <span className={styles.title}>Review All ({annotations.length})</span>
+          <span className={styles.title}>
+            Review All ({annotations.length})
+            {actionCount > 0 && questionCount > 0 && (
+              <>
+                {' '}
+                &mdash; {actionCount} {actionCount === 1 ? 'action' : 'actions'} / {questionCount}{' '}
+                {questionCount === 1 ? 'question' : 'questions'}
+              </>
+            )}
+          </span>
           <button type="button" className={styles.closeBtn} onClick={handleClose} title="Close">
             <X size={16} />
           </button>
@@ -74,9 +85,7 @@ export default function AnnotationSummaryPopover({
           {annotations.length === 0 ? (
             <div className={styles.empty}>
               <p>No annotations yet</p>
-              <p style={{ marginTop: 'var(--space-2)', fontSize: '13px' }}>
-                Click line numbers in the code to add annotations
-              </p>
+              <p className={styles.emptyHint}>Click line numbers in the code to add annotations</p>
             </div>
           ) : (
             sortedFiles.map((file) => {
@@ -98,7 +107,13 @@ export default function AnnotationSummaryPopover({
                       className={styles.annotation}
                       onClick={() => handleAnnotationClick(annotation)}
                     >
-                      <div className={styles.lineBadge}>
+                      <div
+                        className={
+                          annotation.kind === 'question'
+                            ? styles.lineBadgeQuestion
+                            : styles.lineBadge
+                        }
+                      >
                         {annotation.lineStart === 0 && (
                           <FileText size={10} style={{ marginRight: 4 }} />
                         )}

@@ -27,3 +27,4 @@ export interface FeedbackResult {
 
 export type ViewMode = 'code' | 'diff'
 export type CompletionType = 'submitted' | 'cancelled'
+export type AnnotationKind = 'action' | 'question'

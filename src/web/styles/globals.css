@@ -31,12 +31,31 @@
   --color-gold-alpha-04: rgba(212, 165, 116, 0.04);
   --color-gold-alpha-03: rgba(212, 165, 116, 0.03);
   --color-gold-alpha-02: rgba(212, 165, 116, 0.02);
+  --color-gold-alpha-25: rgba(212, 165, 116, 0.25);
+
+  --color-question-50: #a3c4e0;
+  --color-question-100: #7a9fc4;
+  --color-question-200: #5a7a9c;
+  --color-question-alpha-15: rgba(122, 159, 196, 0.15);
+  --color-question-alpha-12: rgba(122, 159, 196, 0.12);
+  --color-question-alpha-10: rgba(122, 159, 196, 0.1);
+  --color-question-alpha-08: rgba(122, 159, 196, 0.08);
+  --color-question-alpha-06: rgba(122, 159, 196, 0.06);
+  --color-question-alpha-05: rgba(122, 159, 196, 0.05);
+  --color-question-alpha-04: rgba(122, 159, 196, 0.04);
+  --color-question-alpha-03: rgba(122, 159, 196, 0.03);
+  --color-question-alpha-02: rgba(122, 159, 196, 0.02);
+  --color-question-alpha-25: rgba(122, 159, 196, 0.25);
 
   /* ═══ SEMANTIC COLORS ═══ */
   --accent-gold: var(--color-gold-100);
   --accent-gold-bright: var(--color-gold-50);
   --accent-gold-muted: var(--color-gold-200);
   --accent-gold-dim: var(--color-gold-alpha-15);
+
+  --accent-question: var(--color-question-100);
+  --accent-question-bright: var(--color-question-50);
+  --accent-question-muted: var(--color-question-200);
 
   /* Functional colors - desaturated, elegant */
   --status-success: #7d9f7d;
@@ -91,6 +110,32 @@
     var(--color-gold-alpha-06) 40%,
     transparent 70%
   );
+  /* Question card backgrounds - blue corner glow */
+  --gradient-card-question: radial-gradient(
+    ellipse 200px 120px at top left,
+    var(--color-question-alpha-05) 0%,
+    var(--color-question-alpha-02) 40%,
+    transparent 70%
+  );
+  --gradient-card-question-hover: radial-gradient(
+    ellipse 200px 120px at top left,
+    var(--color-question-alpha-08) 0%,
+    var(--color-question-alpha-03) 40%,
+    transparent 70%
+  );
+  --gradient-card-question-active: radial-gradient(
+    ellipse 200px 120px at top left,
+    var(--color-question-alpha-10) 0%,
+    var(--color-question-alpha-04) 40%,
+    transparent 70%
+  );
+  --gradient-card-question-highlight: radial-gradient(
+    ellipse 200px 120px at top left,
+    var(--color-question-alpha-15) 0%,
+    var(--color-question-alpha-06) 40%,
+    transparent 70%
+  );
+
   /* Subtle input bar gradient */
   --gradient-input: radial-gradient(
     ellipse 200px 120px at top left,
@@ -326,6 +371,7 @@ body {
 .inline-annotation-badge {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   padding: 2px 10px;
   background: var(--color-gold-alpha-08);
   border: 1px solid var(--accent-gold-muted);
@@ -337,6 +383,7 @@ body {
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  cursor: pointer;
   transition: all var(--duration-normal) var(--ease-default);
 }
 
@@ -488,7 +535,121 @@ body {
 
 /* Selection styling for textarea */
 .inline-annotation-textarea::selection {
-  background: rgba(212, 165, 116, 0.25);
+  background: var(--color-gold-alpha-25);
+}
+
+/* ─── Question mode overrides ─── */
+.inline-annotation.question-mode {
+  border-color: var(--accent-question-muted);
+  background: var(--gradient-card-question);
+}
+
+.inline-annotation.question-mode:hover {
+  border-color: var(--accent-question);
+  background: var(--gradient-card-question-hover);
+}
+
+.inline-annotation.question-mode.new,
+.inline-annotation.question-mode.editing {
+  border-color: var(--accent-question);
+  background: var(--gradient-card-question-active);
+}
+
+.inline-annotation.question-mode .inline-annotation-badge {
+  color: var(--accent-question-muted);
+  border-color: var(--accent-question-muted);
+  background: var(--color-question-alpha-08);
+}
+
+.inline-annotation.question-mode:hover .inline-annotation-badge,
+.inline-annotation.question-mode.new .inline-annotation-badge,
+.inline-annotation.question-mode.editing .inline-annotation-badge {
+  color: var(--accent-question);
+  border-color: var(--accent-question);
+  background: var(--color-question-alpha-12);
+}
+
+.inline-annotation.question-mode .inline-annotation-textarea {
+  caret-color: var(--accent-question);
+}
+
+.inline-annotation.question-mode .inline-annotation-textarea::selection {
+  background: var(--color-question-alpha-25);
+}
+
+.inline-annotation.question-mode .inline-annotation-btn.save {
+  border-color: var(--accent-question-muted);
+  color: var(--accent-question);
+}
+
+.inline-annotation.question-mode .inline-annotation-btn.save:hover:not(:disabled) {
+  border-color: var(--accent-question);
+  background: var(--color-question-alpha-08);
+  color: var(--accent-question-bright);
+}
+
+/* Question mode highlight with pulse */
+.inline-annotation.question-mode.highlighted {
+  animation: questionAccentPulse 2s var(--ease-out);
+}
+
+.inline-annotation.question-mode.highlighted .inline-annotation-badge {
+  animation: questionBadgeHighlight 2s var(--ease-out);
+}
+
+@keyframes questionAccentPulse {
+  0% {
+    border-color: var(--accent-question-bright);
+    background: var(--gradient-card-question-highlight);
+  }
+  100% {
+    border-color: var(--accent-question-muted);
+    background: var(--gradient-card-question);
+  }
+}
+
+@keyframes questionBadgeHighlight {
+  0% {
+    color: var(--accent-question-bright);
+    border-color: var(--accent-question-bright);
+  }
+  100% {
+    color: var(--accent-question-muted);
+    border-color: var(--accent-question-muted);
+  }
+}
+
+/* ─── Morphing badge ─── */
+.inline-annotation-badge-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.inline-annotation-badge-icon svg {
+  width: 10px;
+  height: 10px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.inline-annotation-badge-label {
+  display: inline-block;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width var(--duration-normal) var(--ease-smooth);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.inline-annotation-badge:hover .inline-annotation-badge-label {
+  max-width: 80px;
 }
 
 /* Edit actions row */
@@ -510,6 +671,11 @@ body {
   font-family: var(--font-mono);
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+.inline-annotation-hint-separator {
+  opacity: 0.5;
+  margin: 0 2px;
 }
 
 .inline-annotation-hint kbd {

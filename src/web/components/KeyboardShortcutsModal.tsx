@@ -71,6 +71,7 @@ export default function KeyboardShortcutsModal({
       title: 'Annotations',
       shortcuts: [
         { keys: ['Ctrl', 'Cmd', 'C'], label: 'Add file comment', available: hasSelectedFile },
+        { keys: ['Q'], label: 'Toggle action/question (new annotation)', available: true },
         { keys: ['Escape'], label: 'Clear selection / close panel', available: true },
       ],
     },

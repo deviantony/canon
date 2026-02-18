@@ -170,6 +170,20 @@
   background: var(--color-gold-alpha-15);
 }
 
+.lineBadgeQuestion {
+  composes: lineBadge;
+  color: var(--accent-question-muted);
+  border-color: var(--accent-question-muted);
+  background: var(--color-question-alpha-08);
+}
+
+.lineBadgeQuestion:hover,
+.card:hover .lineBadgeQuestion {
+  color: var(--accent-question);
+  border-color: var(--accent-question);
+  background: var(--color-question-alpha-12);
+}
+
 /* ═══ CARD ACTIONS CONTAINER ═══
    Animated action buttons that appear on card hover. */
 .cardActions {

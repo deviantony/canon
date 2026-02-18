@@ -131,6 +131,10 @@
   composes: lineBadge from "../styles/base.module.css";
 }
 
+.lineBadgeQuestion {
+  composes: lineBadgeQuestion from "../styles/base.module.css";
+}
+
 .annotationText {
   flex: 1;
   font-size: 13px;
@@ -166,4 +170,9 @@
   text-align: center;
   padding: var(--space-10);
   color: var(--text-tertiary);
+}
+
+.emptyHint {
+  margin-top: var(--space-2);
+  font-size: 13px;
 }

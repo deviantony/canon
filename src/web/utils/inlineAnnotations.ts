@@ -1,5 +1,6 @@
 import { type EditorState, Facet, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view'
+import type { AnnotationKind } from '../../shared/types'
 import type { Annotation } from '../context/AnnotationContext'
 import { formatLineBadge } from './annotationUtils'
 import { getModifierKey } from './keyboard'
@@ -17,8 +18,14 @@ const setSelectedLinesEffect = StateEffect.define<{
 
 // Callbacks interface for widget interactions
 export interface AnnotationCallbacks {
-  onSave: (lineStart: number, lineEnd: number | undefined, comment: string) => void
+  onSave: (
+    lineStart: number,
+    lineEnd: number | undefined,
+    comment: string,
+    kind: AnnotationKind,
+  ) => void
   onUpdate: (id: string, comment: string) => void
+  onUpdateKind: (id: string, kind: AnnotationKind) => void
   onDelete: (id: string) => void
   onCancel: () => void
   onLineClick: (line: number) => void
@@ -41,7 +48,7 @@ function createKeyboardHint(): HTMLSpanElement {
   kbd1.textContent = getModifierKey()
   const kbdPlus = document.createElement('span')
   kbdPlus.textContent = '+'
-  kbdPlus.style.cssText = 'opacity: 0.5; margin: 0 2px;'
+  kbdPlus.className = 'inline-annotation-hint-separator'
   const kbd2 = document.createElement('kbd')
   kbd2.textContent = 'Enter'
   hint.appendChild(kbd1)
@@ -60,6 +67,54 @@ function setupTextareaAutoResize(textarea: HTMLTextAreaElement, minHeight?: numb
   resize()
 }
 
+// SVG paths for kind icons
+const WRENCH_SVG =
+  '<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>'
+const QUESTION_SVG =
+  '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+
+function toggleKind(kind: AnnotationKind): AnnotationKind {
+  return kind === 'action' ? 'question' : 'action'
+}
+
+function createMorphingBadge(
+  kind: AnnotationKind,
+  lineText: string,
+  onToggle: () => void,
+): HTMLSpanElement {
+  const badge = document.createElement('span')
+  badge.className = 'inline-annotation-badge'
+
+  const icon = document.createElement('span')
+  icon.className = 'inline-annotation-badge-icon'
+  icon.innerHTML = kind === 'action' ? WRENCH_SVG : QUESTION_SVG
+
+  const text = document.createElement('span')
+  text.textContent = lineText
+
+  const label = document.createElement('span')
+  label.className = 'inline-annotation-badge-label'
+  label.textContent = kind === 'action' ? 'action' : 'question'
+
+  badge.appendChild(icon)
+  badge.appendChild(text)
+  badge.appendChild(label)
+
+  badge.addEventListener('click', (e) => {
+    e.stopPropagation()
+    onToggle()
+  })
+
+  return badge
+}
+
+function updateMorphingBadge(badge: HTMLSpanElement, kind: AnnotationKind): void {
+  const icon = badge.querySelector('.inline-annotation-badge-icon')
+  if (icon) icon.innerHTML = kind === 'action' ? WRENCH_SVG : QUESTION_SVG
+  const label = badge.querySelector('.inline-annotation-badge-label')
+  if (label) label.textContent = kind === 'action' ? 'action' : 'question'
+}
+
 // Widget for displaying an existing annotation
 class AnnotationWidget extends WidgetType {
   constructor(
@@ -73,6 +128,7 @@ class AnnotationWidget extends WidgetType {
     return (
       other.annotation.id === this.annotation.id &&
       other.annotation.comment === this.annotation.comment &&
+      other.annotation.kind === this.annotation.kind &&
       other.isHighlighted === this.isHighlighted
     )
   }
@@ -84,14 +140,17 @@ class AnnotationWidget extends WidgetType {
     outer.className = 'inline-annotation-wrapper'
 
     const wrapper = document.createElement('div')
-    wrapper.className = `inline-annotation ${this.isHighlighted ? 'highlighted' : ''}`
+    const isQuestion = this.annotation.kind === 'question'
+    wrapper.className = `inline-annotation ${this.isHighlighted ? 'highlighted' : ''} ${isQuestion ? 'question-mode' : ''}`
 
     const header = document.createElement('div')
     header.className = 'inline-annotation-header'
 
-    const badge = document.createElement('span')
-    badge.className = 'inline-annotation-badge'
-    badge.textContent = formatLineBadge(this.annotation.lineStart, this.annotation.lineEnd)
+    const lineText = formatLineBadge(this.annotation.lineStart, this.annotation.lineEnd)
+    const badge = createMorphingBadge(this.annotation.kind, lineText, () => {
+      const newKind = toggleKind(this.annotation.kind)
+      view.state.facet(annotationCallbacksFacet)?.onUpdateKind(this.annotation.id, newKind)
+    })
 
     const actions = document.createElement('div')
     actions.className = 'inline-annotation-actions'
@@ -138,8 +197,14 @@ class AnnotationWidget extends WidgetType {
     const outer = inner.parentElement
     if (!outer) return
 
+    const cancelEdit = () => {
+      const newDom = this.toDOM(view)
+      outer.replaceWith(newDom)
+    }
+
     inner.innerHTML = ''
-    inner.className = 'inline-annotation editing'
+    const isQuestion = this.annotation.kind === 'question'
+    inner.className = `inline-annotation editing ${isQuestion ? 'question-mode' : ''}`
 
     const textarea = document.createElement('textarea')
     textarea.className = 'inline-annotation-textarea'
@@ -154,11 +219,7 @@ class AnnotationWidget extends WidgetType {
     const cancelBtn = document.createElement('button')
     cancelBtn.className = 'inline-annotation-btn'
     cancelBtn.textContent = 'Cancel'
-    cancelBtn.addEventListener('click', () => {
-      // Re-render the original widget (replaces outer wrapper)
-      const newDom = this.toDOM(view)
-      outer.replaceWith(newDom)
-    })
+    cancelBtn.addEventListener('click', cancelEdit)
 
     const saveBtn = document.createElement('button')
     saveBtn.className = 'inline-annotation-btn save'
@@ -191,8 +252,7 @@ class AnnotationWidget extends WidgetType {
           view.state.facet(annotationCallbacksFacet)?.onUpdate(this.annotation.id, value)
         }
       } else if (e.key === 'Escape') {
-        const newDom = this.toDOM(view)
-        outer.replaceWith(newDom)
+        cancelEdit()
       }
     })
   }
@@ -204,6 +264,8 @@ class AnnotationWidget extends WidgetType {
 
 // Widget for creating a new annotation
 class NewAnnotationWidget extends WidgetType {
+  private kind: AnnotationKind = 'action'
+
   constructor(
     readonly lineStart: number,
     readonly lineEnd: number,
@@ -223,16 +285,30 @@ class NewAnnotationWidget extends WidgetType {
     const wrapper = document.createElement('div')
     wrapper.className = 'inline-annotation new'
 
-    const badge = document.createElement('span')
-    badge.className = 'inline-annotation-badge'
-    badge.textContent = formatLineBadge(
+    const lineText = formatLineBadge(
       this.lineStart,
       this.lineEnd !== this.lineStart ? this.lineEnd : undefined,
     )
 
+    const badge = createMorphingBadge(this.kind, lineText, () => {
+      this.kind = toggleKind(this.kind)
+      updateMorphingBadge(badge, this.kind)
+      wrapper.classList.toggle('question-mode', this.kind === 'question')
+    })
+
     const textarea = document.createElement('textarea')
     textarea.className = 'inline-annotation-textarea'
     textarea.placeholder = 'Add your comment...'
+
+    const doSave = () => {
+      const value = textarea.value.trim()
+      if (value) {
+        const lineEnd = this.lineEnd !== this.lineStart ? this.lineEnd : undefined
+        view.state
+          .facet(annotationCallbacksFacet)
+          ?.onSave(this.lineStart, lineEnd, value, this.kind)
+      }
+    }
 
     const actions = document.createElement('div')
     actions.className = 'inline-annotation-edit-actions'
@@ -249,13 +325,7 @@ class NewAnnotationWidget extends WidgetType {
     const saveBtn = document.createElement('button')
     saveBtn.className = 'inline-annotation-btn save'
     saveBtn.textContent = 'Save'
-    saveBtn.addEventListener('click', () => {
-      const value = textarea.value.trim()
-      if (value) {
-        const lineEnd = this.lineEnd !== this.lineStart ? this.lineEnd : undefined
-        view.state.facet(annotationCallbacksFacet)?.onSave(this.lineStart, lineEnd, value)
-      }
-    })
+    saveBtn.addEventListener('click', doSave)
 
     actions.appendChild(hint)
     actions.appendChild(cancelBtn)
@@ -279,13 +349,14 @@ class NewAnnotationWidget extends WidgetType {
     textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        const value = textarea.value.trim()
-        if (value) {
-          const lineEnd = this.lineEnd !== this.lineStart ? this.lineEnd : undefined
-          view.state.facet(annotationCallbacksFacet)?.onSave(this.lineStart, lineEnd, value)
-        }
+        doSave()
       } else if (e.key === 'Escape') {
         view.state.facet(annotationCallbacksFacet)?.onCancel()
+      } else if (e.key === 'q' && textarea.value === '' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        this.kind = toggleKind(this.kind)
+        updateMorphingBadge(badge, this.kind)
+        wrapper.classList.toggle('question-mode', this.kind === 'question')
       }
     })
 

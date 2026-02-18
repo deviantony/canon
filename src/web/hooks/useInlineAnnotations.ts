@@ -17,7 +17,8 @@ interface UseInlineAnnotationsProps {
 }
 
 export function useInlineAnnotations({ filePath, onLineClick }: UseInlineAnnotationsProps) {
-  const { annotations, addAnnotation, updateAnnotation, removeAnnotation } = useAnnotations()
+  const { annotations, addAnnotation, updateAnnotation, updateAnnotationKind, removeAnnotation } =
+    useAnnotations()
   const { selectedLines, setSelectedLines } = useLayout()
   const viewRef = useRef<EditorView | null>(null)
   const callbacksCompartment = useRef(new Compartment()).current
@@ -38,14 +39,17 @@ export function useInlineAnnotations({ filePath, onLineClick }: UseInlineAnnotat
   // Set up callbacks for the widgets via facet reconfiguration
   useEffect(() => {
     const callbacks: AnnotationCallbacks = {
-      onSave: (lineStart, lineEnd, comment) => {
+      onSave: (lineStart, lineEnd, comment, kind) => {
         if (filePath) {
-          addAnnotation(filePath, lineStart, comment, lineEnd)
+          addAnnotation(filePath, lineStart, comment, lineEnd, kind)
           setSelectedLines(null)
         }
       },
       onUpdate: (id, comment) => {
         updateAnnotation(id, comment)
+      },
+      onUpdateKind: (id, kind) => {
+        updateAnnotationKind(id, kind)
       },
       onDelete: (id) => {
         removeAnnotation(id)
@@ -67,6 +71,7 @@ export function useInlineAnnotations({ filePath, onLineClick }: UseInlineAnnotat
     filePath,
     addAnnotation,
     updateAnnotation,
+    updateAnnotationKind,
     removeAnnotation,
     setSelectedLines,
     onLineClick,
