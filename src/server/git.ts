@@ -88,7 +88,8 @@ function parseStatusLine(line: string): ChangedFile | null {
 
 // Get list of changed files (staged + unstaged)
 async function getChangedFiles(workingDirectory: string): Promise<ChangedFile[]> {
-  const result = await runGit(workingDirectory, ['status', '--porcelain'])
+  // -uall lists individual untracked files instead of collapsing to directories
+  const result = await runGit(workingDirectory, ['status', '--porcelain', '-uall'])
   if (result.exitCode !== 0) return []
 
   const files: ChangedFile[] = []
