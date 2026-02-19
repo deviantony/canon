@@ -1,7 +1,7 @@
 {
   "name": "canon",
   "description": "Browser-based annotation tool that lets you add line-specific feedback to any file",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "author": {
     "name": "deviantony"
   },
