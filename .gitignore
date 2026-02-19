@@ -8,8 +8,4 @@ src/server/embedded-assets.ts
 
 # Compiled binaries
 canon
-canon-*
 *.exe
-
-# Allow canon slash command
-!.claude/commands/canon-dev.md
