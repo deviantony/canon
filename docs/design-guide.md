@@ -15,6 +15,9 @@ A minimal reference for Canon's design system.
 | `--accent-gold` | `#d4a574` | Primary accent, interactive elements |
 | `--accent-gold-bright` | `#e8c49a` | Hover states, highlights |
 | `--accent-gold-muted` | `#9c7a58` | Borders, subtle accents |
+| `--accent-question` | `#7a9fc4` | Question/ask annotations |
+| `--accent-question-bright` | `#a3c4e0` | Question hover states, highlights |
+| `--accent-question-muted` | `#5a7a9c` | Question borders, subtle accents |
 | `--bg-void` | `#0c0c0c` | Page background |
 | `--bg-surface` | `#111111` | Cards, panels |
 | `--bg-elevated` | `#1a1a1a` | Raised elements |
@@ -78,6 +81,11 @@ Annotation cards use a consistent pattern:
 - `--radius-lg` border radius
 - Hover: brighter border, enhanced gradient
 
+**Question cards** follow the same structure with blue theming:
+- Blue gradient background (`--gradient-card-question`)
+- 1px blue border (`--accent-question-muted`)
+- Same radius and hover behavior, using question color tokens
+
 ### Buttons
 
 **Icon buttons** (`baseStyles.actionIcon`):
@@ -97,7 +105,7 @@ Annotation cards use a consistent pattern:
 
 ### Badges
 
-**Line badges**: Gold border pill showing line numbers
+**Line badges**: Gold border pill showing line numbers (`lineBadge`); blue variant for questions (`lineBadgeQuestion`)
 **Status badges**: Color-coded file status (M, A, D, R)
 **Count badges**: Pill showing annotation counts
 
@@ -115,7 +123,9 @@ Annotation cards use a consistent pattern:
 |------|-----|
 | `fadeSlideIn` | Card/element entrance |
 | `fadeIn` | Overlay backgrounds |
-| `accentPulse` | Highlight attention |
+| `accentPulse` | Highlight attention (gold) |
+| `questionAccentPulse` | Highlight attention (question/blue) |
+| `questionBadgeHighlight` | Badge highlight pulse (question/blue) |
 | `slideUp` | Modal entrance |
 
 ## File Structure
@@ -154,7 +164,7 @@ The codebase uses two naming conventions, each tied to a different styling syste
 - Available in `base.module.css`:
   - `actionIcon`, `actionIconDelete` — Icon buttons (26x26px)
   - `textBtn`, `textBtnSave`, `textBtnDelete` — Compact text buttons
-  - `lineBadge`, `lineBadgeClickable` — Line number badges
+  - `lineBadge`, `lineBadgeClickable`, `lineBadgeQuestion` — Line number badges
   - `btn`, `btnSubmit`, `btnCancel`, `btnSecondary`, `btnReviewAll` — Standard buttons
   - `cardText`, `cardHeader`, `cardActions`, `cardEditFooter`, `hint` — Card utilities
 - Keep component-specific styles (states, contextual selectors) in the component module
