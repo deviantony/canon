@@ -9,3 +9,4 @@ install:
 	bun run build
 	cp canon ~/.local/bin/canon
 	chmod +x ~/.local/bin/canon
+	cp commands/new.md .claude/commands/canon-dev.md

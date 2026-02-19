@@ -10,3 +10,6 @@ src/server/embedded-assets.ts
 canon
 canon-*
 *.exe
+
+# Allow canon slash command
+!.claude/commands/canon-dev.md
