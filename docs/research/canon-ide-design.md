@@ -358,11 +358,15 @@ The transition to Canon-as-IDE replaces the current one-shot model entirely. The
 
 ## Authentication Model
 
-Canon itself needs **no API keys or auth**. Authentication flows through the Claude Code binary, which uses the developer's existing Max subscription via OAuth from their keychain.
-
 Canon delegates all authentication to the Claude Code binary. The developer's existing `claude login` session is used — Canon never touches tokens or credentials.
 
-See [Subscription Integration](./claude-subscription-integration.md) for the full analysis of subscription vs API key billing, TOS implications, and the January 2026 enforcement changes.
+### Policy Context
+
+Anthropic's [legal and compliance page](https://code.claude.com/docs/en/legal-and-compliance) (updated 2026-02-20) states that OAuth authentication on Free/Pro/Max plans is "intended exclusively for Claude Code and Claude.ai" and that developers building products should use API key authentication. The policy explicitly prohibits the Agent SDK with subscription OAuth but does not specifically address CLI subprocess spawning.
+
+Canon is a personal development tool, not a published product. It spawns the real `claude` binary — the actual Claude Code process handles OAuth internally. Canon never extracts, stores, or proxies tokens. If Canon were ever distributed to others, the auth model would need to be revisited — likely requiring API key support or an official agreement with Anthropic.
+
+See [Subscription Integration](./claude-subscription-integration.md) for the full policy analysis including the January 2026 enforcement history.
 
 ---
 

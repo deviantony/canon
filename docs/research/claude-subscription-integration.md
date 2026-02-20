@@ -115,6 +115,25 @@ The `stream-json` output format emits newline-delimited JSON that can be parsed 
 
 ## TOS and Risk Assessment
 
+### Anthropic Legal & Compliance Page (Updated 2026-02-20)
+
+Source: [code.claude.com/docs/en/legal-and-compliance](https://code.claude.com/docs/en/legal-and-compliance)
+
+Anthropic published a formal "Authentication and credential use" policy:
+
+> "OAuth authentication (used with Free, Pro, and Max plans) is intended exclusively for Claude Code and Claude.ai. Using OAuth tokens obtained through Claude Free, Pro, or Max accounts in any other product, tool, or service — including the Agent SDK — is not permitted and constitutes a violation of the Consumer Terms of Service."
+
+> "Developers building products or services that interact with Claude's capabilities, including those using the Agent SDK, should use API key authentication through Claude Console or a supported cloud provider. Anthropic does not permit third-party developers to offer Claude.ai login or to route requests through Free, Pro, or Max plan credentials on behalf of their users."
+
+> "Anthropic reserves the right to take measures to enforce these restrictions and may do so without prior notice."
+
+This formalizes what was previously only communicated via GitHub issues and community enforcement. Key implications:
+
+- The Agent SDK + OAuth path is now **explicitly prohibited**, not just discouraged
+- CLI subprocess wrappers that route through subscription OAuth fall under "any other product, tool, or service"
+- The distinction between "using Claude Code" and "building a product that spawns Claude Code" is ambiguous — Canon spawns the real `claude` binary (it *is* Claude Code running), but Canon itself is a separate product
+- API key authentication is the only officially sanctioned path for third-party developers
+
 ### Anthropic Consumer Terms of Service -- Section 3.7
 
 > "[You agree not] to access the Services through automated or non-human means, whether through a bot, script, or otherwise" -- except when accessing via an Anthropic API Key or where explicitly permitted.
@@ -125,7 +144,7 @@ The `stream-json` output format emits newline-delimited JSON that can be parsed 
 |----------|----------|----------------|-----------|
 | Direct OAuth token reuse | **High** -- blocked, bans issued | **High** -- server-side restricted | Dead |
 | CLI subprocess wrapper | **Medium** -- violates automated access clause | **Medium** -- could be fingerprinted | Uncertain |
-| Agent SDK + OAuth token | **Medium** -- explicitly discouraged in docs | **Low** -- works today | Uncertain |
+| Agent SDK + OAuth token | **High** -- explicitly prohibited as of 2026-02-20 | **Low** -- works today | Dead |
 | Anthropic API key | **None** -- fully supported | **None** | Stable |
 | Commercial agreement | **None** -- explicitly authorized | **None** | Stable |
 
@@ -136,31 +155,29 @@ The `stream-json` output format emits newline-delimited JSON that can be parsed 
 ### What exists today
 
 1. **API keys** -- The only fully supported programmatic path. Pay-per-token.
-2. **CLI subprocess wrappers** -- The community's workaround post-crackdown. Spawns `claude -p` as a subprocess, parses output. Works with subscriptions but violates ToS.
-3. **Agent SDK with OAuth** -- Cleaner API, same ToS grey area.
+2. **CLI subprocess wrappers** -- The community's workaround post-crackdown. Spawns `claude -p` as a subprocess, parses output. Works with subscriptions but sits in a policy grey area.
+3. **Agent SDK with OAuth** -- Now explicitly prohibited by Anthropic's legal page (2026-02-20). No longer a viable option.
 
 ### What doesn't exist
 
 - An official way to use Pro/Max subscriptions for third-party tool access.
 - Any announced plans to change this (the open GitHub issue has no timeline).
-- A proxy approach that is both subscription-based AND ToS-compliant.
+- A proxy approach that is both subscription-based AND fully policy-compliant.
 
-### Options for Canon
+### Decision for Canon
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **Require API keys** | Fully supported, clean integration | Users pay per-token on top of subscription |
-| **Wrap Claude CLI** (`claude -p --output-format stream-json`) | Works with subscriptions, hardest to detect | Violates ToS, fragile, maintenance burden |
-| **Use Agent SDK** | Clean API, official package | Same ToS issue for subscription auth, requires API key officially |
-| **Stay CLI-only** (current Canon model) | No auth concerns at all | Limited to Claude Code slash command integration |
-| **Wait for official support** | Future-proof | No timeline, may never happen |
+**CLI subprocess** (`claude -p --output-format stream-json`) is the chosen approach.
 
-### Recommendation
+Canon is a personal development tool, not a published product. It spawns the real `claude` binary, which handles its own OAuth internally — Canon never extracts, stores, or proxies tokens. This is the most practical path for personal use with a Max subscription.
 
-The safest path that avoids double-billing users is to either:
+If Canon were ever distributed publicly, the auth model would need to be revisited: either requiring API key authentication or securing an agreement with Anthropic. Until then, CLI subprocess is the way forward.
 
-1. **Continue the current model** where Canon runs as a Claude Code slash command (no separate LLM calls needed), or
-2. **Offer API key support** as an opt-in for features that require LLM calls outside the Claude Code session, or
-3. **Monitor the Agent SDK issue** (anthropics/claude-agent-sdk-python#559) for official Max plan billing support -- if Anthropic enables this, it becomes the clear winner.
+### Eliminated options
 
-The CLI subprocess approach is technically viable but carries real ToS and reliability risk. Most community tools that adopted it acknowledge this trade-off explicitly.
+| Option | Reason eliminated |
+|--------|-------------------|
+| **Agent SDK + OAuth** | Explicitly prohibited by Anthropic's 2026-02-20 legal update |
+| **Require API keys** | Double-billing (pay-per-token on top of Max subscription) for personal use |
+| **Stay CLI-only** (slash command model) | Too limited — Canon-as-IDE requires session management, not one-shot review |
+| **Wait for official support** | No timeline, may never happen |
+| **Contact Anthropic** | Not warranted for personal tooling |
