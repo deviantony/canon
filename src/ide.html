@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canon IDE</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-primary: #0a0a0a;
+      --bg-secondary: #111111;
+      --bg-tertiary: #1a1a1a;
+      --bg-hover: #222222;
+      --border: #2a2a2a;
+      --border-subtle: #1f1f1f;
+      --text-primary: #e8e0d8;
+      --text-secondary: #9c9488;
+      --text-muted: #5c5850;
+      --gold-50: #e8c49a;
+      --gold-100: #d4a574;
+      --gold-200: #9c7a58;
+      --gold-alpha-10: rgba(212, 165, 116, 0.1);
+      --gold-alpha-15: rgba(212, 165, 116, 0.15);
+      --blue: #7a9fc4;
+      --green: #7ac47a;
+      --red: #c47a7a;
+      --font-ui: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", monospace;
+      --radius: 6px;
+    }
+
+    body {
+      font-family: var(--font-ui);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Status Bar */
+    #status-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .status-dot.starting { background: var(--gold-100); animation: pulse 1.5s infinite; }
+    .status-dot.ready { background: var(--green); }
+    .status-dot.processing { background: var(--gold-100); animation: pulse 1s infinite; }
+    .status-dot.error { background: var(--red); }
+    .status-dot.exited { background: var(--text-muted); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-label { color: var(--text-secondary); }
+    .status-value { color: var(--text-primary); font-family: var(--font-mono); font-size: 11px; }
+    .status-separator { color: var(--border); }
+
+    /* Resume Bar */
+    #resume-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    #resume-bar.visible { display: flex; }
+
+    #resume-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      color: var(--text-secondary);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    #resume-toggle:hover { color: var(--text-primary); border-color: var(--gold-200); }
+
+    #resume-session-input {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      flex: 1;
+      outline: none;
+    }
+
+    #resume-session-input:focus { border-color: var(--gold-200); }
+    #resume-session-input::placeholder { color: var(--text-muted); }
+
+    #resume-btn {
+      background: var(--gold-alpha-10);
+      border: 1px solid var(--gold-200);
+      border-radius: 4px;
+      padding: 4px 12px;
+      color: var(--gold-50);
+      font-family: var(--font-ui);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    #resume-btn:hover { background: var(--gold-alpha-15); }
+
+    /* Messages Area */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .msg-block {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: var(--font-mono);
+      max-width: 100%;
+    }
+
+    .msg-system {
+      background: var(--gold-alpha-10);
+      border: 1px solid rgba(212, 165, 116, 0.2);
+      color: var(--gold-50);
+      font-size: 12px;
+    }
+
+    .msg-streaming {
+      background: var(--bg-tertiary);
+      border: 1px dashed var(--border);
+      color: var(--text-primary);
+    }
+
+    .msg-assistant {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+    }
+
+    .msg-user {
+      background: var(--gold-alpha-10);
+      border: 1px solid var(--gold-alpha-15);
+      color: var(--text-primary);
+      align-self: flex-end;
+      max-width: 80%;
+    }
+
+    .msg-user-prompt {
+      background: rgba(122, 159, 196, 0.1);
+      border: 1px solid rgba(122, 159, 196, 0.2);
+      color: var(--blue);
+      align-self: flex-end;
+      max-width: 80%;
+    }
+
+    .msg-result {
+      background: rgba(122, 196, 122, 0.08);
+      border: 1px solid rgba(122, 196, 122, 0.2);
+      color: var(--green);
+      font-size: 12px;
+    }
+
+    .msg-stderr {
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 11px;
+      padding: 4px 14px;
+      border: none;
+    }
+
+    .msg-error {
+      background: rgba(196, 122, 122, 0.1);
+      border: 1px solid rgba(196, 122, 122, 0.2);
+      color: var(--red);
+    }
+
+    .msg-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-family: var(--font-ui);
+    }
+
+    .content-block { margin-top: 6px; }
+    .content-block:first-child { margin-top: 0; }
+
+    .tool-use-block {
+      background: var(--bg-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 8px 10px;
+      margin-top: 6px;
+    }
+
+    .tool-name {
+      color: var(--gold-100);
+      font-size: 11px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .tool-input {
+      font-size: 11px;
+      color: var(--text-secondary);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .thinking-block {
+      color: var(--text-muted);
+      font-style: italic;
+      border-left: 2px solid var(--border);
+      padding-left: 10px;
+      margin-top: 6px;
+    }
+
+    /* Input Bar */
+    #input-bar {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    #prompt-input {
+      flex: 1;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    #prompt-input:focus {
+      border-color: var(--gold-200);
+    }
+
+    #prompt-input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #prompt-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    #send-btn {
+      background: var(--gold-alpha-15);
+      border: 1px solid var(--gold-200);
+      border-radius: var(--radius);
+      padding: 10px 20px;
+      color: var(--gold-50);
+      font-family: var(--font-ui);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    #send-btn:hover:not(:disabled) {
+      background: rgba(212, 165, 116, 0.25);
+    }
+
+    #send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Scrollbar */
+    #messages::-webkit-scrollbar { width: 6px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* Empty state */
+    #empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      color: var(--text-muted);
+      gap: 8px;
+      padding: 40px;
+    }
+
+    #empty-state .title {
+      font-size: 16px;
+      color: var(--text-secondary);
+    }
+
+    #empty-state .hint {
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <span class="status-label">State:</span>
+    <span class="status-value" id="status-state">disconnected</span>
+    <span class="status-separator">|</span>
+    <span class="status-label">Model:</span>
+    <span class="status-value" id="status-model">—</span>
+    <span class="status-separator">|</span>
+    <span class="status-label">Session:</span>
+    <span class="status-value" id="status-session">—</span>
+    <span class="status-separator">|</span>
+    <button id="resume-toggle">Resume</button>
+  </div>
+
+  <div id="resume-bar">
+    <span class="status-label">Session ID:</span>
+    <input type="text" id="resume-session-input" placeholder="Paste session ID to resume...">
+    <button id="resume-btn">Resume Session</button>
+  </div>
+
+  <div id="messages">
+    <div id="empty-state">
+      <div class="title">Canon IDE</div>
+      <div class="hint">Send a prompt to start a Claude session</div>
+    </div>
+  </div>
+
+  <div id="input-bar">
+    <input type="text" id="prompt-input" placeholder="Send a prompt to Claude..." autofocus>
+    <button id="send-btn">Send</button>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById('messages');
+    const emptyState = document.getElementById('empty-state');
+    const inputEl = document.getElementById('prompt-input');
+    const sendBtn = document.getElementById('send-btn');
+    const statusDot = document.getElementById('status-dot');
+    const statusState = document.getElementById('status-state');
+    const statusModel = document.getElementById('status-model');
+    const statusSession = document.getElementById('status-session');
+
+    let ws = null;
+    let sessionStarted = false;
+    let _sessionState = 'disconnected';
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT = 5;
+    let streamingEl = null;
+
+    function connect() {
+      const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${location.host}/ws`);
+
+      ws.onopen = () => {
+        reconnectAttempts = 0;
+        updateState('disconnected');
+      };
+
+      ws.onmessage = (e) => {
+        try {
+          const msg = JSON.parse(e.data);
+          handleServerMessage(msg);
+        } catch {}
+      };
+
+      ws.onclose = () => {
+        ws = null;
+        updateState('disconnected');
+        if (reconnectAttempts < MAX_RECONNECT) {
+          const delay = Math.min(1000 * 2 ** reconnectAttempts, 10000);
+          reconnectAttempts++;
+          setTimeout(connect, delay);
+        }
+      };
+
+      ws.onerror = () => {};
+    }
+
+    function send(msg) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(msg));
+      }
+    }
+
+    function handleServerMessage(msg) {
+      switch (msg.type) {
+        case 'session:state':
+          updateSessionInfo(msg.info);
+          break;
+        case 'claude:message':
+          renderClaudeMessage(msg.message);
+          break;
+        case 'claude:stderr':
+          renderStderr(msg.text);
+          break;
+        case 'error':
+          renderError(msg.message);
+          break;
+      }
+    }
+
+    function updateSessionInfo(info) {
+      updateState(info.state);
+      if (info.model) statusModel.textContent = info.model;
+      if (info.sessionId) statusSession.textContent = `${info.sessionId.slice(0, 12)}...`;
+    }
+
+    function updateState(newState) {
+      _sessionState = newState;
+      statusState.textContent = newState;
+      statusDot.className = `status-dot ${newState}`;
+
+      const disabled = newState === 'starting' || newState === 'processing';
+      inputEl.disabled = disabled;
+      sendBtn.disabled = disabled;
+
+      if (!disabled && document.activeElement !== inputEl) {
+        inputEl.focus();
+      }
+    }
+
+    function renderClaudeMessage(msg) {
+      hideEmptyState();
+
+      switch (msg.type) {
+        case 'system':
+          if (msg.subtype === 'init') {
+            const tools = msg.tools ? `${msg.tools.length} tools` : '';
+            const mcps = msg.mcp_servers ? `${msg.mcp_servers.length} MCP servers` : '';
+            const details = [msg.model, tools, mcps].filter(Boolean).join(' · ');
+            addBlock('msg-system', `Session initialized\n${details}\nSession: ${msg.session_id}`);
+          }
+          break;
+
+        case 'stream_event':
+          handleStreamEvent(msg);
+          break;
+
+        case 'assistant':
+          // Finalize any streaming block
+          finalizeStreaming();
+          renderAssistant(msg.message);
+          break;
+
+        case 'user':
+          renderUser(msg.message);
+          break;
+
+        case 'result':
+          finalizeStreaming();
+          renderResult(msg);
+          break;
+      }
+
+      scrollToBottom();
+    }
+
+    function handleStreamEvent(msg) {
+      if (msg.event === 'content_block_delta' && msg.data) {
+        const delta = msg.data.delta;
+        if (delta && delta.type === 'text_delta' && delta.text) {
+          if (!streamingEl) {
+            streamingEl = addBlock('msg-streaming', '');
+          }
+          streamingEl.textContent += delta.text;
+          scrollToBottom();
+        }
+      }
+    }
+
+    function finalizeStreaming() {
+      if (streamingEl) {
+        streamingEl.remove();
+        streamingEl = null;
+      }
+    }
+
+    function renderAssistant(message) {
+      if (!message || !message.content) return;
+
+      const block = document.createElement('div');
+      block.className = 'msg-block msg-assistant';
+
+      for (const part of message.content) {
+        const div = document.createElement('div');
+        div.className = 'content-block';
+
+        if (part.type === 'text') {
+          div.textContent = part.text;
+        } else if (part.type === 'tool_use') {
+          div.className = 'tool-use-block';
+          div.innerHTML = `<div class="tool-name">${escapeHtml(part.name)}</div>` +
+            `<div class="tool-input">${escapeHtml(JSON.stringify(part.input, null, 2))}</div>`;
+        } else if (part.type === 'thinking') {
+          div.className = 'thinking-block';
+          div.textContent = part.thinking;
+        }
+
+        block.appendChild(div);
+      }
+
+      messagesEl.appendChild(block);
+    }
+
+    function renderUser(message) {
+      if (!message || !message.content) return;
+
+      for (const part of message.content) {
+        if (part.type === 'tool_result') {
+          const label = part.is_error ? 'Tool Error' : 'Tool Result';
+          const content = typeof part.content === 'string' ? part.content : JSON.stringify(part.content, null, 2);
+          const truncated = content.length > 500 ? `${content.slice(0, 500)}\n... (truncated)` : content;
+          addBlock('msg-user', `${label}: ${truncated}`);
+        }
+      }
+    }
+
+    function renderResult(msg) {
+      const duration = (msg.duration_ms / 1000).toFixed(1);
+      const cost = msg.total_cost_usd ? `$${msg.total_cost_usd.toFixed(4)}` : '—';
+      const status = msg.is_error ? `Error: ${msg.error}` : 'Completed';
+      const lines = [
+        status,
+        `Turns: ${msg.num_turns} · Duration: ${duration}s · Cost: ${cost}`,
+        `Session: ${msg.session_id}`,
+      ];
+      if (msg.result) {
+        const truncated = msg.result.length > 300 ? `${msg.result.slice(0, 300)}...` : msg.result;
+        lines.push(`Result: ${truncated}`);
+      }
+      addBlock('msg-result', lines.join('\n'));
+    }
+
+    function renderStderr(text) {
+      // Skip noisy lines
+      if (!text.trim()) return;
+      addBlock('msg-stderr', text.trim());
+      scrollToBottom();
+    }
+
+    function renderError(message) {
+      addBlock('msg-error', `Error: ${message}`);
+      scrollToBottom();
+    }
+
+    function addBlock(className, text) {
+      const el = document.createElement('div');
+      el.className = `msg-block ${className}`;
+      el.textContent = text;
+      messagesEl.appendChild(el);
+      return el;
+    }
+
+    function hideEmptyState() {
+      if (emptyState) emptyState.style.display = 'none';
+    }
+
+    function scrollToBottom() {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function sendPrompt() {
+      const text = inputEl.value.trim();
+      if (!text) return;
+
+      hideEmptyState();
+
+      // Show the user's prompt
+      addBlock('msg-user-prompt', text);
+      scrollToBottom();
+
+      if (!sessionStarted) {
+        send({ type: 'session:start', prompt: text });
+        sessionStarted = true;
+      } else {
+        send({ type: 'session:prompt', prompt: text });
+      }
+
+      inputEl.value = '';
+    }
+
+    // Resume UI
+    const resumeToggle = document.getElementById('resume-toggle');
+    const resumeBar = document.getElementById('resume-bar');
+    const resumeInput = document.getElementById('resume-session-input');
+    const resumeBtn = document.getElementById('resume-btn');
+
+    resumeToggle.addEventListener('click', () => {
+      resumeBar.classList.toggle('visible');
+      if (resumeBar.classList.contains('visible')) {
+        resumeInput.focus();
+      }
+    });
+
+    function resumeSession() {
+      const sid = resumeInput.value.trim();
+      if (!sid) return;
+
+      hideEmptyState();
+      addBlock('msg-system', `Resuming session ${sid}...`);
+      scrollToBottom();
+
+      send({ type: 'session:resume', sessionId: sid, prompt: 'Continue where we left off.' });
+      sessionStarted = true;
+      resumeInput.value = '';
+      resumeBar.classList.remove('visible');
+    }
+
+    resumeBtn.addEventListener('click', resumeSession);
+    resumeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        resumeSession();
+      }
+    });
+
+    // Event listeners
+    sendBtn.addEventListener('click', sendPrompt);
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendPrompt();
+      }
+    });
+
+    // Connect
+    connect();
+  </script>
+</body>
+</html>

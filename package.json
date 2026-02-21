@@ -16,7 +16,8 @@
     "lint": "biome check src/",
     "lint:fix": "biome check --write src/",
     "format": "biome format src/",
-    "format:fix": "biome format --write src/"
+    "format:fix": "biome format --write src/",
+    "ide": "bun run src/cli/ide.ts"
   },
   "dependencies": {
     "@codemirror/lang-css": "^6.3.1",
