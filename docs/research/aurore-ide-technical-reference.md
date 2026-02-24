@@ -1,10 +1,10 @@
-# Technical Reference: Canon-as-IDE CLI Integration
+# Technical Reference: Aurore CLI Integration
 
 **Date:** 2026-02-19
 **Status:** Validated
-**Related:** [Design Document](./canon-ide-design.md) | [Subscription Integration](./claude-subscription-integration.md)
+**Related:** [Design Document](./aurore-ide-design.md) | [Subscription Integration](./claude-subscription-integration.md)
 
-This document contains validated CLI behavior, stream-JSON schemas, TypeScript interfaces, and code snippets for the Canon-as-IDE architecture. For vision, architecture decisions, and UX design, see the [design document](./canon-ide-design.md).
+This document contains validated CLI behavior, stream-JSON schemas, TypeScript interfaces, and code snippets for the Aurore architecture. For vision, architecture decisions, and UX design, see the [design document](./aurore-ide-design.md).
 
 ---
 
@@ -75,7 +75,7 @@ claude -p --add-dir <dirs...>              # Additional directories for tool acc
 
 ## Spawning Sessions
 
-Canon's full spawn command for a session:
+Aurore's full spawn command for a session:
 
 ```typescript
 interface SessionConfig {
@@ -100,7 +100,7 @@ function spawnSession(config: SessionConfig): ChildProcess {
     }
   }
 
-  // Replay user messages so Canon can correlate request/response pairs
+  // Replay user messages so Aurore can correlate request/response pairs
   args.push('--replay-user-messages')
 
   // Stream partial messages for fluid UI updates
@@ -188,7 +188,7 @@ Rich metadata emitted once at session start.
 }
 ```
 
-Key fields for Canon:
+Key fields for Aurore:
 - `session_id` — for annotation targeting and session management
 - `model` — display which model is active
 - `tools` — show available capabilities
@@ -214,7 +214,7 @@ Only emitted with `--include-partial-messages`.
 }
 ```
 
-Key fields for Canon:
+Key fields for Aurore:
 - `status` — show rate limit warnings in session status
 - `rateLimitType` — indicates the billing window ("five_hour")
 - `resetsAt` — countdown timer for rate limit recovery
@@ -247,7 +247,7 @@ Key observations:
 - Streaming granularity is **word/phrase level**, not token-by-token. Each delta contains 1-6 words.
 - All stream events carry `session_id` and `parent_tool_use_id` (null for main conversation).
 - Each stream event has its own `uuid`.
-- The **complete `assistant` message is ALSO emitted** between the deltas and the stop events — Canon can either accumulate deltas for live streaming or wait for the complete message.
+- The **complete `assistant` message is ALSO emitted** between the deltas and the stop events — Aurore can either accumulate deltas for live streaming or wait for the complete message.
 
 ### 5. Assistant Message
 
@@ -278,7 +278,7 @@ Content block types:
 - `{"type": "tool_use", "id": "toolu_...", "name": "Edit", "input": {...}}` — tool call
 - `{"type": "thinking", "thinking": "...", "signature": "..."}` — extended thinking (when enabled)
 
-Key fields for Canon:
+Key fields for Aurore:
 - `uuid` — stable annotation target ID
 - `message.content[]` — array of content blocks to render
 - `parent_tool_use_id` — non-null when this is a subagent response
@@ -311,7 +311,7 @@ When Claude uses tools, the tool results appear as user messages:
 }
 ```
 
-Key fields for Canon:
+Key fields for Aurore:
 - `tool_use_result` — structured representation of what the tool did (file creates, edits, etc.)
 - Primary data source for live file change detection (better than filesystem watching)
 
@@ -333,7 +333,7 @@ Key fields for Canon:
 }
 ```
 
-Key fields for Canon:
+Key fields for Aurore:
 - `session_id` — for session resumption with `--resume`
 - `num_turns` — display in session info
 - `is_error` — detect failed sessions
@@ -341,13 +341,13 @@ Key fields for Canon:
 
 ### Common Fields
 
-Every message carries a `uuid` field — this is the stable identifier Canon uses for annotation targeting. The conversation panel renders each message as a distinct, selectable block.
+Every message carries a `uuid` field — this is the stable identifier Aurore uses for annotation targeting. The conversation panel renders each message as a distinct, selectable block.
 
 ---
 
 ## Sending Input (stdin)
 
-With `--input-format stream-json`, Canon pipes prompts to stdin as NDJSON (one JSON object per line).
+With `--input-format stream-json`, Aurore pipes prompts to stdin as NDJSON (one JSON object per line).
 
 ### Validated Input Format
 
@@ -377,7 +377,7 @@ printf '{"type":"user","message":{"role":"user","content":"remember the word pin
 
 This produced: Claude saved "pineapple" (using tools across multiple API turns), then answered "pineapple" from the second message. All within one process invocation, one session. The `result` message reports `num_turns: 3` (counts API roundtrips, not user messages) and a single `result` at the end.
 
-Canon composes each prompt from annotations and writes it to the session's stdin as a single NDJSON line. The process stays alive across turns — no need to respawn per prompt.
+Aurore composes each prompt from annotations and writes it to the session's stdin as a single NDJSON line. The process stays alive across turns — no need to respawn per prompt.
 
 ### Invalid Formats (Tested)
 
@@ -389,7 +389,7 @@ Canon composes each prompt from annotations and writes it to the session's stdin
 
 ### Replay Messages (`--replay-user-messages`)
 
-When enabled, user messages are echoed on stdout with `isReplay: true` flag. The replayed message includes the full user message content, a server-assigned `uuid`, `session_id`, and `parent_tool_use_id`. This lets Canon distinguish echoed user input from tool-result user messages in the stream.
+When enabled, user messages are echoed on stdout with `isReplay: true` flag. The replayed message includes the full user message content, a server-assigned `uuid`, `session_id`, and `parent_tool_use_id`. This lets Aurore distinguish echoed user input from tool-result user messages in the stream.
 
 ---
 
@@ -424,7 +424,7 @@ interface Annotation {
 ### Extended Output Format
 
 ```xml
-<canon-feedback>
+<aurore-feedback>
   <code-annotations>
     <file path="src/auth.ts">
       <annotation type="line" line="42">
@@ -444,7 +444,7 @@ interface Annotation {
 
   <summary actions="2" questions="1" files="1"
            conversation-annotations="2" sessions="1" />
-</canon-feedback>
+</aurore-feedback>
 ```
 
 ---
@@ -473,11 +473,11 @@ All findings from live CLI testing (Claude Code v2.1.47).
 ### Confirmed Non-Issues
 
 12. **Concurrent session limits** — No known hard limits at the CLI level. Max plan rate limits may constrain throughput.
-13. **Nested session guard** — Claude Code checks `CLAUDECODE` env var to prevent nesting. Not a concern for Canon-as-IDE since Canon is not a Claude Code session.
+13. **Nested session guard** — Claude Code checks `CLAUDECODE` env var to prevent nesting. Not a concern for Aurore since Aurore is not a Claude Code session.
 
 ---
 
-## Discovered Flags Useful for Canon
+## Discovered Flags Useful for Aurore
 
 | Flag | Use Case |
 |------|----------|
@@ -494,7 +494,7 @@ All findings from live CLI testing (Claude Code v2.1.47).
 
 ### WebSocket Reconnection
 
-The browser ↔ Canon server WebSocket connection should implement client-side reconnection with exponential backoff. If the connection drops (server restart, network blip), the client reconnects and replays the current session state from the server. Bun's native WebSocket support is mature, but reconnection logic is Canon's responsibility.
+The browser-to-Aurore server WebSocket connection should implement client-side reconnection with exponential backoff. If the connection drops (server restart, network blip), the client reconnects and replays the current session state from the server. Bun's native WebSocket support is mature, but reconnection logic is Aurore's responsibility.
 
 ### Stream-JSON Error Detection
 

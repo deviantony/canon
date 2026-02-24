@@ -1,7 +1,7 @@
 # Research: Programmatic Access to Claude via Subscription
 
 **Date:** 2026-02-19
-**Purpose:** Evaluate how third-party tools integrate with Claude Pro/Max subscriptions instead of the paid API, and identify viable approaches for Canon.
+**Purpose:** Evaluate how third-party tools integrate with Claude Pro/Max subscriptions instead of the paid API, and identify viable approaches for Aurore.
 
 ---
 
@@ -131,7 +131,7 @@ This formalizes what was previously only communicated via GitHub issues and comm
 
 - The Agent SDK + OAuth path is now **explicitly prohibited**, not just discouraged
 - CLI subprocess wrappers that route through subscription OAuth fall under "any other product, tool, or service"
-- The distinction between "using Claude Code" and "building a product that spawns Claude Code" is ambiguous — Canon spawns the real `claude` binary (it *is* Claude Code running), but Canon itself is a separate product
+- The distinction between "using Claude Code" and "building a product that spawns Claude Code" is ambiguous — Aurore spawns the real `claude` binary (it *is* Claude Code running), but Aurore itself is a separate product
 - API key authentication is the only officially sanctioned path for third-party developers
 
 ### Anthropic Consumer Terms of Service -- Section 3.7
@@ -164,13 +164,13 @@ This formalizes what was previously only communicated via GitHub issues and comm
 - Any announced plans to change this (the open GitHub issue has no timeline).
 - A proxy approach that is both subscription-based AND fully policy-compliant.
 
-### Decision for Canon
+### Decision for Aurore
 
 **CLI subprocess** (`claude -p --output-format stream-json`) is the chosen approach.
 
-Canon is a personal development tool, not a published product. It spawns the real `claude` binary, which handles its own OAuth internally — Canon never extracts, stores, or proxies tokens. This is the most practical path for personal use with a Max subscription.
+Aurore is a personal development tool, not a published product. It spawns the real `claude` binary, which handles its own OAuth internally — Aurore never extracts, stores, or proxies tokens. This is the most practical path for personal use with a Max subscription.
 
-If Canon were ever distributed publicly, the auth model would need to be revisited: either requiring API key authentication or securing an agreement with Anthropic. Until then, CLI subprocess is the way forward.
+If Aurore were ever distributed publicly, the auth model would need to be revisited: either requiring API key authentication or securing an agreement with Anthropic. Until then, CLI subprocess is the way forward.
 
 ### Eliminated options
 
@@ -178,6 +178,6 @@ If Canon were ever distributed publicly, the auth model would need to be revisit
 |--------|-------------------|
 | **Agent SDK + OAuth** | Explicitly prohibited by Anthropic's 2026-02-20 legal update |
 | **Require API keys** | Double-billing (pay-per-token on top of Max subscription) for personal use |
-| **Stay CLI-only** (slash command model) | Too limited — Canon-as-IDE requires session management, not one-shot review |
+| **Stay CLI-only** (slash command model) | Too limited — Aurore requires session management, not one-shot review |
 | **Wait for official support** | No timeline, may never happen |
 | **Contact Anthropic** | Not warranted for personal tooling |

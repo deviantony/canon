@@ -1,4 +1,4 @@
-# Canon-as-IDE POC Findings
+# Aurore POC Findings
 
 **Date**: 2026-02-20
 **Branch**: `canon-transformation`
@@ -89,7 +89,7 @@ IS_SANDBOX=1 claude -p --dangerously-skip-permissions "say hello"
 ```
 
 **Implementation**: `session.ts` now spawns with `--dangerously-skip-permissions` in args and `IS_SANDBOX: '1'` in the env. This is appropriate because:
-- Canon IDE is a personal tool running inside a dev container
+- Aurore is a personal tool running inside a dev container
 - The container is already sandboxed from the host
 - No other users are affected
 
@@ -139,7 +139,7 @@ The `IS_SANDBOX=1` approach avoids all of this with zero DX impact.
 
 ## Conclusion
 
-The core plumbing works. Subprocess lifecycle, NDJSON parsing, WebSocket relay, multi-turn prompting, and session resumption are all validated. The architecture is sound for building the full IDE experience on top of.
+The core plumbing works. Subprocess lifecycle, NDJSON parsing, WebSocket relay, multi-turn prompting, and session resumption are all validated. The architecture is sound for building the full Aurore experience on top of.
 
 The permissions blocker has been resolved via `IS_SANDBOX=1` + `--dangerously-skip-permissions` (see Known Issue #1). Claude subprocess can now use all tools without approval prompts.
 

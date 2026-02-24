@@ -1,14 +1,14 @@
-# Canon ADI: Workflow & UX Requirements
+# Aurore: Workflow & UX Requirements
 
 **Date:** 2026-02-23
 **Status:** Discovery / Pre-Design
-**Related:** [Design Document](./canon-ide-design.md) | [Technical Reference](./canon-ide-technical-reference.md) | [POC Findings](./poc-findings.md)
+**Related:** [Design Document](./aurore-ide-design.md) | [Technical Reference](./aurore-ide-technical-reference.md) | [POC Findings](./poc-findings.md)
 
 ---
 
-## Core Thesis: Canon as a Cognitive Debt Shield
+## Core Thesis: Aurore as a Cognitive Debt Shield
 
-Canon is an **Agentic Development Interface (ADI)** — not an IDE. Canon isn't where development happens — it's the interface through which you observe and direct it. Where IDEs are built around *writing* code, Canon is built around *understanding, reviewing, and directing* AI-generated work. It is a **cognitive debt shield** that protects the developer's mental model of their software as AI assistants take over more of the implementation work.
+Aurore is an **Agentic Development Interface (ADI)** — not an IDE. Aurore isn't where development happens — it's the interface through which you observe and direct it. Where IDEs are built around *writing* code, Aurore is built around *understanding, reviewing, and directing* AI-generated work. It is a **cognitive debt shield** that protects the developer's mental model of their software as AI assistants take over more of the implementation work.
 
 ### The Problem
 
@@ -21,9 +21,9 @@ Key framing from the cognitive debt literature:
 - The goal is to "maintain a coherent mental model of what the system is doing and why"
 - Documentation must be "living artifacts that teams actively engage with," not static files
 
-### Canon's Answer
+### Aurore's Answer
 
-Canon provides four first-class surfaces — Documentation, Conversation, Validation, and Code — that together give the developer a complete, always-current view of their project. The annotation-first interaction model means the developer's engagement with each surface is active, not passive: they review, question, correct, and direct.
+Aurore provides four first-class surfaces — Documentation, Conversation, Validation, and Code — that together give the developer a complete, always-current view of their project. The annotation-first interaction model means the developer's engagement with each surface is active, not passive: they review, question, correct, and direct.
 
 ### References
 
@@ -35,7 +35,7 @@ Canon provides four first-class surfaces — Documentation, Conversation, Valida
 
 ## The Four Pillars
 
-Canon ADI organizes around four surfaces, ordered by importance:
+Aurore organizes around four surfaces, ordered by importance:
 
 ### 1. Documentation (Primary)
 
@@ -51,7 +51,7 @@ Canon ADI organizes around four surfaces, ordered by importance:
 - Project metrics (LOC counts via tools like [scc](https://github.com/boyter/scc))
 
 **Key characteristics:**
-- Docs live in the project repo (`docs/`, `.claude/plans/`, etc.) — Canon renders them with rich formatting
+- Docs live in the project repo (`docs/`, `.claude/plans/`, etc.) — Aurore renders them with rich formatting
 - Markdown-first with diagram support (Mermaid via [beautiful-mermaid](https://github.com/lukilabs/beautiful-mermaid) or alternatives)
 - Annotatable — same annotation model as code, but optimized for markdown content
 - Should support the equivalent of explanatory queries:
@@ -95,7 +95,7 @@ Canon ADI organizes around four surfaces, ordered by importance:
 
 **Key characteristics:**
 - Same as current Canon: file tree, CodeMirror viewer, diff view, inline annotations
-- Read-only — Canon never edits code, Claude does
+- Read-only — Aurore never edits code, Claude does
 - Diffs surfaced automatically when Claude edits files (via stream-json `tool_use_result`)
 - Least important in terms of the developer's time allocation — most code interaction happens through Conversation and Documentation
 - Still essential for targeted review, annotation, and when the developer wants to understand specific implementation details
@@ -104,12 +104,12 @@ Canon ADI organizes around four surfaces, ordered by importance:
 
 ## Current Workflow Map
 
-The developer's existing workflow is highly automated via Claude Code commands, agents, and skills. Canon ADI should absorb and enhance this flow, not replace it.
+The developer's existing workflow is highly automated via Claude Code commands, agents, and skills. Aurore should absorb and enhance this flow, not replace it.
 
 ### The Full Development Lifecycle
 
 ```
-Phase                  Current Tool              Canon ADI Surface
+Phase                  Current Tool              Aurore Surface
 ─────────────────────────────────────────────────────────────────────
 
 1. PRD Creation        /dev-prd                  Conversation + Documentation
@@ -137,9 +137,9 @@ Phase                  Current Tool              Canon ADI Surface
    Pattern checks                                 findings for review)
    Simplification
 
-6. Commit & PR         Manual / Claude Code      Canon manages git
+6. Commit & PR         Manual / Claude Code      Aurore manages git
    Git operations      (git commands)            (commit, branch, PR
-   PR creation                                    from within Canon)
+   PR creation                                    from within Aurore)
 
 7. PR Review Response  /dev-code-review          Conversation + Code
    Address feedback    (gh + agents)             (review comments surfaced,
@@ -148,7 +148,7 @@ Phase                  Current Tool              Canon ADI Surface
 
 ### Supporting Workflows
 
-| Workflow | Current Tool | Canon Surface |
+| Workflow | Current Tool | Aurore Surface |
 |----------|-------------|---------------|
 | UI/UX exploration | `/dev-design` (design-mode skill) | Conversation + Documentation |
 | Codebase exploration | `/dev-research` | Conversation + Code |
@@ -176,7 +176,7 @@ Skills (portable expertise, ~120 lines each)
   │  Reference code as source of truth
 ```
 
-**Implication for Canon:** Canon doesn't need to replicate this architecture. Claude Code sessions managed by Canon already have full access to commands, agents, and skills. Canon's job is to surface the session's activity (conversation stream) and provide annotation/review capabilities on top. The agents appear as collapsed nested blocks in the conversation — the developer sees "Agent `backend-dev` spawned... completed" without needing to see the full agent context.
+**Implication for Aurore:** Aurore doesn't need to replicate this architecture. Claude Code sessions managed by Aurore already have full access to commands, agents, and skills. Aurore's job is to surface the session's activity (conversation stream) and provide annotation/review capabilities on top. The agents appear as collapsed nested blocks in the conversation — the developer sees "Agent `backend-dev` spawned... completed" without needing to see the full agent context.
 
 ---
 
@@ -196,11 +196,11 @@ The primary interaction model is annotation: select content on any surface, atta
 
 - **Passive monitoring**: The developer does NOT watch Claude work in real-time. Claude runs, the developer checks back when the turn completes (or is notified).
 - **No mid-stream annotation**: The developer waits for Claude to finish a turn before reviewing and annotating. Mid-stream interruption is not a priority.
-- **Distinct review step**: Moving from "Claude is implementing" to "I'm reviewing" is a conscious transition, not a continuous activity. Canon should make this transition smooth but intentional.
+- **Distinct review step**: Moving from "Claude is implementing" to "I'm reviewing" is a conscious transition, not a continuous activity. Aurore should make this transition smooth but intentional.
 
 ### Mode Fluidity
 
-Canon has **no explicit modes**. The UI does not switch between "PRD Mode," "Implementation Mode," or "Review Mode." The four surfaces are always available. The workflow phase is implicit based on what the developer is doing:
+Aurore has **no explicit modes**. The UI does not switch between "PRD Mode," "Implementation Mode," or "Review Mode." The four surfaces are always available. The workflow phase is implicit based on what the developer is doing:
 
 - Writing a PRD → heavy use of Conversation + Documentation surfaces
 - Reviewing code → heavy use of Code + Conversation surfaces
@@ -213,7 +213,7 @@ The UI may adapt subtly (e.g., auto-navigating to a file Claude just edited, hig
 
 ## Home Screen: Project Dashboard
 
-When Canon launches, it opens to a **project dashboard** — not an empty workspace, not a conversation.
+When Aurore launches, it opens to a **project dashboard** — not an empty workspace, not a conversation.
 
 The dashboard provides orientation:
 - Project name and key metrics (LOC, language breakdown, etc.)
@@ -229,13 +229,13 @@ The dashboard draws from the Documentation pillar — it's essentially a curated
 
 ## Git Integration
 
-Canon manages git operations as part of the workflow:
+Aurore manages git operations as part of the workflow:
 - Create commits (after review/validation)
 - Create and switch branches
 - Create pull requests (via `gh`)
 - Show git status, diffs, and branch info (as current Canon does)
 
-This reduces context-switching — the developer can go from review → commit → PR without leaving Canon.
+This reduces context-switching — the developer can go from review → commit → PR without leaving Aurore.
 
 ---
 
@@ -243,15 +243,15 @@ This reduces context-switching — the developer can go from review → commit �
 
 ### Single Project
 
-Canon is bound to one working directory at a time. Switching projects means restarting Canon pointed at a different directory. No multi-project dashboard.
+Aurore is bound to one working directory at a time. Switching projects means restarting Aurore pointed at a different directory. No multi-project dashboard.
 
 ### Multiple Sessions
 
-Canon can manage 1-3 concurrent Claude Code sessions within the same project. Each session appears as a tab with status indicators. The developer switches between sessions to review their conversation output.
+Aurore can manage 1-3 concurrent Claude Code sessions within the same project. Each session appears as a tab with status indicators. The developer switches between sessions to review their conversation output.
 
 ### Session Lifecycle
 
-Sessions are started explicitly (from the dashboard or via a prompt). They persist until ended or until Canon shuts down. Canon can resume previous Claude Code sessions via `--resume`.
+Sessions are started explicitly (from the dashboard or via a prompt). They persist until ended or until Aurore shuts down. Aurore can resume previous Claude Code sessions via `--resume`.
 
 ---
 
@@ -259,15 +259,15 @@ Sessions are started explicitly (from the dashboard or via a prompt). They persi
 
 ### AskUserQuestion Replacement
 
-The `AskUserQuestion` tool is central to the developer's PRD and planning workflows. In Claude Code's terminal, it renders as structured prompts with options that the developer selects interactively. In Canon ADI, Claude runs as a subprocess — this tool's output arrives as stream-json events but cannot render natively.
+The `AskUserQuestion` tool is central to the developer's PRD and planning workflows. In Claude Code's terminal, it renders as structured prompts with options that the developer selects interactively. In Aurore, Claude runs as a subprocess — this tool's output arrives as stream-json events but cannot render natively.
 
-**Preferred approach:** Instruct Claude (via `--append-system-prompt`) to use a Canon-native structured format for interactive questions. Instead of calling `AskUserQuestion` (which targets the terminal), Claude outputs questions in a protocol that Canon can parse from the assistant message stream and render as rich interactive widgets (radio buttons, checkboxes, text input, option cards). The developer's selections are composed into the next stdin prompt automatically.
+**Preferred approach:** Instruct Claude (via `--append-system-prompt`) to use an Aurore-native structured format for interactive questions. Instead of calling `AskUserQuestion` (which targets the terminal), Claude outputs questions in a protocol that Aurore can parse from the assistant message stream and render as rich interactive widgets (radio buttons, checkboxes, text input, option cards). The developer's selections are composed into the next stdin prompt automatically.
 
 This approach is preferred because:
 - It doesn't depend on intercepting tool calls (which may not be feasible or reliable)
-- It gives Canon full control over the rendering and interaction design
+- It gives Aurore full control over the rendering and interaction design
 - It can evolve independently of Claude Code's internal tool format
-- It naturally extends to Canon-specific interaction patterns (e.g., "annotate to answer" for nuanced responses)
+- It naturally extends to Aurore-specific interaction patterns (e.g., "annotate to answer" for nuanced responses)
 
 **Other approaches to keep in mind:**
 - Questions appearing as annotatable blocks (respond via annotation)
@@ -289,11 +289,11 @@ The Documentation surface needs annotation affordances optimized for markdown co
 
 ### Documentation Automation
 
-How does Canon keep documentation current?
+How does Aurore keep documentation current?
 - A dedicated sub-agent that runs after implementation phases to update affected docs
 - Post-turn hooks that detect when code changes affect documented APIs/schemas
 - A "documentation health" check that surfaces stale docs in the dashboard
-- Manual trigger: developer annotates a doc section as "stale" and Canon tasks Claude with updating it
+- Manual trigger: developer annotates a doc section as "stale" and Aurore tasks Claude with updating it
 
 ### Validation Surface Design
 
@@ -310,7 +310,7 @@ Deferred for initial implementation, but the vision includes:
 
 ### Preserve the Editorial Identity
 
-Canon's "warm minimalism" / editorial design language carries forward:
+Aurore's "warm minimalism" / editorial design language carries forward:
 - Dark theme with gold accents
 - Geist for UI, JetBrains Mono for code
 - Gold gradient corner glow on interactive cards
@@ -329,7 +329,7 @@ The four new surfaces must feel like natural extensions of this design, not bolt
 
 ### Philosophical Constraints
 
-- **Canon never edits code** — Claude does. Canon is a review and orchestration layer.
+- **Aurore never edits code** — Claude does. Aurore is a review and orchestration layer.
 - **Annotation-first** — the primary interaction is spatial, contextual feedback, not chat.
 - **Cognitive debt shield** — every UX decision should be evaluated against: "does this help the developer maintain their mental model?"
 - **Personal tool** — designed for one developer, not teams. No multi-user features.
@@ -354,7 +354,7 @@ The four new surfaces must feel like natural extensions of this design, not bolt
 - Basic project metrics (LOC via scc or similar)
 
 ### Phase 3: Git + Session Management
-- Git operations from Canon (commit, branch, PR)
+- Git operations from Aurore (commit, branch, PR)
 - Multi-session support (2-3 concurrent sessions with tab bar)
 - Session resume/fork capabilities
 

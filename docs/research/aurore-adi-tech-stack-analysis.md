@@ -1,8 +1,8 @@
-# Canon ADI: Tech Stack Analysis
+# Aurore: Tech Stack Analysis
 
 **Date:** 2026-02-23
 **Status:** Research Complete
-**Context:** Canon's transformation from a one-shot code review tool to an Agentic Development Interface (ADI) is essentially a new product. This analysis evaluates whether the current stack is the right foundation or whether a different stack would better serve the ADI's requirements.
+**Context:** Aurore's transformation from a one-shot code review tool to an Agentic Development Interface (ADI) is essentially a new product. This analysis evaluates whether the current stack is the right foundation or whether a different stack would better serve the ADI's requirements.
 
 ---
 
@@ -58,7 +58,7 @@
 
 **Bun** (current): Sub-second iteration, native TypeScript, shared types between backend and frontend via `src/shared/`, native WebSocket in `Bun.serve()`, working POC. The known concerns are binary size (~60 MB, acceptable for personal tool) and potential memory spikes in containers (reported up to 1.2 GB in heavy-load scenarios, but unlikely for a single-user tool).
 
-**Deno** is the closest alternative to Bun: native TypeScript, built-in WebSocket via `Deno.serve()` + `Deno.upgradeWebSocket()`, shared types with the frontend, and `deno compile` for single-binary output (~58 MB on ARM, similar to Bun). Subprocess management via `Deno.Command` is stable and capable — piped stdin/stdout/stderr, `.spawn()` for long-running processes, clean `.kill()`. npm compatibility is broad (React, CodeMirror, Vite all work via `npm:` specifiers). Cross-compilation is supported to all major targets. The trade-offs vs Bun: slower raw HTTP throughput (~22K req/s vs Bun's ~52K, though both are far beyond what a single-user tool needs), `--watch-hmr` has reliability issues (sometimes falls back to full restarts — [#30293](https://github.com/denoland/deno/issues/30293)), and no official dev container feature (community-provided only). The permission system (`--allow-run`, `--allow-read`, etc.) adds friction during development but can be baked into compiled binaries. One notable gap: no public PTY API ([#3994](https://github.com/denoland/deno/issues/3994), open since 2020), which means interactive CLI tools that check `isatty()` behave differently when piped — though for Canon's use case (`claude -p` with stream-json), this is a non-issue since the subprocess is explicitly non-interactive.
+**Deno** is the closest alternative to Bun: native TypeScript, built-in WebSocket via `Deno.serve()` + `Deno.upgradeWebSocket()`, shared types with the frontend, and `deno compile` for single-binary output (~58 MB on ARM, similar to Bun). Subprocess management via `Deno.Command` is stable and capable — piped stdin/stdout/stderr, `.spawn()` for long-running processes, clean `.kill()`. npm compatibility is broad (React, CodeMirror, Vite all work via `npm:` specifiers). Cross-compilation is supported to all major targets. The trade-offs vs Bun: slower raw HTTP throughput (~22K req/s vs Bun's ~52K, though both are far beyond what a single-user tool needs), `--watch-hmr` has reliability issues (sometimes falls back to full restarts — [#30293](https://github.com/denoland/deno/issues/30293)), and no official dev container feature (community-provided only). The permission system (`--allow-run`, `--allow-read`, etc.) adds friction during development but can be baked into compiled binaries. One notable gap: no public PTY API ([#3994](https://github.com/denoland/deno/issues/3994), open since 2020), which means interactive CLI tools that check `isatty()` behave differently when piped — though for Aurore's use case (`claude -p` with stream-json), this is a non-issue since the subprocess is explicitly non-interactive.
 
 **Go** would be the strongest alternative: 6-15 MB binary, 10-30 MB memory, trivial cross-compilation, excellent subprocess management via goroutines. The trade-off is losing shared TypeScript types (would need protobuf or manual type sync for ~10 API endpoints) and slower iteration (~1-8 sec rebuild vs <1 sec).
 
@@ -120,7 +120,7 @@ Ecosystem fit is decisive. The migration cost to any other framework is a full r
 | **Theming** | CSS-based | JSON themes | VS Code themes |
 | **Framework** | Vanilla (works anywhere) | Vanilla | Framework-agnostic |
 
-**CodeMirror 6** remains the right choice for interactive code/diff viewing. Its decoration API is what makes Canon's inline annotation cards possible. Monaco is heavier and harder to customize deeply. Shiki produces beautiful output but has no interactive features.
+**CodeMirror 6** remains the right choice for interactive code/diff viewing. Its decoration API is what makes Aurore's inline annotation cards possible. Monaco is heavier and harder to customize deeply. Shiki produces beautiful output but has no interactive features.
 
 ### Markdown Rendering
 
@@ -166,7 +166,7 @@ Ecosystem fit is decisive. The migration cost to any other framework is a full r
 | **Migration cost** | **None** | Full restyle | Moderate | Moderate |
 | **Editorial aesthetic fit** | **Excellent** | Risk of generic look | Excellent | Good |
 
-**CSS Modules + CSS variables** (current approach) provides zero runtime overhead, total aesthetic control, and no migration cost. Canon's design system is already well-organized with semantic tokens in `globals.css`. Tailwind would require fighting utility abstractions to achieve the subtle radial gradients and layered effects that define Canon's identity.
+**CSS Modules + CSS variables** (current approach) provides zero runtime overhead, total aesthetic control, and no migration cost. Aurore's design system is already well-organized with semantic tokens in `globals.css`. Tailwind would require fighting utility abstractions to achieve the subtle radial gradients and layered effects that define Aurore's identity.
 
 ### Animation
 
