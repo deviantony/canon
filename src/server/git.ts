@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import type { ChangedFile, GitInfo } from '../shared/types.js'
 
 export type { ChangedFile, GitInfo }
@@ -186,6 +186,13 @@ export async function getOriginalContent(
   workingDirectory: string,
   filePath: string,
 ): Promise<{ content: string; error?: string }> {
+  // Prevent directory traversal
+  const fullPath = join(workingDirectory, filePath)
+  const resolvedPath = resolve(fullPath)
+  if (!resolvedPath.startsWith(resolve(workingDirectory))) {
+    return { content: '', error: 'Invalid path' }
+  }
+
   const result = await runGit(workingDirectory, ['show', `HEAD:${filePath}`])
 
   if (result.exitCode !== 0) {
