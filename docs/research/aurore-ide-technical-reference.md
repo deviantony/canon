@@ -2,9 +2,9 @@
 
 **Date:** 2026-02-19
 **Status:** Validated
-**Related:** [Design Document](./aurore-ide-design.md) | [Subscription Integration](./claude-subscription-integration.md)
+**Related:** [Design Document](./aurore-design.md) | [Subscription Integration](./claude-subscription-integration.md)
 
-This document contains validated CLI behavior, stream-JSON schemas, TypeScript interfaces, and code snippets for the Aurore architecture. For vision, architecture decisions, and UX design, see the [design document](./aurore-ide-design.md).
+This document contains validated CLI behavior, stream-JSON schemas, TypeScript interfaces, and code snippets for the Aurore architecture. For vision, architecture decisions, and UX design, see the [Design Document](./aurore-design.md).
 
 ---
 

@@ -1,6 +1,6 @@
-# Canon Design Guide
+# Aurore Design Guide
 
-A minimal reference for Canon's design system.
+A minimal reference for Aurore's design system.
 
 ## Philosophy
 
