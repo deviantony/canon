@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
 import type { FileNode } from '../shared/types.js'
 
@@ -104,6 +104,9 @@ export function getFileTree(workingDirectory: string): FileNode[] {
   return buildTree(workingDirectory, workingDirectory, ignorePatterns)
 }
 
+// 10 MB file size limit to prevent memory exhaustion
+const MAX_FILE_SIZE = 10 * 1024 * 1024
+
 export function getFileContent(
   workingDirectory: string,
   filePath: string,
@@ -120,9 +123,22 @@ export function getFileContent(
       return { content: '', lineCount: 0, error: 'File not found' }
     }
 
-    const stat = statSync(fullPath)
-    if (stat.isDirectory()) {
+    // Use lstat to check properties without following symlinks
+    const lstat = lstatSync(fullPath)
+    if (lstat.isSymbolicLink()) {
+      // Resolve symlink and verify the real target is still within working directory
+      const realPath = realpathSync(fullPath)
+      if (!realPath.startsWith(resolve(workingDirectory))) {
+        return { content: '', lineCount: 0, error: 'Invalid path' }
+      }
+    }
+    if (lstat.isDirectory()) {
       return { content: '', lineCount: 0, error: 'Path is a directory' }
+    }
+
+    // Check file size before reading to prevent memory exhaustion
+    if (lstat.size > MAX_FILE_SIZE) {
+      return { content: '', lineCount: 0, error: 'File too large to preview' }
     }
 
     // Check if file is likely binary
@@ -135,8 +151,8 @@ export function getFileContent(
     const lineCount = contentStr.split('\n').length
 
     return { content: contentStr, lineCount }
-  } catch (err) {
-    return { content: '', lineCount: 0, error: String(err) }
+  } catch {
+    return { content: '', lineCount: 0, error: 'Failed to read file' }
   }
 }
 

@@ -21,6 +21,18 @@ function extractPathParam(url: URL, prefix: string): string {
   return decodeURIComponent(url.pathname.slice(prefix.length))
 }
 
+// Max request body size (1 MB)
+const MAX_BODY_SIZE = 1024 * 1024
+
+function isLocalOrigin(req: Request, port: number): boolean {
+  const origin = req.headers.get('origin')
+  // No Origin header = same-origin request (non-browser or same-origin fetch)
+  if (!origin) return true
+  // Allow localhost variants
+  const allowed = [`http://localhost:${port}`, `http://127.0.0.1:${port}`]
+  return allowed.includes(origin)
+}
+
 export async function startServer(options: ServerOptions): Promise<Server> {
   const { port, workingDirectory, openBrowser } = options
 
@@ -43,10 +55,25 @@ export async function startServer(options: ServerOptions): Promise<Server> {
     async fetch(req) {
       const url = new URL(req.url)
 
+      // Block cross-origin requests to prevent CSRF
+      if (!isLocalOrigin(req, port)) {
+        return new Response('Forbidden', { status: 403 })
+      }
+
       // API: Submit feedback
       if (url.pathname === '/api/feedback' && req.method === 'POST') {
-        const body = (await req.json()) as FeedbackResult
-        resolveDecision(body)
+        // Reject oversized payloads
+        const contentLength = req.headers.get('content-length')
+        if (contentLength && parseInt(contentLength, 10) > MAX_BODY_SIZE) {
+          return Response.json({ error: 'Payload too large' }, { status: 413 })
+        }
+
+        const body = await req.json()
+        // Validate shape matches FeedbackResult
+        if (typeof body?.feedback !== 'string' || typeof body?.cancelled !== 'boolean') {
+          return Response.json({ error: 'Invalid feedback format' }, { status: 400 })
+        }
+        resolveDecision(body as FeedbackResult)
         return Response.json({ ok: true })
       }
 
