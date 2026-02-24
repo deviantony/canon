@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Canon ADI — Telescope</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-gold-50: #e8c49a;
+  --color-gold-100: #d4a574;
+  --color-gold-200: #9c7a58;
+  --color-gold-alpha-15: rgba(212, 165, 116, 0.15);
+  --color-gold-alpha-12: rgba(212, 165, 116, 0.12);
+  --color-gold-alpha-10: rgba(212, 165, 116, 0.1);
+  --color-gold-alpha-08: rgba(212, 165, 116, 0.08);
+  --color-gold-alpha-06: rgba(212, 165, 116, 0.06);
+  --color-gold-alpha-05: rgba(212, 165, 116, 0.05);
+  --color-gold-alpha-04: rgba(212, 165, 116, 0.04);
+  --color-gold-alpha-03: rgba(212, 165, 116, 0.03);
+  --color-gold-alpha-02: rgba(212, 165, 116, 0.02);
+  --color-gold-alpha-25: rgba(212, 165, 116, 0.25);
+  --accent-gold: var(--color-gold-100);
+  --accent-gold-bright: var(--color-gold-50);
+  --accent-gold-muted: var(--color-gold-200);
+  --status-success: #7d9f7d;
+  --status-error: #c47a7a;
+  --status-warning: #c4a87a;
+  --status-info: #7a9fc4;
+  --bg-void: #0c0c0c;
+  --bg-surface: #111111;
+  --bg-elevated: #161616;
+  --bg-hover: #1a1a1a;
+  --bg-active: #1e1e1e;
+  --text-primary: #e8e8e8;
+  --text-secondary: #888888;
+  --text-tertiary: #555555;
+  --text-muted: #3a3a3a;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-emphasis: rgba(255, 255, 255, 0.15);
+  --gradient-card: radial-gradient(ellipse 200px 120px at top left, var(--color-gold-alpha-05) 0%, var(--color-gold-alpha-02) 40%, transparent 70%);
+  --gradient-card-hover: radial-gradient(ellipse 200px 120px at top left, var(--color-gold-alpha-08) 0%, var(--color-gold-alpha-03) 40%, transparent 70%);
+  --font-display: "Geist", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px;
+  --duration-fast: 0.15s; --duration-normal: 0.25s; --duration-slow: 0.3s;
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font-display); background: var(--bg-void); color: var(--text-primary); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow: hidden; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CHROME
+   ═══════════════════════════════════════════════════════════════════════════ */
+.chrome {
+  display: flex; align-items: center; padding: 0 var(--space-5);
+  height: 44px; min-height: 44px;
+  background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle); z-index: 10;
+}
+.logo { font-family: var(--font-display); font-weight: 300; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-gold); white-space: nowrap; }
+.logo-dim { color: var(--accent-gold-muted); }
+.logo-version { font-family: var(--font-mono); font-size: 9px; font-weight: 500; color: var(--text-muted); margin-left: 6px; letter-spacing: 0.02em; }
+
+.pillar-nav { display: flex; gap: 0; margin: 0 auto; }
+.pillar-btn {
+  font-family: var(--font-display); font-size: 13px; font-weight: 400;
+  padding: 10px 18px; border: none; background: transparent;
+  color: var(--text-muted); cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-smooth);
+  position: relative; letter-spacing: 0.01em;
+}
+.pillar-btn:hover { color: var(--text-secondary); }
+.pillar-btn.active { color: var(--text-primary); }
+.pillar-btn.active::after { content: ''; position: absolute; bottom: 0; left: 18px; right: 18px; height: 1px; background: var(--accent-gold); }
+.pillar-hint { font-family: var(--font-mono); font-size: 8px; color: var(--text-muted); opacity: 0.4; margin-left: 3px; vertical-align: super; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GIT BRANCH BADGE + POPOVER
+   ═══════════════════════════════════════════════════════════════════════════ */
+.git-branch {
+  position: relative; display: flex; align-items: center; gap: 5px;
+  padding: 4px 9px;
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  color: var(--text-secondary); background: transparent;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  cursor: pointer; transition: all var(--duration-fast); white-space: nowrap;
+}
+.git-branch:hover { border-color: var(--border-default); color: var(--text-primary); }
+.git-branch.open { border-color: var(--border-emphasis); color: var(--text-primary); background: var(--bg-elevated); }
+.git-branch-icon { font-size: 11px; line-height: 1; }
+.git-ahead { font-size: 9px; color: var(--status-info); font-weight: 600; }
+
+.git-popover {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  width: 220px; background: var(--bg-surface);
+  border: 1px solid var(--border-default); border-radius: var(--radius-lg);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  opacity: 0; pointer-events: none; transform: translateY(-4px);
+  transition: opacity 0.15s, transform 0.15s var(--ease-smooth);
+  z-index: 100; overflow: hidden;
+}
+.git-popover.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.git-pop-header {
+  padding: var(--space-3); border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.git-pop-branch { font-family: var(--font-mono); font-size: 11px; font-weight: 600; color: var(--text-primary); }
+.git-pop-status { font-family: var(--font-mono); font-size: 9px; color: var(--status-info); }
+.git-pop-actions { padding: var(--space-1) 0; }
+.git-pop-action {
+  display: flex; align-items: center; gap: var(--space-2);
+  width: 100%; padding: 7px var(--space-3);
+  font-family: var(--font-display); font-size: 12px;
+  color: var(--text-secondary); background: transparent; border: none;
+  cursor: pointer; transition: all var(--duration-fast); text-align: left;
+}
+.git-pop-action:hover { background: var(--bg-hover); color: var(--text-primary); }
+.git-pop-action-icon { width: 16px; text-align: center; font-size: 12px; flex-shrink: 0; }
+.git-pop-action-detail { margin-left: auto; font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
+.git-pop-sep { height: 1px; background: var(--border-subtle); margin: var(--space-1) 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SESSION DOTS + VITALS (right edge)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.s-dot-wrap { width: 10px; height: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+.s-dot { width: 8px; height: 8px; border-radius: 50%; transition: all var(--duration-normal) var(--ease-smooth); }
+.s-dot.processing { background: var(--accent-gold); animation: dotPulse 2s ease infinite; box-shadow: 0 0 6px rgba(212,165,116,0.3); }
+@keyframes dotPulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+.s-dot.ready { background: var(--status-success); }
+.s-dot.empty { background: transparent; width: 7px; height: 7px; border: 1px dashed var(--text-muted); }
+.s-dot-wrap:hover .s-dot.empty { border-color: var(--accent-gold-muted); }
+.s-dot-wrap.active .s-dot::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 1px solid var(--accent-gold-muted); }
+
+.session-dots-ext {
+  position: fixed; right: 14px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 50;
+}
+.vitals-sep { width: 12px; height: 1px; background: var(--border-subtle); margin: 2px 0; }
+.vitals-gauge { position: relative; width: 26px; height: 26px; }
+.vitals-gauge svg { width: 26px; height: 26px; transform: rotate(-90deg); }
+.vitals-gauge-label {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 8px; font-weight: 600;
+  color: var(--text-muted);
+}
+.vitals-ann {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  color: var(--accent-gold); cursor: pointer;
+  padding: 2px 5px; border-radius: 3px;
+  transition: all var(--duration-fast);
+}
+.vitals-ann:hover { background: var(--color-gold-alpha-08); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SURFACES
+   ═══════════════════════════════════════════════════════════════════════════ */
+.surfaces { flex: 1; overflow: hidden; position: relative; }
+.surface { position: absolute; inset: 0; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity 0.25s var(--ease-smooth); }
+.surface.active { opacity: 1; pointer-events: auto; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PROMPT BAR
+   ═══════════════════════════════════════════════════════════════════════════ */
+.prompt-bar {
+  display: flex; align-items: flex-end;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface); border-top: 1px solid var(--border-subtle);
+}
+.prompt-bar textarea {
+  flex: 1; min-height: 36px; max-height: 120px; padding: 8px 12px;
+  font-family: var(--font-display); font-size: 13px; line-height: 1.5;
+  color: var(--text-primary); background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+  resize: none; outline: none;
+}
+.prompt-bar textarea::placeholder { color: var(--text-muted); }
+.prompt-bar textarea:focus { border-color: var(--accent-gold-muted); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANNOTATION OVERLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ann-overlay-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 900;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.ann-overlay-backdrop.open { opacity: 1; pointer-events: auto; }
+.ann-overlay {
+  position: fixed; top: 15%; left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  width: 540px; max-height: 70vh;
+  background: var(--bg-surface); border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+  z-index: 901; opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s var(--ease-smooth);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.ann-overlay-backdrop.open .ann-overlay { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.ann-overlay-header { display: flex; align-items: center; justify-content: space-between; padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--border-subtle); }
+.ann-overlay-title { font-size: 14px; font-weight: 500; }
+.ann-overlay-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+.ann-overlay-close { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border: none; border-radius: var(--radius-sm); background: transparent; color: var(--text-tertiary); cursor: pointer; font-size: 14px; }
+.ann-overlay-close:hover { background: var(--bg-hover); color: var(--text-secondary); }
+.ann-overlay-list { flex: 1; overflow-y: auto; padding: var(--space-3) var(--space-4); }
+.ann-card { padding: var(--space-3) var(--space-4); background: var(--gradient-card); border: 1px solid var(--color-gold-alpha-15); border-radius: var(--radius-lg); margin-bottom: var(--space-2); transition: border-color var(--duration-fast); }
+.ann-card:hover { border-color: var(--accent-gold-muted); }
+.ann-card-source { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); }
+.ann-card-pillar { font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 1px 6px; border-radius: 3px; }
+.ann-card-pillar.code { color: var(--status-success); background: rgba(125,159,125,0.1); }
+.ann-card-pillar.conv { color: var(--accent-gold); background: var(--color-gold-alpha-08); }
+.ann-card-pillar.docs { color: var(--status-info); background: rgba(122,159,196,0.08); }
+.ann-card-location { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+.ann-card-text { font-size: 12.5px; line-height: 1.5; color: var(--text-primary); }
+.ann-card-actions { display: flex; gap: var(--space-2); margin-top: var(--space-2); justify-content: flex-end; }
+.ann-card-btn { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 8px; border: 1px solid var(--border-subtle); border-radius: 3px; background: transparent; color: var(--text-tertiary); cursor: pointer; }
+.ann-card-btn:hover { border-color: var(--border-default); color: var(--text-secondary); }
+.ann-card-btn.delete:hover { border-color: rgba(196,122,122,0.3); color: var(--status-error); }
+.ann-overlay-compose { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border-subtle); }
+.ann-overlay-compose textarea { width: 100%; min-height: 48px; padding: 8px 12px; font-family: var(--font-display); font-size: 13px; color: var(--text-primary); background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); resize: none; outline: none; line-height: 1.5; }
+.ann-overlay-compose textarea::placeholder { color: var(--text-muted); }
+.ann-overlay-compose textarea:focus { border-color: var(--accent-gold-muted); }
+.ann-overlay-footer { display: flex; align-items: center; justify-content: space-between; padding: var(--space-3) var(--space-5); border-top: 1px solid var(--border-subtle); }
+.ann-overlay-footer-hint { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
+.ann-overlay-footer-hint kbd { padding: 1px 4px; border: 1px solid var(--border-subtle); border-radius: 3px; background: var(--bg-elevated); font-family: var(--font-mono); font-size: 9px; }
+.ann-overlay-actions { display: flex; gap: var(--space-2); }
+.ann-btn { font-family: var(--font-display); font-size: 11px; font-weight: 500; padding: 6px 14px; border-radius: var(--radius-md); cursor: pointer; transition: all var(--duration-fast); }
+.ann-btn-cancel { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); }
+.ann-btn-cancel:hover { border-color: var(--border-default); color: var(--text-primary); }
+.ann-btn-submit { background: var(--accent-gold); border: none; color: var(--bg-void); }
+.ann-btn-submit:hover { background: var(--accent-gold-bright); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COMMAND PALETTE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.cmd-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 950;
+  opacity: 0; pointer-events: none; transition: opacity 0.15s;
+}
+.cmd-backdrop.open { opacity: 1; pointer-events: auto; }
+.cmd-palette {
+  position: fixed; top: 18%; left: 50%; transform: translateX(-50%) translateY(-6px);
+  width: 460px; background: var(--bg-surface);
+  border: 1px solid var(--border-default); border-radius: var(--radius-lg);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+  z-index: 951; opacity: 0; pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s var(--ease-smooth);
+  overflow: hidden;
+}
+.cmd-backdrop.open .cmd-palette { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+.cmd-input-wrap { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); }
+.cmd-input {
+  width: 100%; padding: 6px 0;
+  font-family: var(--font-display); font-size: 14px;
+  color: var(--text-primary); background: transparent;
+  border: none; outline: none;
+}
+.cmd-input::placeholder { color: var(--text-muted); }
+.cmd-group-label {
+  padding: var(--space-2) var(--space-4) var(--space-1);
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);
+}
+.cmd-item {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: 8px var(--space-4); cursor: pointer;
+  transition: background var(--duration-fast);
+}
+.cmd-item:hover, .cmd-item.selected { background: var(--bg-hover); }
+.cmd-item-icon { width: 18px; text-align: center; font-size: 13px; color: var(--text-tertiary); flex-shrink: 0; }
+.cmd-item-label { font-size: 13px; color: var(--text-primary); }
+.cmd-item-hint { margin-left: auto; font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
+.cmd-footer {
+  padding: var(--space-2) var(--space-4); border-top: 1px solid var(--border-subtle);
+  display: flex; align-items: center; gap: var(--space-3);
+  font-family: var(--font-mono); font-size: 9px; color: var(--text-muted);
+}
+.cmd-footer kbd { padding: 1px 4px; border: 1px solid var(--border-subtle); border-radius: 3px; background: var(--bg-elevated); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTENT ATOMS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.msg { padding: var(--space-4); }
+.msg + .msg { border-top: 1px solid var(--border-subtle); }
+.msg-role { font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-2); }
+.msg-role.user { color: var(--accent-gold); }
+.msg-role.assistant { color: var(--text-secondary); }
+.msg-text { font-size: 13px; line-height: 1.65; }
+.msg-text p + p { margin-top: var(--space-3); }
+.tool-call { margin: var(--space-3) 0; padding: var(--space-2) var(--space-3); background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 11px; display: flex; align-items: center; gap: var(--space-2); }
+.tool-name { color: var(--accent-gold); font-weight: 500; }
+.tool-target { color: var(--text-secondary); }
+.tool-status { margin-left: auto; font-size: 10px; padding: 2px 8px; border-radius: var(--radius-sm); }
+.tool-status.success { color: var(--status-success); background: rgba(125,159,125,0.1); }
+.tool-status.running { color: var(--accent-gold); background: var(--color-gold-alpha-08); }
+.subagent-block { margin: var(--space-3) 0; padding: var(--space-2) var(--space-3); border-left: 2px solid var(--color-gold-alpha-25); background: var(--color-gold-alpha-02); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); }
+.subagent-name { color: var(--accent-gold); font-weight: 500; }
+.code-view { font-family: var(--font-mono); font-size: 12px; line-height: 1.65; }
+.code-line { display: flex; padding: 0 var(--space-4); min-height: 21px; }
+.code-line:hover { background: var(--bg-hover); }
+.line-num { width: 40px; flex-shrink: 0; text-align: right; padding-right: var(--space-3); color: var(--text-muted); user-select: none; }
+.line-content { flex: 1; white-space: pre; }
+.diff-add { background: rgba(125,159,125,0.08); }
+.diff-add .line-content { color: var(--status-success); }
+.file-tree { padding: var(--space-2) 0; }
+.tree-item { display: flex; align-items: center; gap: var(--space-2); padding: 3px var(--space-3) 3px var(--space-4); font-size: 12px; color: var(--text-secondary); cursor: pointer; transition: all var(--duration-fast); }
+.tree-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.tree-item.active { background: var(--color-gold-alpha-05); color: var(--accent-gold); }
+.tree-item.nested { padding-left: 32px; }
+.tree-icon { font-size: 10px; color: var(--text-muted); width: 14px; text-align: center; }
+.tree-icon.folder { color: var(--accent-gold-muted); }
+.tree-badge { margin-left: auto; font-family: var(--font-mono); font-size: 9px; font-weight: 600; padding: 1px 5px; border-radius: var(--radius-sm); }
+.tree-badge.modified { color: var(--status-warning); background: rgba(196,168,122,0.1); }
+.tree-badge.added { color: var(--status-success); background: rgba(125,159,125,0.1); }
+.md-content { padding: var(--space-6); max-width: 780px; line-height: 1.7; }
+.md-content h1 { font-size: 22px; font-weight: 600; margin-bottom: var(--space-4); }
+.md-content h2 { font-size: 16px; font-weight: 600; margin-top: var(--space-6); margin-bottom: var(--space-3); }
+.md-content p { margin-bottom: var(--space-3); font-size: 13.5px; }
+.md-code-block { margin: var(--space-4) 0; padding: var(--space-3) var(--space-4); background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; color: var(--text-secondary); white-space: pre; }
+.md-diagram { margin: var(--space-5) 0; padding: var(--space-5) var(--space-4); background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); text-align: center; position: relative; }
+.md-diagram-label { position: absolute; top: var(--space-2); right: var(--space-3); font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
+.diagram-flow { display: flex; align-items: center; justify-content: center; gap: var(--space-4); padding: var(--space-3) 0; }
+.diagram-box { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-default); border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 10.5px; color: var(--text-secondary); background: var(--bg-surface); }
+.diagram-box.highlight { border-color: var(--accent-gold-muted); color: var(--accent-gold); background: var(--color-gold-alpha-05); }
+.validation-group { padding: var(--space-3) var(--space-4); }
+.validation-group + .validation-group { border-top: 1px solid var(--border-subtle); }
+.validation-header { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); margin-bottom: var(--space-2); display: flex; align-items: center; }
+.validation-item { display: flex; align-items: center; gap: var(--space-2); padding: 3px 0; font-size: 12px; }
+.validation-icon { font-size: 11px; width: 16px; text-align: center; }
+.validation-icon.pass { color: var(--status-success); }
+.validation-icon.fail { color: var(--status-error); }
+.validation-icon.warn { color: var(--status-warning); }
+.validation-name { font-family: var(--font-mono); font-size: 11.5px; }
+.validation-detail { color: var(--text-tertiary); margin-left: auto; font-size: 11px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FULLSCREEN / FOCUS MODE (ported from Canon)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Sidebar icon toggle (All files / Git changes) */
+.sidebar-header {
+  display: flex; align-items: center; gap: 2px;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.sidebar-toggle-btn {
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-muted);
+  cursor: pointer; transition: all var(--duration-fast);
+}
+.sidebar-toggle-btn:hover { background: var(--bg-hover); color: var(--text-secondary); }
+.sidebar-toggle-btn.active { color: var(--accent-gold); }
+.sidebar-toggle-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Focus mode button — content area top-right */
+.focus-btn {
+  position: absolute; top: var(--space-3); right: var(--space-4); z-index: 5;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  background: rgba(17, 17, 17, 0.7); backdrop-filter: blur(8px);
+  color: var(--text-muted); cursor: pointer; transition: all var(--duration-fast);
+  opacity: 1;
+}
+.focus-btn:hover { background: var(--bg-hover); border-color: var(--border-default); color: var(--text-secondary); opacity: 1 !important; }
+.focus-btn.dimmed { opacity: 0.3; }
+.focus-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* Fullscreen overlay */
+.fs-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: #000000; display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s var(--ease-smooth), transform 0.25s var(--ease-smooth);
+  transform: scale(0.99);
+}
+.fs-overlay::before {
+  content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 80% 60% at 50% 50%, transparent 0%, transparent 60%, rgba(0,0,0,0.4) 100%);
+}
+.fs-overlay.open { opacity: 1; pointer-events: auto; transform: scale(1); }
+.fs-content { flex: 1; display: flex; flex-direction: column; position: relative; z-index: 2; overflow-y: auto; height: 100%; }
+
+/* Floating pill header */
+.fs-pill {
+  position: absolute; top: var(--space-4); left: 50%; transform: translateX(-50%) translateY(0);
+  z-index: 10; display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(17, 17, 17, 0.85); backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle); border-radius: 20px;
+  animation: fsPillEnter 0.3s ease;
+  transition: opacity 0.4s ease;
+}
+.fs-pill.dimmed { opacity: 0.3; }
+.fs-pill:hover { opacity: 1; }
+@keyframes fsPillEnter { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+.fs-pill-path { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fs-pill-count { font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); }
+.fs-pill-exit {
+  width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border-subtle); border-radius: 50%;
+  background: transparent; color: var(--text-tertiary);
+  cursor: pointer; font-size: 12px; transition: all var(--duration-fast);
+}
+.fs-pill-exit:hover { background: var(--bg-hover); border-color: var(--border-default); color: var(--text-secondary); }
+
+/* ESC hint */
+.fs-esc-hint {
+  position: absolute; bottom: var(--space-6); left: 50%; transform: translateX(-50%);
+  z-index: 10; display: flex; align-items: center; gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(17, 17, 17, 0.7); backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  transition: opacity 0.4s ease;
+}
+.fs-esc-hint kbd {
+  padding: 2px 6px; border: 1px solid var(--border-subtle); border-radius: 3px;
+  background: var(--bg-elevated); font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary);
+}
+.fs-esc-hint span { font-size: 11px; color: var(--text-muted); }
+@keyframes escHintFade { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TELESCOPE
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<div style="display:flex;flex-direction:column;height:100%;">
+  <!-- Chrome — same across all variants -->
+  <div class="chrome">
+    <span class="logo">Canon</span><span class="logo-version">0.1</span>
+
+    <div class="pillar-nav">
+      <button class="pillar-btn" data-surface="docs">Documentation<span class="pillar-hint">&#8984;1</span></button>
+      <button class="pillar-btn active" data-surface="conv">Conversation<span class="pillar-hint">&#8984;2</span></button>
+      <button class="pillar-btn" data-surface="code">Code<span class="pillar-hint">&#8984;3</span></button>
+      <button class="pillar-btn" data-surface="valid">Validation<span class="pillar-hint">&#8984;4</span></button>
+    </div>
+
+    <div class="git-branch" id="gitBranch" onclick="toggleGitPopover(event)">
+      <span class="git-branch-icon">&#9095;</span>
+      <span>main</span>
+      <span class="git-ahead">&#8593;2</span>
+      <div class="git-popover" id="gitPopover">
+        <div class="git-pop-header">
+          <span class="git-pop-branch">main</span>
+          <span class="git-pop-status">2 ahead</span>
+        </div>
+        <div class="git-pop-actions">
+          <button class="git-pop-action"><span class="git-pop-action-icon">&#9679;</span>Commit<span class="git-pop-action-detail">3 files</span></button>
+          <button class="git-pop-action"><span class="git-pop-action-icon">&#8593;</span>Push<span class="git-pop-action-detail">origin/main</span></button>
+          <div class="git-pop-sep"></div>
+          <button class="git-pop-action"><span class="git-pop-action-icon">&#8853;</span>Create Pull Request</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Session dots + vitals (right edge) -->
+  <div class="session-dots-ext">
+    <div class="s-dot-wrap active"><div class="s-dot processing"></div></div>
+    <div class="s-dot-wrap"><div class="s-dot ready"></div></div>
+    <div class="s-dot-wrap"><div class="s-dot empty"></div></div>
+    <div class="vitals-sep"></div>
+    <div class="vitals-gauge">
+      <svg viewBox="0 0 26 26">
+        <circle class="vitals-gauge-track" cx="13" cy="13" r="11"/>
+        <circle class="vitals-gauge-fill" cx="13" cy="13" r="11"
+          stroke="var(--accent-gold)"
+          stroke-dasharray="69.12"
+          stroke-dashoffset="26.27"/>
+      </svg>
+      <span class="vitals-gauge-label">62</span>
+    </div>
+    <div class="vitals-ann" onclick="openAnnOverlay()">3&#9642;</div>
+  </div>
+
+  <!-- Surfaces -->
+  <div class="surfaces">
+    <div class="surface" id="docs">
+      <div style="display:flex;height:100%;">
+        <div style="width:200px;border-right:1px solid var(--border-subtle);overflow-y:auto;">
+          <div class="sidebar-header">
+            <button class="sidebar-toggle-btn active" onclick="toggleSidebarView(this,'all','docs')" title="All files"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg></button>
+            <button class="sidebar-toggle-btn" onclick="toggleSidebarView(this,'changes','docs')" title="Git changes"><svg viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></button>
+          </div>
+          <div class="file-tree" id="docsTree">
+            <div class="tree-item"><span class="tree-icon folder">&#9662;</span>docs/</div>
+            <div class="tree-item nested"><span class="tree-icon folder">&#9662;</span>architecture/</div>
+            <div class="tree-item active" style="padding-left:48px;"><span class="tree-icon">&#9724;</span>overview.md</div>
+            <div class="tree-item" style="padding-left:48px;"><span class="tree-icon">&#9724;</span>api.md</div>
+            <div class="tree-item" style="padding-left:48px;"><span class="tree-icon">&#9724;</span>data-model.md</div>
+            <div class="tree-item nested"><span class="tree-icon folder">&#9662;</span>guides/</div>
+            <div class="tree-item" style="padding-left:48px;"><span class="tree-icon">&#9724;</span>setup.md</div>
+            <div class="tree-item" style="padding-left:48px;"><span class="tree-icon">&#9724;</span>configuration.md</div>
+            <div class="tree-item" style="padding-left:48px;"><span class="tree-icon">&#9724;</span>deployment.md</div>
+            <div class="tree-item nested"><span class="tree-icon folder">&#9656;</span>research/</div>
+            <div class="tree-item nested"><span class="tree-icon">&#9724;</span>README.md</div>
+          </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;position:relative;">
+          <button class="focus-btn" id="docFocusBtn" onclick="enterFullscreen('doc','docs/architecture/overview.md','42 ln')" title="Focus mode"><svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
+          <div class="md-content" style="max-width:780px;margin:0 auto;">
+            <h1>System Architecture</h1>
+            <p>The Industrial App Portal follows a layered architecture with clear separation between the API gateway, business logic services, and data access layer.</p>
+            <h2>High-Level Overview</h2>
+            <div class="md-diagram"><span class="md-diagram-label">Mermaid</span><div class="diagram-flow"><div class="diagram-box">Browser</div><span style="color:var(--text-muted)">&#8594;</span><div class="diagram-box highlight">API Gateway</div><span style="color:var(--text-muted)">&#8594;</span><div class="diagram-box">Services</div><span style="color:var(--text-muted)">&#8594;</span><div class="diagram-box">PostgreSQL</div></div></div>
+            <h2>API Gateway</h2>
+            <p>The gateway handles authentication, rate limiting, and request routing. It validates JWT tokens against the Auth Service before forwarding requests.</p>
+            <h2>Data Model</h2>
+            <div class="md-code-block">type Application struct {
+    ID             uuid.UUID
+    OrganizationID uuid.UUID
+    Name           string
+    Status         AppStatus
+}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="surface active" id="conv">
+      <div style="max-width:860px;margin:0 auto;">
+        <div class="msg"><div class="msg-role user">You</div><div class="msg-text"><p>Implement the WebSocket session manager with rate limiting for reconnection attempts.</p></div></div>
+        <div class="msg"><div class="msg-role assistant">Claude</div><div class="msg-text">
+          <p>I'll build the WebSocket session manager with rate limiting.</p>
+          <div class="tool-call"><span class="tool-name">Read</span><span class="tool-target">src/shared/ide-types.ts</span><span class="tool-status success">Done</span></div>
+          <div class="tool-call"><span class="tool-name">Write</span><span class="tool-target">src/server/ws-manager.ts</span><span class="tool-status success">Done</span></div>
+          <div class="tool-call"><span class="tool-name">Write</span><span class="tool-target">src/server/session-store.ts</span><span class="tool-status success">Done</span></div>
+          <div class="subagent-block"><span class="subagent-name">backend-dev</span> spawned &#8594; reviewed &#8594; completed</div>
+          <p>Done. Sliding window rate limiter, per-IP tracking, graceful lifecycle management.</p>
+          <div class="tool-call"><span class="tool-name">Edit</span><span class="tool-target">src/server/ide-server.ts</span><span class="tool-status running">Running</span></div>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="surface" id="code">
+      <div style="display:flex;height:100%;"><div style="width:220px;border-right:1px solid var(--border-subtle);overflow-y:auto;"><div class="sidebar-header"><button class="sidebar-toggle-btn active" onclick="toggleSidebarView(this,'all','code')" title="All files"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg></button><button class="sidebar-toggle-btn" onclick="toggleSidebarView(this,'changes','code')" title="Git changes"><svg viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/></svg></button></div><div class="file-tree" id="codeTree"><div class="tree-item"><span class="tree-icon folder">&#9662;</span>src/server/</div><div class="tree-item nested active"><span class="tree-icon">&#9724;</span>ws-manager.ts<span class="tree-badge modified">M</span></div><div class="tree-item nested"><span class="tree-icon">&#9724;</span>session-store.ts<span class="tree-badge added">A</span></div><div class="tree-item nested"><span class="tree-icon">&#9724;</span>ide-server.ts</div></div></div><div style="flex:1;overflow-y:auto;position:relative;"><button class="focus-btn" id="codeFocusBtn" onclick="enterFullscreen('code','src/server/ws-manager.ts','10 ln')" title="Focus mode"><svg viewBox="0 0 24 24"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button><div class="code-view" style="padding-top:var(--space-2);"><div class="code-line"><span class="line-num">1</span><span class="line-content" style="color:var(--text-tertiary)">import type { ServerWebSocket } from 'bun';</span></div><div class="code-line"><span class="line-num">2</span><span class="line-content" style="color:var(--text-tertiary)">import { SessionState } from '../shared/ide-types';</span></div><div class="code-line"><span class="line-num">3</span><span class="line-content"></span></div><div class="code-line diff-add"><span class="line-num">4</span><span class="line-content">const RATE_WINDOW = 60_000;</span></div><div class="code-line diff-add"><span class="line-num">5</span><span class="line-content">const MAX_RECONNECTS = 10;</span></div><div class="code-line"><span class="line-num">6</span><span class="line-content"></span></div><div class="code-line"><span class="line-num">7</span><span class="line-content" style="color:var(--accent-gold)">export class WsManager {</span></div><div class="code-line"><span class="line-num">8</span><span class="line-content">  private clients = new Set&lt;ServerWebSocket&gt;();</span></div><div class="code-line"><span class="line-num">9</span><span class="line-content">  private state: SessionState;</span></div><div class="code-line diff-add"><span class="line-num">10</span><span class="line-content">  private rateLimits = new Map&lt;string, number[]&gt;();</span></div></div></div></div>
+    </div>
+
+    <div class="surface" id="valid">
+      <div style="max-width:680px;margin:0 auto;padding-top:var(--space-4);"><div class="validation-group"><div class="validation-header">Tests<span style="font-family:var(--font-mono);font-size:10px;color:var(--status-success);margin-left:auto;">3/4 passing</span></div><div class="validation-item"><span class="validation-icon pass">&#10003;</span><span class="validation-name">broadcast</span><span class="validation-detail">12ms</span></div><div class="validation-item"><span class="validation-icon pass">&#10003;</span><span class="validation-name">connect</span><span class="validation-detail">8ms</span></div><div class="validation-item"><span class="validation-icon pass">&#10003;</span><span class="validation-name">disconnect</span><span class="validation-detail">5ms</span></div><div class="validation-item"><span class="validation-icon fail">&#10007;</span><span class="validation-name">rate-limit</span><span class="validation-detail" style="color:var(--status-error)">Expected 429</span></div></div><div class="validation-group"><div class="validation-header">Type Check<span style="font-family:var(--font-mono);font-size:10px;color:var(--status-success);margin-left:auto;">Clean</span></div><div class="validation-item"><span class="validation-icon pass">&#10003;</span><span class="validation-name">tsc --noEmit</span><span class="validation-detail">0 errors</span></div></div><div class="validation-group"><div class="validation-header">Lint<span style="font-family:var(--font-mono);font-size:10px;color:var(--status-warning);margin-left:auto;">2 warnings</span></div><div class="validation-item"><span class="validation-icon warn">&#9888;</span><span class="validation-name">ws-manager.ts:10</span><span class="validation-detail">Prefer readonly</span></div></div></div>
+    </div>
+  </div>
+
+  <!-- Prompt bar -->
+  <div class="prompt-bar">
+    <textarea rows="1" placeholder="Type a message..."></textarea>
+  </div>
+</div>
+
+<!-- Annotation overlay -->
+<div class="ann-overlay-backdrop" id="annOverlay" onclick="closeAnnOverlay()">
+  <div class="ann-overlay" onclick="event.stopPropagation()">
+    <div class="ann-overlay-header">
+      <span class="ann-overlay-title">Review Annotations</span>
+      <span class="ann-overlay-count">3 across 3 surfaces</span>
+      <button class="ann-overlay-close" onclick="closeAnnOverlay()">&#10005;</button>
+    </div>
+    <div class="ann-overlay-list">
+      <div class="ann-card">
+        <div class="ann-card-source"><span class="ann-card-pillar code">Code</span><span class="ann-card-location">ws-manager.ts:10</span></div>
+        <div class="ann-card-text">Consider using a WeakRef or cleanup interval for the rateLimits map to prevent memory leaks from old IPs.</div>
+        <div class="ann-card-actions"><button class="ann-card-btn">Edit</button><button class="ann-card-btn delete">Remove</button></div>
+      </div>
+      <div class="ann-card">
+        <div class="ann-card-source"><span class="ann-card-pillar conv">Conv</span><span class="ann-card-location">Claude's response, &#182;3</span></div>
+        <div class="ann-card-text">Does the "graceful client removal" handle the case where the subprocess exits while clients are still connected?</div>
+        <div class="ann-card-actions"><button class="ann-card-btn">Edit</button><button class="ann-card-btn delete">Remove</button></div>
+      </div>
+      <div class="ann-card">
+        <div class="ann-card-source"><span class="ann-card-pillar docs">Docs</span><span class="ann-card-location">architecture.md &#167; Real-time</span></div>
+        <div class="ann-card-text">The diagram should show the WebSocket upgrade flow, not just the connection.</div>
+        <div class="ann-card-actions"><button class="ann-card-btn">Edit</button><button class="ann-card-btn delete">Remove</button></div>
+      </div>
+    </div>
+    <div class="ann-overlay-compose">
+      <textarea placeholder="Add context or instructions to accompany your annotations..."></textarea>
+    </div>
+    <div class="ann-overlay-footer">
+      <span class="ann-overlay-footer-hint"><kbd>Esc</kbd> close</span>
+      <div class="ann-overlay-actions">
+        <button class="ann-btn ann-btn-cancel" onclick="closeAnnOverlay()">Cancel</button>
+        <button class="ann-btn ann-btn-submit">Submit All</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Command palette -->
+<div class="cmd-backdrop" id="cmdPalette" onclick="closeCmdPalette()">
+  <div class="cmd-palette" onclick="event.stopPropagation()">
+    <div class="cmd-input-wrap">
+      <input class="cmd-input" id="cmdInput" type="text" placeholder="Type a command..." autofocus>
+    </div>
+    <div id="cmdList">
+      <div class="cmd-group-label">Git</div>
+      <div class="cmd-item selected"><span class="cmd-item-icon">&#9679;</span><span class="cmd-item-label">Commit</span><span class="cmd-item-hint">3 staged</span></div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#8593;</span><span class="cmd-item-label">Push to origin</span><span class="cmd-item-hint">2 ahead</span></div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#8853;</span><span class="cmd-item-label">Create Pull Request</span></div>
+      <div class="cmd-group-label">Navigate</div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#9633;</span><span class="cmd-item-label">Documentation</span><span class="cmd-item-hint">&#8984;1</span></div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#9633;</span><span class="cmd-item-label">Conversation</span><span class="cmd-item-hint">&#8984;2</span></div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#9633;</span><span class="cmd-item-label">Code</span><span class="cmd-item-hint">&#8984;3</span></div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#9633;</span><span class="cmd-item-label">Validation</span><span class="cmd-item-hint">&#8984;4</span></div>
+      <div class="cmd-group-label">Session</div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#43;</span><span class="cmd-item-label">New Session</span></div>
+      <div class="cmd-item"><span class="cmd-item-icon">&#9632;</span><span class="cmd-item-label">Stop Session</span></div>
+    </div>
+    <div class="cmd-footer"><kbd>&#8593;&#8595;</kbd> navigate <kbd>&#9166;</kbd> select <kbd>Esc</kbd> close</div>
+  </div>
+</div>
+
+<!-- Fullscreen overlay -->
+<div class="fs-overlay" id="fsOverlay">
+  <div class="fs-pill" id="fsPill">
+    <span class="fs-pill-path" id="fsPillPath">overview.md</span>
+    <span class="fs-pill-count" id="fsPillCount">42 ln</span>
+    <button class="fs-pill-exit" onclick="exitFullscreen()" title="Exit focus mode (Esc)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg></button>
+  </div>
+  <div class="fs-content" id="fsContent"></div>
+  <div class="fs-esc-hint" id="fsEscHint"><kbd>ESC</kbd><span>to exit</span></div>
+</div>
+
+<script>
+// Pillar switching
+document.querySelectorAll('.pillar-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pillar-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.surface').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.surface)?.classList.add('active');
+    // Reset focus buttons to full opacity
+    resetFocusBtnDim('docFocusBtn');
+    resetFocusBtnDim('codeFocusBtn');
+  });
+});
+
+// Annotation overlay
+function openAnnOverlay() { document.getElementById('annOverlay').classList.add('open'); }
+function closeAnnOverlay() { document.getElementById('annOverlay').classList.remove('open'); }
+
+// Git popover
+function toggleGitPopover(e) {
+  e.stopPropagation();
+  const branch = document.getElementById('gitBranch');
+  const popover = document.getElementById('gitPopover');
+  popover.classList.toggle('open');
+  branch.classList.toggle('open');
+  if (popover.classList.contains('open')) {
+    setTimeout(() => document.addEventListener('click', closeGitOnClickOutside, { once: true }), 0);
+  }
+}
+function closeGitOnClickOutside(e) {
+  const branch = document.getElementById('gitBranch');
+  if (!branch.contains(e.target)) {
+    document.getElementById('gitPopover').classList.remove('open');
+    branch.classList.remove('open');
+  }
+}
+function closeGitPopover() {
+  document.getElementById('gitPopover').classList.remove('open');
+  document.getElementById('gitBranch').classList.remove('open');
+}
+
+// Command palette
+function openCmdPalette() {
+  closeGitPopover();
+  closeAnnOverlay();
+  document.getElementById('cmdPalette').classList.add('open');
+  setTimeout(() => document.getElementById('cmdInput').focus(), 50);
+}
+function closeCmdPalette() {
+  document.getElementById('cmdPalette').classList.remove('open');
+  document.getElementById('cmdInput').value = '';
+}
+
+// Fullscreen / focus mode (Canon-style)
+let fsDimTimeout;
+let fsMouseHandler;
+
+function enterFullscreen(type, path, lineCount) {
+  const overlay = document.getElementById('fsOverlay');
+  const content = document.getElementById('fsContent');
+  const pill = document.getElementById('fsPill');
+  const hint = document.getElementById('fsEscHint');
+
+  document.getElementById('fsPillPath').textContent = path;
+  document.getElementById('fsPillCount').textContent = lineCount;
+
+  // Clone content based on type
+  if (type === 'doc') {
+    const docContent = document.querySelector('#docs .md-content');
+    if (docContent) {
+      content.innerHTML = '';
+      const clone = docContent.cloneNode(true);
+      clone.style.maxWidth = '860px';
+      clone.style.margin = '0 auto';
+      content.appendChild(clone);
+    }
+  } else if (type === 'code') {
+    const codePanel = document.querySelector('#code .code-view');
+    if (codePanel) {
+      content.innerHTML = '';
+      const clone = codePanel.cloneNode(true);
+      clone.style.width = '100%';
+      content.appendChild(clone);
+    }
+  }
+
+  overlay.classList.add('open');
+
+  // Reset pill + hint
+  pill.classList.remove('dimmed');
+  pill.style.animation = 'none';
+  pill.offsetHeight; // reflow
+  pill.style.animation = '';
+  hint.style.opacity = '1';
+
+  // Auto-dim pill + hide ESC hint after 2s
+  clearTimeout(fsDimTimeout);
+  fsDimTimeout = setTimeout(() => { pill.classList.add('dimmed'); hint.style.opacity = '0'; }, 2000);
+
+  // Mouse hover zone — top 80px shows pill + hint, moving away hides again
+  fsMouseHandler = (e) => {
+    if (e.clientY < 80) {
+      pill.classList.remove('dimmed');
+      hint.style.opacity = '1';
+      clearTimeout(fsDimTimeout);
+      fsDimTimeout = setTimeout(() => { pill.classList.add('dimmed'); hint.style.opacity = '0'; }, 2000);
+    }
+  };
+  document.addEventListener('mousemove', fsMouseHandler);
+}
+
+function exitFullscreen() {
+  document.getElementById('fsOverlay').classList.remove('open');
+  clearTimeout(fsDimTimeout);
+  if (fsMouseHandler) document.removeEventListener('mousemove', fsMouseHandler);
+}
+
+// Sidebar toggle (All files / Git changes)
+function toggleSidebarView(btn, view, surface) {
+  const header = btn.parentElement;
+  header.querySelectorAll('.sidebar-toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const treeId = surface === 'docs' ? 'docsTree' : 'codeTree';
+  const tree = document.getElementById(treeId);
+  if (view === 'changes') {
+    tree.querySelectorAll('.tree-item').forEach(item => {
+      const badge = item.querySelector('.tree-badge');
+      const isFolder = item.querySelector('.tree-icon.folder') || item.querySelector('.tree-icon')?.textContent === '\u25BE';
+      const hasChangedChildren = item.nextElementSibling && !isFolder ? false : true;
+      if (!badge && !isFolder) {
+        item.style.display = 'none';
+      } else {
+        item.style.display = '';
+      }
+    });
+  } else {
+    tree.querySelectorAll('.tree-item').forEach(item => item.style.display = '');
+  }
+}
+
+// Focus button auto-dim (same behavior as pill)
+let focusDimTimeouts = {};
+function initFocusBtnDim(id) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  const dim = () => { focusDimTimeouts[id] = setTimeout(() => btn.classList.add('dimmed'), 2000); };
+  btn.addEventListener('mouseenter', () => { clearTimeout(focusDimTimeouts[id]); btn.classList.remove('dimmed'); });
+  btn.addEventListener('mouseleave', dim);
+  dim();
+}
+function resetFocusBtnDim(id) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  clearTimeout(focusDimTimeouts[id]);
+  btn.classList.remove('dimmed');
+  focusDimTimeouts[id] = setTimeout(() => btn.classList.add('dimmed'), 2000);
+}
+initFocusBtnDim('docFocusBtn');
+initFocusBtnDim('codeFocusBtn');
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  const inInput = e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT';
+  const cmdOpen = document.getElementById('cmdPalette').classList.contains('open');
+
+  if (e.key === 'Escape') {
+    if (document.getElementById('fsOverlay').classList.contains('open')) { exitFullscreen(); return; }
+    if (cmdOpen) { closeCmdPalette(); return; }
+    closeAnnOverlay();
+    closeGitPopover();
+    return;
+  }
+
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    cmdOpen ? closeCmdPalette() : openCmdPalette();
+    return;
+  }
+
+  if (inInput) return;
+
+  const num = parseInt(e.key);
+  if ((e.metaKey || e.ctrlKey) && num >= 1 && num <= 4) {
+    e.preventDefault();
+    document.querySelectorAll('.pillar-btn')[num - 1]?.click();
+    return;
+  }
+
+});
+</script>
+</body>
+</html>
