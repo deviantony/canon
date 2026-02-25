@@ -1,7 +1,7 @@
 # Aurore: Design Document
 
 **Date:** 2026-02-24
-**Status:** Authoritative (merges aurore-ide-design.md 2/19 and aurore-ide-workflows.md 2/23)
+**Status:** Authoritative
 **Related:** [Technical Reference](./aurore-ide-technical-reference.md) | [Subscription Integration](./claude-subscription-integration.md) | [POC Findings](./poc-findings.md)
 
 ---
@@ -116,37 +116,30 @@ Aurore organizes around four surfaces, ordered by importance:
 ### High-Level Overview
 
 ```
-┌──────────────────────────────────────────────────────┐
-│                   Browser (Aurore UI)                  │
-│                                                       │
-│  ┌──────────┐ ┌──────────────┐ ┌──────────────────┐  │
-│  │ File Tree│ │ Code / Diff  │ │  Conversation     │  │
-│  │          │ │ Viewer       │ │  Panel            │  │
-│  │          │ │ (CodeMirror) │ │  (annotatable)    │  │
-│  │          │ │              │ │                    │  │
-│  │          │ │ [existing]   │ │  [new]            │  │
-│  └──────────┘ └──────────────┘ └──────────────────┘  │
-│  ┌────────────────────────────────────────────────┐   │
-│  │  Session Bar: [Session 1 ●] [Session 2 ○]     │   │
-│  └────────────────────────────────────────────────┘   │
-│                      WebSocket                        │
-└──────────────────────┬───────────────────────────────┘
+┌─────────────────────────────────────────────────┐
+│               Browser (Aurore UI)                │
+│                                                  │
+│  See docs/explorations/aurore-ui-prototype.html  │
+│  for the validated UI layout and interactions.   │
+│                                                  │
+│                   WebSocket                      │
+└──────────────────────┬───────────────────────────┘
                        │
-┌──────────────────────▼───────────────────────────────┐
-│                Aurore Server (Bun)                     │
-│                                                       │
-│  ┌────────────────────────────────────────────────┐  │
-│  │             Session Manager                     │  │
-│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐    │  │
-│  │  │ claude -p │ │ claude -p │ │ claude -p │    │  │
-│  │  │ Session 1 │ │ Session 2 │ │ Session 3 │    │  │
-│  │  │ (subprocess)│(subprocess)│(subprocess) │    │  │
-│  │  └───────────┘ └───────────┘ └───────────┘    │  │
-│  └────────────────────────────────────────────────┘  │
-│  ┌────────────────┐  ┌───────────────────────────┐   │
-│  │ File Watcher   │  │ Git / Files (existing)    │   │
-│  └────────────────┘  └───────────────────────────┘   │
-└──────────────────────────────────────────────────────┘
+┌──────────────────────▼───────────────────────────┐
+│              Aurore Server (Bun)                  │
+│                                                   │
+│  ┌─────────────────────────────────────────────┐ │
+│  │           Session Manager                    │ │
+│  │  ┌───────────┐ ┌───────────┐ ┌───────────┐ │ │
+│  │  │ claude -p │ │ claude -p │ │ claude -p │ │ │
+│  │  │ Session 1 │ │ Session 2 │ │ Session 3 │ │ │
+│  │  │(subprocess)│(subprocess)│(subprocess) │ │ │
+│  │  └───────────┘ └───────────┘ └───────────┘ │ │
+│  └─────────────────────────────────────────────┘ │
+│  ┌──────────────┐  ┌─────────────────────────┐   │
+│  │ File Watcher │  │ Git / Files (existing)  │   │
+│  └──────────────┘  └─────────────────────────┘   │
+└───────────────────────────────────────────────────┘
 ```
 
 ### Key Architectural Decisions
@@ -313,11 +306,12 @@ Skills (portable expertise, ~120 lines each)
 
 Today, annotations target code files only: a file path, line range, comment, and kind (action or question).
 
-The proposed model introduces a **target union** with three surfaces:
+The proposed model introduces a **target union** — each annotation anchors to one of four content types:
 
-- **Code** — same as today: file path + line range
-- **Conversation** — targets a specific message within a session, optionally selecting a text range within the message body
-- **Tool call** — targets a specific tool invocation by its ID
+- **Code** — file path + line range (same as today)
+- **Conversation** — a specific message within a session, optionally selecting a text range within the message body
+- **Tool call** — a specific tool invocation by its ID
+- **Document** — a section, text selection, or block within a markdown document
 
 When submitted, conversation annotations get composed into the next prompt sent to the Claude Code session. The composition translates spatial annotations into natural language with context:
 
@@ -329,61 +323,11 @@ See [Technical Reference: TypeScript Interfaces](./aurore-ide-technical-referenc
 
 ## UI Layout
 
-### Default Layout (Single Session)
+The UI layout, panel arrangement, session management, and home screen design are validated in the interactive prototype:
 
-```
-┌────────────────────────────────────────────────────────────┐
-│  Aurore                             [Submit] [Cancel]  [⌘K]│
-├──────────┬─────────────────────┬───────────────────────────┤
-│          │                     │                           │
-│  File    │  Code / Diff        │  Conversation             │
-│  Tree    │  Viewer             │  Panel                    │
-│          │                     │                           │
-│  [Changes│  (existing          │  ┌─── assistant ────────┐ │
-│   / All] │   CodeMirror)       │  │ "I'll fix the bug   │ │
-│          │                     │  │  in auth.ts..."      │ │
-│          │                     │  └──────────────────────┘ │
-│          │                     │  ┌─── tool_use ─────────┐ │
-│          │                     │  │ Edit: src/auth.ts    │ │
-│          │                     │  │ lines 40-45          │ │
-│          │                     │  └──────────────────────┘ │
-│          │                     │  ┌─── tool_result ──────┐ │
-│          │                     │  │ ✓ Applied            │ │
-│          │                     │  └──────────────────────┘ │
-│          │                     │                           │
-│          │                     │  [Annotation input...]    │
-│          │                     │                           │
-├──────────┴─────────────────────┴───────────────────────────┤
-│  [Session 1 ●]  [Session 2 ○]  [+ New Session]            │
-└────────────────────────────────────────────────────────────┘
-```
+**Reference:** `docs/explorations/aurore-ui-prototype.html`
 
-### Flexible Panels
-
-The three-panel layout (file tree, code, conversation) should be resizable and rearrangeable. Users might want:
-- Conversation full-width (no code panel) when reviewing Claude's reasoning
-- Code full-width (no conversation) when doing traditional code review
-- Side-by-side when annotating both simultaneously
-
-The existing `LayoutContext` already manages sidebar width and visibility — extend it for the conversation panel.
-
-### Home Screen: Project Dashboard
-
-When Aurore launches, it opens to a **project dashboard** — not an empty workspace, not a conversation.
-
-The dashboard provides orientation:
-- Project name and key metrics (LOC, language breakdown, etc.)
-- Architecture summary (rendered from docs)
-- Active PRDs/plans and their status
-- Recent changes (git log summary)
-- Documentation health indicators (staleness, coverage)
-- Prominent "Start Session" action
-
-The dashboard draws from the Documentation pillar — it's essentially a curated view of the project's documentation surface, designed to give the developer a quick "where am I" before starting work.
-
-### Validated by UI Prototype
-
-See `docs/explorations/aurore-ui-prototype.html` for the interactive HTML prototype that validates the layout, session management, and panel arrangement concepts.
+The prototype defines the authoritative layout including flexible panels (resizable, rearrangeable), session bar with status dots, and project dashboard home screen. Implementation should match the prototype's visual design and interaction patterns.
 
 ---
 
@@ -391,25 +335,22 @@ See `docs/explorations/aurore-ui-prototype.html` for the interactive HTML protot
 
 ### Tier 1: Core (Minimum Viable)
 
-**Conversation Panel**
+**Conversation Surface**
 Render Claude Code session output as structured, scrollable blocks. Each assistant message, tool call, and tool result is a distinct selectable region. Users can highlight text within a message and attach annotations, just like selecting lines in the code viewer.
 
-**Annotation Across Both Panels**
-Single annotation system spans code files and conversation output. The summary popover shows all annotations regardless of target type. Submit composes everything into a coherent prompt.
+**Unified Annotation System**
+Single annotation system spans all four surfaces — Code, Conversation, Documentation, and Validation findings. The summary popover shows all annotations regardless of content type. Submit composes everything into a coherent prompt.
 
 **Session Lifecycle**
 Start a new Claude Code session from Aurore. Send prompts (composed from annotations or typed directly). See streaming output. Session persists until explicitly ended.
 
-**Live File Change Detection**
-When Claude Code edits a file, Aurore surfaces the diff in the code panel immediately — no manual refresh needed. The stream-json output includes structured tool results with file paths and diffs, which is a better data source than filesystem watching.
+**Code Surface**
+Existing Canon code/diff viewer integrated into the persistent Aurore layout. Live file change detection — when Claude edits a file, the diff surfaces immediately via stream-json `tool_use_result` data (better than filesystem watching).
 
 ### Tier 2: Multi-Session
 
 **Session Management**
 Run 1-3 concurrent Claude Code sessions. Tab bar shows active sessions with status indicators. Switch between sessions to view their conversation and annotate their output.
-
-**Cross-Session Awareness**
-When multiple sessions touch the same file, Aurore surfaces the conflict. Annotations can reference what another session did: "Session 1 already refactored this — coordinate."
 
 ### Tier 3: Advanced Interaction
 
@@ -488,7 +429,7 @@ The transition to Aurore replaces the current one-shot model entirely:
 
 ### What Stays
 
-- **All existing UI components** — FileTree, CodeViewer, DiffViewer, annotation system, sidebar, etc.
+- **All existing UI components** — FileTree, CodeViewer, DiffViewer, annotation system, sidebar, etc. Components present in the UI prototype should match its styling; components not in the prototype keep their Canon design.
 - **Git operations** (`src/server/git.ts`) — still needed for diff/status
 - **File operations** (`src/server/files.ts`) — still needed for file tree
 - **Design system** — CSS variables, dark theme, warm minimalism aesthetic
@@ -500,7 +441,7 @@ The transition to Aurore replaces the current one-shot model entirely:
 
 | Port | Use |
 |------|-----|
-| **9847** | Aurore server (HTTP + WebSocket). Configurable via `AURORE_PORT` env var. Same as Canon's `CANON_PORT` for backward compatibility. |
+| **9847** | Aurore server (HTTP + WebSocket). Configurable via `AURORE_PORT` env var. |
 | **6443** | Vite dev server (HMR). Dev-only, not used in production binary. |
 
 ---
@@ -597,26 +538,37 @@ hybrid approach (widgets for structured, annotation for nuanced).
 **Status:** Unresolved — needs design exploration
 **Blocks:** Phase 1 (Conversation surface)
 **Summary:** The data model exists (target union with conversation/tool-call types)
-but the visual design is undefined. How does text selection work in flowing conversation
-text? How are tool call annotations rendered differently from text annotations?
-What does the annotation popover look like anchored to a conversation block vs a code line?
-**Design space:** Selection mechanics, popover positioning, tool-call-specific affordances,
-visual distinction between code and conversation annotations.
+but the visual design is undefined. The annotation experience should be consistent
+with code annotation — same visual language, same interaction patterns (select, annotate,
+review). How does text selection work in flowing conversation text? How are tool call
+annotations rendered differently? What does the annotation popover look like anchored
+to a conversation block vs a code line?
+**Design space:** Adapting the code annotation design (gutter markers, inline cards,
+popover) to conversation content. Selection mechanics, popover positioning,
+tool-call-specific affordances. Goal: a developer who knows code annotation should
+instantly understand conversation annotation.
 
 ### 3. Document Annotation UX
 **Status:** Unresolved — needs design exploration
 **Blocks:** Phase 2 (Documentation surface)
 **Summary:** Markdown content differs from code — flowing text, headings, lists, diagrams.
-Code annotation uses gutter-based line targeting; docs need different anchoring.
-**Design space:** Heading-level annotation, text selection annotation, block-level
-annotation (diagrams, tables, code blocks), margin notes alongside rendered markdown.
+But from an annotation perspective, a code file and a document file are both documents.
+The annotation experience should be as similar as possible: same visual language,
+same interaction flow (select content, attach feedback, review in summary).
+Differences should be in anchoring mechanics, not in the annotation UX itself.
+**Design space:** Adapting code annotation patterns to markdown — heading-level
+anchoring, text selection, block-level annotation (diagrams, tables, code blocks
+within markdown), margin notes. Goal: consistent annotation experience across all
+content types.
 
 ### 4. Notification / Background Activity
 **Status:** Unresolved — needs design exploration
 **Blocks:** Phase 1 (passive monitoring workflow)
-**Summary:** The workflow doc specifies passive monitoring — developers don't watch
-Claude work in real-time, they check back when turns complete. But no notification
-mechanism is designed. The UI prototype has session dots (pulsing = processing,
-solid = ready) but behavior beyond visual state isn't specified.
-**Design space:** Browser notifications, sound cues, session dot state transitions,
-badge/favicon updates, "your turn" indicator, error/rate-limit alerts.
+**Summary:** Passive monitoring means developers don't watch Claude work in real-time —
+they check back when turns complete. The primary status mechanism is **session dots**
+from the UI prototype (pulsing = processing, solid = ready). What needs design is
+extending beyond visual dot state: how does the developer know to come back when
+they've switched to another app or tab?
+**Design space:** Browser notifications, sound cues, badge/favicon updates,
+"your turn" indicator, error/rate-limit alerts. Session dots remain the core
+in-app indicator; these extensions cover the out-of-focus case.
