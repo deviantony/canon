@@ -1,69 +1,77 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 140" width="600" height="140">
   <defs>
-    <!-- Subtle noise texture -->
-    <filter id="grain">
-      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" result="noise"/>
-      <feColorMatrix type="saturate" values="0"/>
-      <feBlend in="SourceGraphic" in2="noise" mode="multiply"/>
-    </filter>
-
-    <!-- Elegant gradient for accent -->
-    <linearGradient id="accentLine" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#1a1a1a" stop-opacity="0"/>
-      <stop offset="15%" stop-color="#1a1a1a" stop-opacity="1"/>
-      <stop offset="85%" stop-color="#1a1a1a" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#1a1a1a" stop-opacity="0"/>
+    <linearGradient id="sunGrad" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#7a5d42"/>
+      <stop offset="30%" stop-color="#9c7a58"/>
+      <stop offset="60%" stop-color="#a06858"/>
+      <stop offset="100%" stop-color="#9c7a58"/>
     </linearGradient>
+    <clipPath id="sunClip">
+      <rect x="0" y="0" width="600" height="82"/>
+    </clipPath>
   </defs>
 
-  <!-- Background with subtle warmth -->
-  <rect width="800" height="200" fill="#faf9f7"/>
+  <!-- Background -->
+  <rect width="600" height="140" fill="#faf9f7"/>
 
-  <!-- Top decorative rule -->
-  <rect x="100" y="32" width="600" height="1" fill="url(#accentLine)"/>
+  <!-- "A" -->
+  <text x="148" y="95"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="60"
+        font-weight="200"
+        letter-spacing="0.14em"
+        text-anchor="middle"
+        fill="#7a5d42">A</text>
 
-  <!-- Ornamental diamond -->
-  <g transform="translate(400, 32)">
-    <rect x="-4" y="-4" width="8" height="8" fill="#1a1a1a" transform="rotate(45)"/>
+  <!-- "U" -->
+  <text x="198" y="95"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="60"
+        font-weight="200"
+        letter-spacing="0.14em"
+        text-anchor="middle"
+        fill="#7a5d42">U</text>
+
+  <!-- "R" -->
+  <text x="248" y="95"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="60"
+        font-weight="200"
+        letter-spacing="0.14em"
+        text-anchor="middle"
+        fill="#7a5d42">R</text>
+
+  <!-- Sun glyph replacing O, centered at x=302 -->
+  <g>
+    <!-- Horizon line -->
+    <line x1="283" y1="82" x2="321" y2="82" stroke="#9c7a58" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+    <!-- Sun body (half circle, clipped at horizon y=82) -->
+    <circle cx="302" cy="82" r="14" fill="url(#sunGrad)" opacity="0.85" clip-path="url(#sunClip)"/>
+    <!-- Center ray -->
+    <line x1="302" y1="64" x2="302" y2="54" stroke="#9c7a58" stroke-width="1.5" stroke-linecap="round" opacity="0.85"/>
+    <!-- Diagonal rays -->
+    <line x1="293" y1="67" x2="288" y2="61" stroke="#9c7a58" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <line x1="311" y1="67" x2="316" y2="61" stroke="#9c7a58" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+    <!-- Outer side rays -->
+    <line x1="286" y1="75" x2="280" y2="75" stroke="#9c7a58" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+    <line x1="318" y1="75" x2="324" y2="75" stroke="#9c7a58" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
   </g>
 
-  <!-- Main wordmark - CANON in elegant tracked capitals -->
-  <text x="400" y="115"
-        font-family="'Playfair Display', 'Georgia', 'Times New Roman', serif"
-        font-size="72"
-        font-weight="400"
-        letter-spacing="0.35em"
+  <!-- "R" -->
+  <text x="352" y="95"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="60"
+        font-weight="200"
+        letter-spacing="0.14em"
         text-anchor="middle"
-        fill="#1a1a1a">CANON</text>
+        fill="#7a5d42">R</text>
 
-  <!-- Tagline in refined small caps style -->
-  <text x="400" y="148"
-        font-family="'SF Mono', 'Consolas', 'Monaco', monospace"
-        font-size="11"
-        font-weight="400"
-        letter-spacing="0.25em"
+  <!-- "E" -->
+  <text x="402" y="95"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="60"
+        font-weight="200"
+        letter-spacing="0.14em"
         text-anchor="middle"
-        fill="#6b6b6b">A CLAUDE CODE ANNOTATION TOOL</text>
-
-  <!-- Bottom decorative rule -->
-  <rect x="100" y="168" width="600" height="1" fill="url(#accentLine)"/>
-
-  <!-- Corner ornaments - subtle editorial flourish -->
-  <g fill="#1a1a1a">
-    <!-- Top left -->
-    <rect x="100" y="28" width="12" height="1"/>
-    <rect x="100" y="28" width="1" height="12"/>
-
-    <!-- Top right -->
-    <rect x="688" y="28" width="12" height="1"/>
-    <rect x="699" y="28" width="1" height="12"/>
-
-    <!-- Bottom left -->
-    <rect x="100" y="172" width="12" height="1"/>
-    <rect x="100" y="161" width="1" height="12"/>
-
-    <!-- Bottom right -->
-    <rect x="688" y="172" width="12" height="1"/>
-    <rect x="699" y="161" width="1" height="12"/>
-  </g>
+        fill="#7a5d42">E</text>
 </svg>
