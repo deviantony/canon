@@ -392,12 +392,14 @@ Dedicated panel where annotations from code, conversation, and cross-session sou
 - Compact tool call display with status transitions (Running → Done)
 - Structured annotation feedback display (parsed XML → Review cards)
 
-### Phase 1.5: Conversation Annotation
+### Phase 1.5: Conversation Annotation + Session Controls
 - Conversation surface text selection (select text in assistant messages)
 - Tool call targeting (annotate specific tool uses/results)
 - Annotation creation from conversation (reuse existing annotation model)
 - Design exploration for conversation annotation UX (selection affordances, inline vs sidebar)
 - Annotation overlay integration (conversation annotations appear alongside code annotations)
+- Context usage indicator (session context window consumption %)
+- Force stop in-progress session (send interrupt to Claude subprocess)
 
 ### Phase 2: Documentation Surface
 - Markdown rendering with Mermaid diagram support
@@ -410,17 +412,35 @@ Dedicated panel where annotations from code, conversation, and cross-session sou
 - Git operations from Aurore (commit, branch, PR)
 - Multi-session support (2-3 concurrent sessions with tab bar)
 - Session resume/fork capabilities
+- Create new sessions from within Aurore (project selector, initial prompt)
+- Stop and remove existing sessions (cleanup subprocess, clear session state)
 
-### Phase 4: Validation Surface
+### Phase 4: Command Palette
+- Command palette overlay (keyboard-triggered, fuzzy search)
+- Navigation across surfaces (jump to file, doc, session)
+- Focus mode toggle (expand active panel to full width)
+- Annotation review (list, filter, navigate pending annotations)
+- Session switching (quick-switch between active sessions)
+
+### Phase 5: Validation Surface
 - Post-turn automated validation framework
 - Test/lint/type-check result rendering
 - Breakage detection and surfacing
 - Annotatable validation findings
 
-### Phase 5: Documentation Automation
+### Phase 6: Documentation Automation
 - Sub-agent for documentation maintenance
 - Staleness detection and health indicators
 - Architecture/schema doc auto-updates after implementation phases
+
+### Phase 7: Canon Cleanup
+- Remove `/canon:new` and `/canon:setup` slash commands
+- Remove `waitForDecision()` Promise pattern and `/api/feedback` endpoint
+- Remove `src/cli/index.ts` one-shot entry point
+- Remove XML-to-stdout output path
+- Remove `CANON_PORT` / `CANON_REMOTE` env vars (replaced by `AURORE_PORT`)
+- Rename remaining Canon references in code, config, and package metadata to Aurore
+- Update CLAUDE.md and README to reflect Aurore-only usage
 
 ---
 
