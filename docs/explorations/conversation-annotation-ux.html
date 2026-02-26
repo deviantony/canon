@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aurore — Conversation Annotation UX: Design F</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN SYSTEM
+   ═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --color-gold-50: #e8c49a;
+  --color-gold-100: #d4a574;
+  --color-gold-200: #9c7a58;
+  --color-gold-alpha-15: rgba(212, 165, 116, 0.15);
+  --color-gold-alpha-10: rgba(212, 165, 116, 0.1);
+  --color-gold-alpha-08: rgba(212, 165, 116, 0.08);
+  --color-gold-alpha-06: rgba(212, 165, 116, 0.06);
+  --color-gold-alpha-05: rgba(212, 165, 116, 0.05);
+  --color-gold-alpha-04: rgba(212, 165, 116, 0.04);
+  --color-gold-alpha-03: rgba(212, 165, 116, 0.03);
+  --color-gold-alpha-02: rgba(212, 165, 116, 0.02);
+  --color-gold-alpha-25: rgba(212, 165, 116, 0.25);
+  --color-question-alpha-06: rgba(122, 159, 196, 0.06);
+  --color-question-alpha-08: rgba(122, 159, 196, 0.08);
+  --color-question-alpha-15: rgba(122, 159, 196, 0.15);
+  --accent-gold: var(--color-gold-100);
+  --accent-gold-bright: var(--color-gold-50);
+  --accent-gold-muted: var(--color-gold-200);
+  --accent-question: #7a9fc4;
+  --status-success: #7d9f7d;
+  --status-error: #c47a7a;
+  --bg-void: #0c0c0c;
+  --bg-surface: #111111;
+  --bg-elevated: #161616;
+  --bg-hover: #1a1a1a;
+  --text-primary: #e8e8e8;
+  --text-secondary: #888888;
+  --text-tertiary: #555555;
+  --text-muted: #3a3a3a;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --gradient-card: radial-gradient(ellipse 200px 120px at top left, var(--color-gold-alpha-05) 0%, var(--color-gold-alpha-02) 40%, transparent 70%);
+  --font-display: "Geist", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", Menlo, monospace;
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px;
+  --duration-fast: 0.15s;
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font-display); background: var(--bg-void); color: var(--text-primary); font-size: 13px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════════════════════ */
+.header {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-5);
+  background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
+}
+.header-title {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent-gold);
+}
+.header-sub {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONVERSATION
+   ═══════════════════════════════════════════════════════════════════════════ */
+.page { padding-top: 48px; height: 100vh; overflow-y: auto; }
+
+.desc {
+  max-width: 860px; margin: 0 auto;
+  padding: var(--space-5) var(--space-4) var(--space-4);
+}
+.desc h2 { font-size: 16px; font-weight: 600; margin-bottom: var(--space-1); }
+.desc .sub {
+  font-family: var(--font-mono); font-size: 10px; color: var(--accent-gold-muted);
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: var(--space-3);
+}
+.desc p { font-size: 12.5px; color: var(--text-secondary); line-height: 1.6; max-width: 640px; }
+
+.conv {
+  max-width: 860px; margin: 0 auto;
+  border-top: 1px solid var(--border-subtle);
+  position: relative; /* anchor for selection toolbar */
+}
+
+/* Messages */
+.msg { padding: var(--space-4); position: relative; }
+.msg + .msg { border-top: 1px solid var(--border-subtle); }
+.msg-role {
+  font-family: var(--font-mono); font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-2);
+}
+.msg-role.user { color: var(--accent-gold); }
+.msg-role.assistant {
+  color: var(--text-secondary);
+  display: flex; align-items: center; gap: var(--space-2);
+}
+.msg-body { font-size: 13px; line-height: 1.65; }
+.msg-body p { margin-bottom: var(--space-3); }
+.msg-body p:last-child { margin-bottom: 0; }
+.msg-body ::selection { background: var(--color-gold-alpha-15); }
+
+/* Tool calls */
+.tool-row {
+  margin: var(--space-2) 0; padding: 6px var(--space-3);
+  background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 11px;
+  display: flex; align-items: center; gap: var(--space-2);
+  transition: border-color var(--duration-fast);
+  position: relative;
+}
+.tool-verb { color: var(--accent-gold); font-weight: 500; flex-shrink: 0; }
+.tool-target { color: var(--text-secondary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.tool-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: var(--radius-sm); flex-shrink: 0;
+  font-weight: 500; margin-left: auto;
+}
+.tool-badge.done { color: var(--status-success); background: rgba(125,159,125,0.1); }
+
+/* Sub-agent */
+.subagent {
+  margin: var(--space-2) 0; padding: var(--space-2) var(--space-3);
+  border-left: 2px solid var(--color-gold-alpha-25); background: var(--color-gold-alpha-02);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);
+}
+.subagent b { color: var(--accent-gold); font-weight: 500; }
+
+/* Inline code */
+.ic {
+  font-family: var(--font-mono); font-size: 11.5px; padding: 1px 5px;
+  background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm); color: var(--accent-gold);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DESIGN F: "Role Action"
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Block annotation — icon inline with CLAUDE role label */
+.role-ann {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border: 1px solid transparent; border-radius: 3px;
+  background: transparent; color: transparent;
+  font-size: 10px; cursor: pointer;
+  transition: all var(--duration-fast);
+}
+/* Visible on message hover — distinct gold tint so it reads as interactive */
+.msg.annotatable:hover .role-ann {
+  color: var(--accent-gold-muted);
+  border-color: var(--color-gold-alpha-15);
+  background: var(--color-gold-alpha-04);
+}
+/* Bright on direct hover */
+.role-ann:hover {
+  color: var(--accent-gold) !important;
+  border-color: var(--color-gold-alpha-25) !important;
+  background: var(--color-gold-alpha-08) !important;
+}
+
+/* Tool annotation — slide-in icon from the left */
+.tool-left-ann {
+  width: 0; overflow: hidden; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none; background: transparent;
+  color: var(--accent-gold-muted); font-size: 9px; cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+.tool-row:hover .tool-left-ann {
+  width: 18px; margin-right: var(--space-1);
+}
+.tool-left-ann:hover { color: var(--accent-gold); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SELECTION TOOLBAR
+   ═══════════════════════════════════════════════════════════════════════════ */
+.sel-bar {
+  position: absolute; z-index: 50;
+  display: flex; align-items: center; gap: 1px;
+  padding: 2px; background: var(--bg-surface);
+  border: 1px solid var(--border-default); border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.12s, transform 0.12s var(--ease-smooth);
+  transform: translateX(-50%) translateY(-4px);
+}
+.sel-bar.show {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.sel-btn {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border: none; border-radius: var(--radius-sm);
+  background: transparent; color: var(--text-secondary);
+  font-family: var(--font-mono); font-size: 10px; font-weight: 500;
+  cursor: pointer; transition: all var(--duration-fast); white-space: nowrap;
+}
+.sel-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.sel-btn .ico { font-size: 11px; }
+.sel-btn .ico.gold { color: var(--accent-gold); }
+.sel-btn .ico.blue { color: var(--accent-question); }
+.sel-sep { width: 1px; height: 16px; background: var(--border-subtle); flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANNOTATION WIDGET (shared — matches code surface)
+   ═══════════════════════════════════════════════════════════════════════════ */
+.ann-widget {
+  margin: var(--space-3) 0 var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-gold-alpha-25);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-card);
+  animation: annIn 0.2s var(--ease-smooth);
+}
+.ann-widget.is-question {
+  border-color: var(--color-question-alpha-15);
+  background: radial-gradient(ellipse 200px 120px at top left, var(--color-question-alpha-06) 0%, rgba(122,159,196,0.02) 40%, transparent 70%);
+}
+@keyframes annIn { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: translateY(0); } }
+
+.ann-widget-head {
+  display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2);
+}
+.ann-badge {
+  font-family: var(--font-mono); font-size: 9px; font-weight: 600;
+  padding: 2px 7px; border-radius: 3px;
+  background: var(--color-gold-alpha-08); color: var(--accent-gold);
+  cursor: pointer; user-select: none; transition: all var(--duration-fast);
+}
+.ann-badge:hover { background: var(--color-gold-alpha-15); }
+.ann-badge.is-question { background: var(--color-question-alpha-08); color: var(--accent-question); }
+.ann-badge.is-question:hover { background: var(--color-question-alpha-15); }
+
+.ann-kind {
+  width: 14px; height: 14px; display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--accent-gold); flex-shrink: 0;
+}
+.ann-kind.is-question { color: var(--accent-question); }
+
+.ann-quote {
+  font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary);
+  padding: var(--space-1) var(--space-2); margin-bottom: var(--space-2);
+  background: var(--bg-elevated); border-radius: var(--radius-sm);
+  border-left: 2px solid var(--color-gold-alpha-25);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+
+.ann-input {
+  width: 100%; min-height: 36px; max-height: 120px; padding: 6px 10px;
+  font-family: var(--font-display); font-size: 12.5px; line-height: 1.5;
+  color: var(--text-primary); background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-md);
+  resize: none; outline: none;
+}
+.ann-input::placeholder { color: var(--text-muted); }
+.ann-input:focus { border-color: var(--accent-gold-muted); }
+
+.ann-foot {
+  display: flex; align-items: center; justify-content: space-between; margin-top: var(--space-2);
+}
+.ann-keys { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); }
+.ann-keys kbd {
+  padding: 1px 4px; border: 1px solid var(--border-subtle);
+  border-radius: 3px; background: var(--bg-elevated); font-family: var(--font-mono); font-size: 9px;
+}
+.ann-btns { display: flex; gap: var(--space-2); }
+.btn-cancel {
+  font-family: var(--font-display); font-size: 10px; font-weight: 500;
+  padding: 4px 10px; border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm); background: transparent;
+  color: var(--text-tertiary); cursor: pointer; transition: all var(--duration-fast);
+}
+.btn-cancel:hover { border-color: var(--border-default); color: var(--text-secondary); }
+.btn-save {
+  font-family: var(--font-display); font-size: 10px; font-weight: 500;
+  padding: 4px 10px; border: none; border-radius: var(--radius-sm);
+  background: var(--accent-gold); color: var(--bg-void); cursor: pointer;
+  transition: all var(--duration-fast);
+}
+.btn-save:hover { background: var(--accent-gold-bright); }
+
+/* Saved annotation */
+.ann-saved {
+  margin: var(--space-2) 0; padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-gold-alpha-15); border-radius: var(--radius-lg);
+  background: var(--gradient-card);
+  display: flex; align-items: flex-start; gap: var(--space-2);
+  animation: annIn 0.2s var(--ease-smooth);
+}
+.ann-saved .ann-badge { flex-shrink: 0; margin-top: 1px; }
+.ann-saved-text { font-size: 12.5px; line-height: 1.5; color: var(--text-primary); flex: 1; }
+.ann-saved-actions {
+  display: flex; gap: var(--space-1); flex-shrink: 0;
+  opacity: 0; transition: opacity var(--duration-fast);
+}
+.ann-saved:hover .ann-saved-actions { opacity: 1; }
+.ann-saved-btn {
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: var(--radius-sm); background: transparent;
+  color: var(--text-muted); cursor: pointer; font-size: 10px; transition: all var(--duration-fast);
+}
+.ann-saved-btn:hover { background: var(--bg-hover); color: var(--text-secondary); }
+.ann-saved-btn.del:hover { color: var(--status-error); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">Phase 1.5 — Conversation Annotation</span>
+  <span class="header-sub">Design F: Role Action &middot; hover messages, select text, hover tool calls</span>
+</div>
+
+<div class="page">
+  <div class="desc">
+    <h2>F: Role Action</h2>
+    <div class="sub">Icon next to role label &middot; text selection toolbar &middot; slide-in tool icon</div>
+    <p>The annotation icon appears inline next to the "CLAUDE" role label on hover &mdash; right where your eyes already are when scanning the conversation. Tool calls get a small icon that slides in from the left on hover. Text selection triggers a floating Annotate / Question toolbar above the highlight. User messages are not annotatable.</p>
+  </div>
+
+  <div class="conv" id="conv">
+    <!-- Selection toolbar — must be inside .conv for position:absolute to anchor correctly -->
+    <div class="sel-bar" id="sel-bar">
+      <button class="sel-btn" onclick="selAnn()"><span class="ico gold">&#9998;</span> Annotate</button>
+      <div class="sel-sep"></div>
+      <button class="sel-btn" onclick="selAnn('question')"><span class="ico blue">?</span> Question</button>
+    </div>
+    <!-- User — NOT annotatable -->
+    <div class="msg">
+      <div class="msg-role user">You</div>
+      <div class="msg-body"><p>Implement the WebSocket session manager with rate limiting for reconnection attempts.</p></div>
+    </div>
+
+    <!-- Claude — with tool calls -->
+    <div class="msg annotatable" data-slot="m1">
+      <div class="msg-role assistant">Claude <button class="role-ann" title="Annotate this message" onclick="blockAnn('m1')">&#9998;</button></div>
+      <div class="msg-body">
+        <p>I'll build the WebSocket session manager with rate limiting. Let me start by reading the existing types and then implementing the manager with a sliding window approach.</p>
+        <div class="tool-row" data-tool-label="Read ide-types.ts">
+          <button class="tool-left-ann" onclick="event.stopPropagation(); toolAnn('m1t1', this.closest('.tool-row'))">&#9998;</button>
+          <span class="tool-verb">Read</span>
+          <span class="tool-target">src/shared/ide-types.ts</span>
+          <span class="tool-badge done">Done</span>
+        </div>
+        <div class="tool-row" data-tool-label="Write ws-manager.ts">
+          <button class="tool-left-ann" onclick="event.stopPropagation(); toolAnn('m1t2', this.closest('.tool-row'))">&#9998;</button>
+          <span class="tool-verb">Write</span>
+          <span class="tool-target">src/server/ws-manager.ts</span>
+          <span class="tool-badge done">Done</span>
+        </div>
+        <div class="tool-row" data-tool-label="Write session-store.ts">
+          <button class="tool-left-ann" onclick="event.stopPropagation(); toolAnn('m1t3', this.closest('.tool-row'))">&#9998;</button>
+          <span class="tool-verb">Write</span>
+          <span class="tool-target">src/server/session-store.ts</span>
+          <span class="tool-badge done">Done</span>
+        </div>
+        <div class="subagent"><b>backend-dev</b> spawned &rarr; reviewed &rarr; completed</div>
+        <p>Done. The implementation includes:</p>
+        <p>&bull; <strong>Sliding window rate limiter</strong> &mdash; tracks reconnection attempts per IP within a configurable time window (default 60s, max 10 attempts)<br>
+        &bull; <strong>Graceful client removal</strong> &mdash; handles both clean disconnects and unexpected drops with automatic cleanup<br>
+        &bull; <strong>Session state broadcasting</strong> &mdash; all connected clients receive state updates via <span class="ic">broadcastState()</span></p>
+      </div>
+      <div id="slot-m1"></div>
+      <div id="slot-m1t1"></div>
+      <div id="slot-m1t2"></div>
+      <div id="slot-m1t3"></div>
+    </div>
+
+    <!-- Claude — text only -->
+    <div class="msg annotatable" data-slot="m2">
+      <div class="msg-role assistant">Claude <button class="role-ann" title="Annotate this message" onclick="blockAnn('m2')">&#9998;</button></div>
+      <div class="msg-body">
+        <p>A few notes on the design decisions:</p>
+        <p>The sliding window approach was chosen over a token bucket because it provides more predictable behavior for WebSocket reconnections. Token buckets allow bursts, which is fine for HTTP requests but problematic for WebSocket connections where each connection holds server resources.</p>
+        <p>The <span class="ic">rateLimits</span> map uses IP addresses as keys. In production you might want to key on a session identifier instead, since multiple legitimate clients can share an IP behind a NAT. For now the IP-based approach is simpler and sufficient for a single-user tool.</p>
+        <p>One thing to watch: the <span class="ic">Map</span> will grow unbounded if old entries aren't cleaned up. I'd suggest adding a periodic sweep (every 5 minutes) that removes entries older than the rate window.</p>
+      </div>
+      <div id="slot-m2"></div>
+    </div>
+
+    <!-- Claude — with tool call -->
+    <div class="msg annotatable" data-slot="m3">
+      <div class="msg-role assistant">Claude <button class="role-ann" title="Annotate this message" onclick="blockAnn('m3')">&#9998;</button></div>
+      <div class="msg-body">
+        <p>Now let me integrate this into the main server and update the connection handler.</p>
+        <div class="tool-row" data-tool-label="Edit aurore-server.ts">
+          <button class="tool-left-ann" onclick="event.stopPropagation(); toolAnn('m3t1', this.closest('.tool-row'))">&#9998;</button>
+          <span class="tool-verb">Edit</span>
+          <span class="tool-target">src/server/aurore-server.ts</span>
+          <span class="tool-badge done">Done</span>
+        </div>
+        <p>The server now uses <span class="ic">WsManager</span> for all WebSocket connections. Rate limiting is enforced at the upgrade step &mdash; clients exceeding 10 reconnections within 60 seconds receive a 429 response.</p>
+      </div>
+      <div id="slot-m3"></div>
+      <div id="slot-m3t1"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CMD = navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ANNOTATION WIDGET
+// ═══════════════════════════════════════════════════════════════════════════
+function makeWidget(slotId, badge, quote, kind) {
+  const slot = document.getElementById('slot-' + slotId);
+  if (!slot) return;
+  if (slot.children.length > 0) { slot.innerHTML = ''; return; }
+  const q = kind === 'question';
+  const truncQuote = quote && quote.length > 60 ? quote.substring(0, 57) + '\u2026' : quote;
+
+  slot.innerHTML = `
+    <div class="ann-widget ${q ? 'is-question' : ''}">
+      <div class="ann-widget-head">
+        <span class="ann-badge ${q ? 'is-question' : ''}" onclick="togKind(this)">${badge}</span>
+        <span class="ann-kind ${q ? 'is-question' : ''}">${q ? '?' : '\u2699'}</span>
+      </div>
+      ${truncQuote ? `<div class="ann-quote">\u201C${truncQuote}\u201D</div>` : ''}
+      <textarea class="ann-input" placeholder="Add your comment..."></textarea>
+      <div class="ann-foot">
+        <span class="ann-keys"><kbd>${CMD}</kbd>+<kbd>\u23CE</kbd> save \u00b7 <kbd>Q</kbd> toggle kind</span>
+        <div class="ann-btns">
+          <button class="btn-cancel" onclick="this.closest('.ann-widget').remove()">Cancel</button>
+          <button class="btn-save" onclick="saveWidget(this,'${slotId}','${badge}')">Save</button>
+        </div>
+      </div>
+    </div>
+  `;
+  setTimeout(() => slot.querySelector('.ann-input')?.focus(), 50);
+}
+
+function togKind(badge) {
+  const w = badge.closest('.ann-widget');
+  const icon = w.querySelector('.ann-kind');
+  const isQ = badge.classList.toggle('is-question');
+  icon.classList.toggle('is-question', isQ);
+  icon.textContent = isQ ? '?' : '\u2699';
+  w.classList.toggle('is-question', isQ);
+}
+
+function saveWidget(btn, slotId, badge) {
+  const w = btn.closest('.ann-widget');
+  const text = w.querySelector('.ann-input').value.trim();
+  if (!text) return;
+  const q = w.classList.contains('is-question');
+  const slot = document.getElementById('slot-' + slotId);
+  slot.innerHTML = `
+    <div class="ann-saved">
+      <span class="ann-badge ${q ? 'is-question' : ''}">${badge}</span>
+      <span class="ann-saved-text">${text}</span>
+      <div class="ann-saved-actions">
+        <button class="ann-saved-btn" title="Edit">\u270E</button>
+        <button class="ann-saved-btn del" title="Delete" onclick="this.closest('.ann-saved').remove()">\u2715</button>
+      </div>
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BLOCK + TOOL ANNOTATION
+// ═══════════════════════════════════════════════════════════════════════════
+function blockAnn(slotId) {
+  const sel = window.getSelection();
+  let quote = '';
+  if (sel && sel.toString().trim().length > 0) {
+    quote = sel.toString().trim();
+    sel.removeAllRanges();
+  }
+  makeWidget(slotId, 'CONV', quote);
+}
+
+function toolAnn(slotId, toolRow) {
+  const label = toolRow?.dataset.toolLabel || 'TOOL';
+  makeWidget(slotId, label);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TEXT SELECTION TOOLBAR
+// ═══════════════════════════════════════════════════════════════════════════
+let activeMsg = null;
+
+document.addEventListener('mouseup', (e) => {
+  const toolbar = document.getElementById('sel-bar');
+  const sel = window.getSelection();
+
+  if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+    setTimeout(() => {
+      if (!toolbar.matches(':hover')) toolbar.classList.remove('show');
+    }, 150);
+    return;
+  }
+
+  // Only on assistant message bodies within annotatable messages
+  const body = sel.anchorNode?.parentElement?.closest('.msg-body');
+  const msg = body?.closest('.msg.annotatable');
+  if (!msg) { toolbar.classList.remove('show'); return; }
+
+  activeMsg = msg;
+
+  // Position above the selection, centered horizontally
+  const range = sel.getRangeAt(0);
+  const rect = range.getBoundingClientRect();
+  const convEl = document.getElementById('conv');
+  const convRect = convEl.getBoundingClientRect();
+
+  toolbar.style.left = (rect.left + rect.width / 2 - convRect.left) + 'px';
+  toolbar.style.top = (rect.top - convRect.top - 40) + 'px';
+  toolbar.classList.add('show');
+});
+
+function selAnn(kind) {
+  const toolbar = document.getElementById('sel-bar');
+  toolbar.classList.remove('show');
+
+  const sel = window.getSelection();
+  const quote = sel ? sel.toString().trim() : '';
+  sel?.removeAllRanges();
+
+  if (activeMsg) {
+    const slotId = activeMsg.dataset.slot;
+    makeWidget(slotId, 'CONV', quote, kind);
+  }
+}
+
+// Hide toolbar on scroll
+document.querySelector('.page')?.addEventListener('scroll', () => {
+  document.getElementById('sel-bar').classList.remove('show');
+});
+</script>
+</body>
+</html>

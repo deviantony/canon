@@ -1,4 +1,22 @@
-import type { Annotation } from '../context/AnnotationContext'
+import type {
+  Annotation,
+  CodeAnnotation,
+  ConversationAnnotation,
+} from '../context/AnnotationContext'
+
+/**
+ * Type guard for code annotations
+ */
+export function isCodeAnnotation(a: Annotation): a is CodeAnnotation {
+  return a.target === 'code'
+}
+
+/**
+ * Type guard for conversation annotations
+ */
+export function isConversationAnnotation(a: Annotation): a is ConversationAnnotation {
+  return a.target === 'conversation'
+}
 
 /**
  * Format a line badge string for display (e.g., "File", "L42", "L10-15")
@@ -10,9 +28,9 @@ export function formatLineBadge(lineStart: number, lineEnd?: number): string {
 }
 
 /**
- * Sort annotations: file-level (lineStart=0) first, then by line number
+ * Sort code annotations: file-level (lineStart=0) first, then by line number
  */
-export function sortAnnotations(annotations: Annotation[]): Annotation[] {
+export function sortAnnotations(annotations: CodeAnnotation[]): CodeAnnotation[] {
   return [...annotations].sort((a, b) => {
     if (a.lineStart === 0 && b.lineStart !== 0) return -1
     if (b.lineStart === 0 && a.lineStart !== 0) return 1
@@ -21,10 +39,12 @@ export function sortAnnotations(annotations: Annotation[]): Annotation[] {
 }
 
 /**
- * Group annotations by file path
+ * Group code annotations by file path
  */
-export function groupAnnotationsByFile(annotations: Annotation[]): Map<string, Annotation[]> {
-  const byFile = new Map<string, Annotation[]>()
+export function groupAnnotationsByFile(
+  annotations: CodeAnnotation[],
+): Map<string, CodeAnnotation[]> {
+  const byFile = new Map<string, CodeAnnotation[]>()
   for (const annotation of annotations) {
     const existing = byFile.get(annotation.file) || []
     existing.push(annotation)
@@ -34,9 +54,24 @@ export function groupAnnotationsByFile(annotations: Annotation[]): Map<string, A
 }
 
 /**
+ * Group conversation annotations by messageId
+ */
+export function groupConversationAnnotations(
+  annotations: ConversationAnnotation[],
+): Map<string, ConversationAnnotation[]> {
+  const byMessage = new Map<string, ConversationAnnotation[]>()
+  for (const annotation of annotations) {
+    const existing = byMessage.get(annotation.messageId) || []
+    existing.push(annotation)
+    byMessage.set(annotation.messageId, existing)
+  }
+  return byMessage
+}
+
+/**
  * Get the set of annotated line numbers for a file (excluding file-level annotations)
  */
-export function getAnnotatedLineNumbers(annotations: Annotation[]): Set<number> {
+export function getAnnotatedLineNumbers(annotations: CodeAnnotation[]): Set<number> {
   const lines = new Set<number>()
   for (const ann of annotations) {
     if (ann.lineStart === 0) continue // Skip file-level annotations
