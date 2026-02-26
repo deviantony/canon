@@ -11,6 +11,7 @@ import styles from './CodeViewer.module.css'
 interface CodeViewerProps {
   filePath: string | null
   onLineClick?: (line: number) => void
+  onLineCount?: (count: number) => void
   scrollToLineOnMount?: number | null
 }
 
@@ -19,7 +20,7 @@ export interface CodeViewerRef {
 }
 
 const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewer(
-  { filePath, onLineClick, scrollToLineOnMount },
+  { filePath, onLineClick, onLineCount, scrollToLineOnMount },
   ref,
 ) {
   const [content, setContent] = useState<string>('')
@@ -29,6 +30,8 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
   const viewRef = useRef<EditorView | null>(null)
   const scrollToLineOnMountRef = useRef(scrollToLineOnMount)
   scrollToLineOnMountRef.current = scrollToLineOnMount
+  const onLineCountRef = useRef(onLineCount)
+  onLineCountRef.current = onLineCount
 
   const { handleSelectionComplete, updateAnnotations, clearSelectionIfNeeded } =
     useEditorInteraction({ filePath })
@@ -67,6 +70,7 @@ const CodeViewer = forwardRef<CodeViewerRef, CodeViewerProps>(function CodeViewe
           setContent('')
         } else {
           setContent(data.content)
+          if (data.lineCount != null) onLineCountRef.current?.(data.lineCount)
         }
       } catch (err) {
         setError(String(err))

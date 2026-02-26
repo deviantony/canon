@@ -2,8 +2,6 @@ import { existsSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import type { ChangedFile, GitInfo } from '../shared/types.js'
 
-export type { ChangedFile, GitInfo }
-
 // Internal type for accumulating diff statistics
 interface DiffStats {
   additions: number
@@ -178,7 +176,20 @@ export async function getGitInfo(workingDirectory: string): Promise<GitInfo> {
     return file
   })
 
-  return { changedFiles: filesWithStats }
+  // Get branch name
+  const branchResult = await runGit(workingDirectory, ['rev-parse', '--abbrev-ref', 'HEAD'])
+  const branch = branchResult.exitCode === 0 ? branchResult.stdout.trim() : undefined
+
+  // Get ahead count
+  let ahead: number | undefined
+  if (branch) {
+    const aheadResult = await runGit(workingDirectory, ['rev-list', '--count', `@{upstream}..HEAD`])
+    if (aheadResult.exitCode === 0) {
+      ahead = parseInt(aheadResult.stdout.trim(), 10) || 0
+    }
+  }
+
+  return { changedFiles: filesWithStats, branch, ahead }
 }
 
 // Get the original (HEAD) content of a file

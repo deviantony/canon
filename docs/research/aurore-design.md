@@ -382,13 +382,22 @@ Dedicated panel where annotations from code, conversation, and cross-session sou
 
 *Authoritative — supersedes earlier phasing from both source documents.*
 
-### Phase 1: Foundation (Conversation + Code)
+### Phase 1: Foundation (Conversation + Code) ✓
 - Persistent server with WebSocket session management
-- Conversation panel rendering stream-json output
-- Conversation annotation (text selection, tool call targeting)
+- Conversation panel rendering stream-json output (streaming via stream_event deltas)
 - Annotation submission composing prompts to Claude stdin
 - Direct prompt input
 - Integration with existing code/diff viewer and annotation system
+- Markdown rendering in assistant messages (react-markdown + remark-gfm)
+- Compact tool call display with status transitions (Running → Done)
+- Structured annotation feedback display (parsed XML → Review cards)
+
+### Phase 1.5: Conversation Annotation
+- Conversation surface text selection (select text in assistant messages)
+- Tool call targeting (annotate specific tool uses/results)
+- Annotation creation from conversation (reuse existing annotation model)
+- Design exploration for conversation annotation UX (selection affordances, inline vs sidebar)
+- Annotation overlay integration (conversation annotations appear alongside code annotations)
 
 ### Phase 2: Documentation Surface
 - Markdown rendering with Mermaid diagram support

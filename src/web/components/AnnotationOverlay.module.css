@@ -1,0 +1,266 @@
+/* Annotation Overlay — matches prototype .ann-overlay */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 900;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.backdropOpen {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlay {
+  position: fixed;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  width: 540px;
+  max-height: 70vh;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+  z-index: 901;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s,
+    transform 0.2s var(--ease-smooth);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.backdropOpen .overlay {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.closeBtn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.closeBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+/* Annotation list */
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+}
+
+.card {
+  padding: var(--space-3) var(--space-4);
+  background: var(--gradient-card);
+  border: 1px solid var(--color-gold-alpha-15);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-2);
+  transition: border-color var(--duration-fast);
+}
+
+.card:hover {
+  border-color: var(--accent-gold-muted);
+}
+
+.cardSource {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.cardPillar {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.cardPillarCode {
+  color: var(--status-success);
+  background: rgba(125, 159, 125, 0.1);
+}
+
+.cardLocation {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.cardText {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+}
+
+.cardActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  justify-content: flex-end;
+}
+
+.cardBtn {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.cardBtn:hover {
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.cardBtnDelete:hover {
+  border-color: rgba(196, 122, 122, 0.3);
+  color: var(--status-error);
+}
+
+/* Compose area */
+.compose {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.composeTextarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 12px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+}
+
+.composeTextarea::placeholder {
+  color: var(--text-muted);
+}
+
+.composeTextarea:focus {
+  border-color: var(--accent-gold-muted);
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.footerHint {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.footerHint kbd {
+  padding: 1px 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn {
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.btnCancel {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.btnCancel:hover {
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.btnSubmit {
+  background: var(--accent-gold);
+  border: none;
+  color: var(--bg-void);
+}
+
+.btnSubmit:hover {
+  background: var(--accent-gold-bright);
+}
+
+/* Empty state */
+.empty {
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13px;
+}

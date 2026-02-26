@@ -1,0 +1,145 @@
+/* Session Dots + Vitals — matches prototype .session-dots-ext */
+
+.sessionDotsExt {
+  position: fixed;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 50;
+}
+
+.dotWrap {
+  width: 10px;
+  height: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  transition: all var(--duration-normal) var(--ease-smooth);
+}
+
+.dotProcessing {
+  background: var(--accent-gold);
+  animation: dotPulse 2s ease infinite;
+  box-shadow: 0 0 6px rgba(212, 165, 116, 0.3);
+}
+
+@keyframes dotPulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+.dotReady {
+  background: var(--status-success);
+}
+
+.dotStarting {
+  background: var(--accent-gold);
+  animation: dotPulse 2s ease infinite;
+  box-shadow: 0 0 6px rgba(212, 165, 116, 0.3);
+}
+
+.dotError {
+  background: var(--status-error);
+}
+
+.dotEmpty {
+  background: transparent;
+  width: 7px;
+  height: 7px;
+  border: 1px dashed var(--text-muted);
+}
+
+.dotWrap:hover .dotEmpty {
+  border-color: var(--accent-gold-muted);
+}
+
+.dotActive .dot::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid var(--accent-gold-muted);
+}
+
+/* Vitals separator */
+.vitalsSep {
+  width: 12px;
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 2px 0;
+}
+
+/* Token gauge */
+.vitalsGauge {
+  position: relative;
+  width: 26px;
+  height: 26px;
+}
+
+.vitalsGauge svg {
+  width: 26px;
+  height: 26px;
+  transform: rotate(-90deg);
+}
+
+.gaugeTrack {
+  fill: none;
+  stroke: var(--border-subtle);
+  stroke-width: 2;
+}
+
+.gaugeFill {
+  fill: none;
+  stroke: var(--accent-gold);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.vitalsGaugeLabel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* Annotation count */
+.vitalsAnn {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--accent-gold);
+  cursor: pointer;
+  padding: 2px 5px;
+  border: none;
+  background: transparent;
+  border-radius: 3px;
+  transition: all var(--duration-fast);
+}
+
+.vitalsAnn:hover {
+  background: var(--color-gold-alpha-08);
+}

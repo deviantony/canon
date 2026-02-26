@@ -28,16 +28,16 @@ const colors = {
 export const baseEditorTheme = EditorView.theme({
   '&': {
     height: '100%',
-    fontSize: '13px',
+    fontSize: '12px',
     backgroundColor: colors.void,
   },
   '.cm-scroller': {
     fontFamily: "'JetBrains Mono', 'SF Mono', Menlo, Monaco, monospace",
-    lineHeight: '1.7',
+    lineHeight: '1.65',
   },
   '.cm-content': {
     caretColor: colors.gold,
-    padding: '16px 0',
+    padding: '8px 0 0',
   },
   '.cm-cursor, .cm-dropCursor': {
     borderLeftColor: colors.gold,
@@ -47,21 +47,22 @@ export const baseEditorTheme = EditorView.theme({
     backgroundColor: colors.goldDim,
   },
   '.cm-activeLine': {
-    backgroundColor: colors.elevated,
+    backgroundColor: 'transparent',
   },
   '.cm-gutters': {
-    backgroundColor: colors.surface,
-    borderRight: `1px solid ${colors.borderSubtle}`,
+    backgroundColor: 'transparent',
+    border: 'none',
     color: colors.textMuted,
-    paddingRight: '8px',
+    paddingLeft: '16px',
   },
   '.cm-lineNumbers .cm-gutterElement': {
-    padding: '0 16px 0 12px',
-    minWidth: '48px',
+    padding: '0 12px 0 0',
+    minWidth: '40px',
+    textAlign: 'right',
   },
   '.cm-activeLineGutter': {
-    backgroundColor: colors.elevated,
-    color: colors.textTertiary,
+    backgroundColor: 'transparent',
+    color: colors.textMuted,
   },
   '.cm-foldPlaceholder': {
     backgroundColor: colors.elevated,
@@ -94,29 +95,31 @@ export const baseEditorTheme = EditorView.theme({
 export const diffEditorTheme = EditorView.theme({
   '&': {
     height: '100%',
-    fontSize: '13px',
+    fontSize: '12px',
     backgroundColor: colors.void,
   },
   '.cm-scroller': {
     fontFamily: "'JetBrains Mono', 'SF Mono', Menlo, Monaco, monospace",
-    lineHeight: '1.7',
+    lineHeight: '1.65',
   },
   '.cm-content': {
     caretColor: colors.gold,
-    padding: '12px 0',
+    padding: '8px 0 0',
   },
   '.cm-gutters': {
-    backgroundColor: colors.surface,
-    borderRight: `1px solid ${colors.borderSubtle}`,
+    backgroundColor: 'transparent',
+    border: 'none',
     color: colors.textMuted,
+    paddingLeft: '16px',
   },
   '.cm-lineNumbers .cm-gutterElement': {
-    padding: '0 16px 0 12px',
-    minWidth: '48px',
+    padding: '0 12px 0 0',
+    minWidth: '40px',
+    textAlign: 'right',
   },
   '.cm-activeLineGutter': {
-    backgroundColor: colors.elevated,
-    color: colors.textTertiary,
+    backgroundColor: 'transparent',
+    color: colors.textMuted,
   },
   // Diff-specific styles - subtle, refined
   '.cm-changedLine': {

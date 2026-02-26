@@ -9,6 +9,8 @@ export interface ChangedFile {
 
 export interface GitInfo {
   changedFiles: ChangedFile[]
+  branch?: string
+  ahead?: number
 }
 
 export interface FileNode {

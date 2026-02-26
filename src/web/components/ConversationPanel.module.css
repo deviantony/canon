@@ -1,0 +1,476 @@
+/* Conversation Panel — refined chat with markdown, tool rows, and annotation cards */
+
+.panel {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: var(--space-6);
+}
+
+.centered {
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+/* ─── Messages ─────────────────────────────────────────────────────────────── */
+
+.msg {
+  padding: var(--space-4);
+}
+
+.msg + .msg {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.msgRole {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: var(--space-2);
+}
+
+.roleUser {
+  color: var(--accent-gold);
+}
+
+.roleAssistant {
+  color: var(--text-secondary);
+}
+
+.roleError {
+  color: var(--status-error);
+}
+
+.msgText {
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── Markdown content ─────────────────────────────────────────────────────── */
+
+.mdContent {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-primary);
+}
+
+.mdP {
+  margin: 0 0 var(--space-3) 0;
+}
+
+.mdP:last-child {
+  margin-bottom: 0;
+}
+
+.mdStrong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.mdHeading {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: var(--space-4) 0 var(--space-2) 0;
+}
+
+.mdHeading:first-child {
+  margin-top: 0;
+}
+
+.mdList {
+  margin: 0 0 var(--space-3) 0;
+  padding-left: var(--space-5);
+}
+
+.mdList:last-child {
+  margin-bottom: 0;
+}
+
+.mdLi {
+  margin-bottom: var(--space-1);
+}
+
+.mdLi:last-child {
+  margin-bottom: 0;
+}
+
+.mdInlineCode {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  padding: 1px 5px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+}
+
+/* Reset inline code styling when inside a code block (pre wraps code) */
+.mdPre .mdInlineCode {
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+.mdCodeBlock {
+  margin: var(--space-4) 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.mdCodeBlock:first-child {
+  margin-top: 0;
+}
+
+.mdCodeBlock:last-child {
+  margin-bottom: 0;
+}
+
+.mdCodeLang {
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mdPre {
+  margin: 0;
+  padding: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.6;
+  overflow-x: auto;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+}
+
+.mdPre code {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.mdBlockquote {
+  margin: var(--space-3) 0;
+  padding: var(--space-2) var(--space-4);
+  border-left: 2px solid var(--border-default);
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.mdHr {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  margin: var(--space-4) 0;
+}
+
+.mdTableWrap {
+  margin: var(--space-3) 0;
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.mdTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+
+.mdTh {
+  text-align: left;
+  padding: var(--space-2) var(--space-3);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mdTd {
+  padding: var(--space-2) var(--space-3);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.mdTable tr:last-child .mdTd {
+  border-bottom: none;
+}
+
+/* ─── Tool rows ────────────────────────────────────────────────────────────── */
+
+.toolRow {
+  margin: var(--space-2) var(--space-4);
+}
+
+.toolRowHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 6px var(--space-3);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: left;
+  transition: background var(--duration-fast) var(--ease-default);
+}
+
+.toolRowHeader:hover {
+  background: var(--bg-hover);
+}
+
+.toolVerb {
+  color: var(--accent-gold);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.toolLabel {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.toolExpand {
+  color: var(--text-tertiary);
+  font-size: 9px;
+  flex-shrink: 0;
+}
+
+.toolBadge {
+  margin-left: auto;
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.toolBadgeDone {
+  color: var(--status-success);
+  background: rgba(125, 159, 125, 0.1);
+}
+
+.toolBadgeRunning {
+  color: var(--accent-gold);
+  background: var(--color-gold-alpha-08);
+}
+
+.toolBadgeError {
+  color: var(--status-error);
+  background: rgba(196, 122, 122, 0.1);
+}
+
+.toolExpandedList {
+  padding: var(--space-1) var(--space-3) var(--space-2) var(--space-6);
+}
+
+.toolExpandedItem {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  padding: 2px 0;
+}
+
+.toolErrorContent {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--status-error);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ─── Annotation feedback (parsed XML) ─────────────────────────────────────── */
+
+.annotationFeedback {
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.annotationHeader {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.annotationMeta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.annotationContext {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.annotationSection {
+  margin-bottom: var(--space-3);
+}
+
+.annotationSection:last-child {
+  margin-bottom: 0;
+}
+
+.annotationSectionLabel {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent-gold-muted);
+  margin-bottom: var(--space-2);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.annotationDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.annotationDotQuestion {
+  background: var(--accent-question);
+}
+
+.annotationCount {
+  font-size: 9px;
+  padding: 0 5px;
+  border-radius: var(--radius-sm);
+  background: var(--color-gold-alpha-08);
+  color: var(--accent-gold);
+}
+
+.annotationCountQuestion {
+  background: var(--color-question-alpha-08);
+  color: var(--accent-question);
+}
+
+.annotationSectionQuestion .annotationSectionLabel {
+  color: var(--accent-question-muted);
+}
+
+.annotationItem {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  padding: var(--space-1) 0;
+}
+
+.annotationFileChip {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 6px;
+  background: var(--color-gold-alpha-06);
+  border: 1px solid var(--color-gold-alpha-15);
+  border-radius: var(--radius-sm);
+  color: var(--accent-gold);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.annotationFileChipQuestion {
+  background: var(--color-question-alpha-06);
+  border-color: var(--color-question-alpha-15);
+  color: var(--accent-question);
+}
+
+.annotationComment {
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+/* ─── Result summary ───────────────────────────────────────────────────────── */
+
+.resultSummary {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  display: flex;
+  gap: var(--space-4);
+}
+
+.resultMeta {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* ─── Waiting indicator ────────────────────────────────────────────────────── */
+
+.waiting {
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.waitingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-gold);
+  animation: waitingPulse 1.5s ease infinite;
+}
+
+@keyframes waitingPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+/* ─── Empty state ──────────────────────────────────────────────────────────── */
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+}

@@ -1,0 +1,272 @@
+/* AuroreApp Layout — matches prototype structure */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Surfaces container */
+.surfaces {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.surface {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s var(--ease-smooth);
+}
+
+.surfaceActive {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Conversation surface */
+.conversationSurface {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Code surface */
+.codeSurface {
+  display: flex;
+  height: 100%;
+}
+
+.codeContentArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+  background: var(--bg-void);
+  position: relative;
+}
+
+.editorPanel {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Placeholder surfaces */
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* Focus button — top-right of content area */
+.focusBtn {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-4);
+  z-index: 5;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: rgba(17, 17, 17, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.focusBtn:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+  opacity: 1;
+}
+
+.focusBtnDimmed {
+  opacity: 0.3;
+}
+
+/* ═══ Fullscreen Overlay — matches prototype .fs-overlay ═══ */
+.fsOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #000000;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.25s var(--ease-smooth),
+    transform 0.25s var(--ease-smooth);
+  transform: scale(0.99);
+}
+
+.fsOverlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 50%,
+    transparent 0%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+}
+
+.fsOverlayOpen {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}
+
+.fsContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 2;
+  overflow-y: auto;
+  height: 100%;
+}
+
+/* Hover zone — invisible area at top to reveal pill */
+.fsHoverZone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  z-index: 10;
+}
+
+/* Floating pill header */
+.fsPill {
+  position: absolute;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%) translateY(0);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: rgba(17, 17, 17, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  animation: fsPillEnter 0.3s ease;
+  transition: opacity 0.4s ease;
+}
+
+.fsPillDimmed {
+  opacity: 0.3;
+}
+
+.fsPill:hover {
+  opacity: 1;
+}
+
+@keyframes fsPillEnter {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.fsPillPath {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fsPillCount {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.fsPillExit {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all var(--duration-fast);
+}
+
+.fsPillExit:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+/* ESC hint */
+.fsEscHint {
+  position: absolute;
+  bottom: var(--space-6);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(17, 17, 17, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.fsEscHintHidden {
+  opacity: 0;
+}
+
+.fsEscHint kbd {
+  padding: 2px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.fsEscHint span {
+  font-size: 11px;
+  color: var(--text-muted);
+}

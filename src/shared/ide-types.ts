@@ -1,4 +1,4 @@
-// Shared types for the Canon IDE WebSocket protocol
+// Shared types for the Aurore WebSocket protocol
 
 // -- Claude Code stream-json message types --
 
@@ -6,22 +6,35 @@ export interface ClaudeSystemMessage {
   type: 'system'
   subtype: 'init'
   session_id: string
-  tools: string[]
-  mcp_servers: { name: string; status: string }[]
   model: string
-  cwd: string
-  permission_mode: string
 }
 
 export interface ClaudeRateLimitEvent {
   type: 'rate_limit_event'
-  retry_after: number
 }
 
 export interface ClaudeStreamEvent {
   type: 'stream_event'
-  event: string
-  data: Record<string, unknown>
+  event: {
+    type: string
+    index?: number
+    delta?: {
+      type: string
+      text?: string
+      thinking?: string
+      partial_json?: string
+      stop_reason?: string
+    }
+    content_block?: {
+      type: string
+      text?: string
+      id?: string
+      name?: string
+    }
+    message?: Record<string, unknown>
+  }
+  session_id: string
+  parent_tool_use_id: string | null
 }
 
 export interface ClaudeAssistantMessage {
@@ -101,6 +114,6 @@ export type ServerMessage =
   | { type: 'error'; message: string }
 
 export type ClientMessage =
-  | { type: 'session:start'; prompt: string; workingDirectory?: string }
+  | { type: 'session:start'; prompt: string }
   | { type: 'session:prompt'; prompt: string }
   | { type: 'session:resume'; sessionId: string; prompt?: string }

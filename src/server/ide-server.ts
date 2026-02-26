@@ -14,15 +14,11 @@ export interface IdeServer {
   stop: () => void
 }
 
-interface WsData {
-  id: string
-}
-
 export function startIdeServer(options: IdeServerOptions): IdeServer {
   const { port, workingDirectory, openBrowser } = options
 
   let activeSession: Session | null = null
-  const clients = new Set<ServerWebSocket<WsData>>()
+  const clients = new Set<ServerWebSocket<unknown>>()
 
   function broadcast(msg: ServerMessage) {
     const data = JSON.stringify(msg)
@@ -48,14 +44,16 @@ export function startIdeServer(options: IdeServerOptions): IdeServer {
           activeSession = null
         },
       },
-      resumeSessionId ? { resumeSessionId } : undefined,
+      resumeSessionId,
     )
 
     // Send initial state to all clients
     broadcast({ type: 'session:state', info: activeSession.getInfo() })
 
     // Send the initial prompt
-    activeSession.sendPrompt(prompt)
+    if (prompt) {
+      activeSession.sendPrompt(prompt)
+    }
   }
 
   function handleClientMessage(msg: ClientMessage) {
@@ -81,15 +79,14 @@ export function startIdeServer(options: IdeServerOptions): IdeServer {
   // Resolve the HTML file path relative to this source file
   const htmlPath = join(import.meta.dir, '..', '..', 'src', 'ide.html')
 
-  const server = Bun.serve<WsData>({
+  const server = Bun.serve<unknown>({
     port,
     async fetch(req, server) {
       const url = new URL(req.url)
 
       // WebSocket upgrade
       if (url.pathname === '/ws') {
-        const id = crypto.randomUUID()
-        const upgraded = server.upgrade(req, { data: { id } })
+        const upgraded = server.upgrade(req, { data: {} })
         if (!upgraded) {
           return new Response('WebSocket upgrade failed', { status: 400 })
         }
@@ -111,14 +108,14 @@ export function startIdeServer(options: IdeServerOptions): IdeServer {
       return new Response('Not Found', { status: 404 })
     },
     websocket: {
-      open(ws: ServerWebSocket<WsData>) {
+      open(ws: ServerWebSocket<unknown>) {
         clients.add(ws)
         // Send current session state if session exists
         if (activeSession) {
           ws.send(JSON.stringify({ type: 'session:state', info: activeSession.getInfo() }))
         }
       },
-      message(ws: ServerWebSocket<WsData>, message: string | Buffer) {
+      message(ws: ServerWebSocket<unknown>, message: string | Buffer) {
         try {
           const msg = JSON.parse(
             typeof message === 'string' ? message : message.toString(),
@@ -128,7 +125,7 @@ export function startIdeServer(options: IdeServerOptions): IdeServer {
           ws.send(JSON.stringify({ type: 'error', message: 'Invalid message format' }))
         }
       },
-      close(ws: ServerWebSocket<WsData>) {
+      close(ws: ServerWebSocket<unknown>) {
         clients.delete(ws)
       },
     },

@@ -1,14 +1,70 @@
-import type { ClaudeMessage, SessionInfo, SessionState } from '../shared/ide-types.js'
+import type { ClaudeMessage, SessionInfo } from '../shared/ide-types.js'
+
+// -- Pure functions extracted for testability --
+
+/**
+ * Parse an NDJSON buffer: append a new chunk, split on newlines,
+ * return completed lines and the remaining buffer.
+ */
+export function parseNdjsonBuffer(
+  buffer: string,
+  chunk: string,
+): { lines: string[]; buffer: string } {
+  const combined = buffer + chunk
+  const parts = combined.split('\n')
+  const remaining = parts.pop() ?? ''
+  const lines = parts.filter((l) => l.trim() !== '')
+  return { lines, buffer: remaining }
+}
+
+/**
+ * Pure state-machine transition: given current state + a ClaudeMessage,
+ * return the next state. Returns same reference if nothing changed.
+ */
+export function applySessionMessage(info: SessionInfo, msg: ClaudeMessage): SessionInfo {
+  switch (msg.type) {
+    case 'system':
+      if (msg.subtype === 'init') {
+        return { ...info, sessionId: msg.session_id, model: msg.model }
+      }
+      return info
+
+    case 'stream_event':
+    case 'assistant':
+      if (info.state === 'starting' || info.state === 'ready') {
+        return { ...info, state: 'processing' }
+      }
+      return info
+
+    case 'result':
+      if (msg.is_error) {
+        return {
+          ...info,
+          state: 'error',
+          error: msg.error ?? 'Unknown error',
+          numTurns: msg.num_turns,
+          sessionId: msg.session_id,
+        }
+      }
+      return {
+        ...info,
+        state: 'ready',
+        numTurns: msg.num_turns,
+        sessionId: msg.session_id,
+      }
+
+    default:
+      return info
+  }
+}
+
+// -- Session interface --
 
 export interface SessionCallbacks {
   onMessage: (msg: ClaudeMessage) => void
   onStderr: (text: string) => void
   onStateChange: (info: SessionInfo) => void
   onExit: (code: number) => void
-}
-
-export interface SessionOptions {
-  resumeSessionId?: string
 }
 
 export interface Session {
@@ -20,24 +76,16 @@ export interface Session {
 export function createSession(
   workingDirectory: string,
   callbacks: SessionCallbacks,
-  options?: SessionOptions,
+  resumeSessionId?: string,
 ): Session {
-  let state: SessionState = 'starting'
-  let sessionId: string | null = null
-  let model: string | null = null
-  let numTurns = 0
-  let error: string | null = null
+  let info: SessionInfo = {
+    state: 'starting',
+    sessionId: null,
+    model: null,
+    numTurns: 0,
+    error: null,
+  }
   let proc: ReturnType<typeof Bun.spawn> | null = null
-
-  function getInfo(): SessionInfo {
-    return { sessionId, state, model, numTurns, error }
-  }
-
-  function setState(newState: SessionState, errorMsg?: string) {
-    state = newState
-    if (errorMsg !== undefined) error = errorMsg
-    callbacks.onStateChange(getInfo())
-  }
 
   // Build command args
   const args = [
@@ -49,12 +97,10 @@ export function createSession(
     'stream-json',
     '--input-format',
     'stream-json',
-    '--replay-user-messages',
-    '--include-partial-messages',
   ]
 
-  if (options?.resumeSessionId) {
-    args.push('--resume', options.resumeSessionId)
+  if (resumeSessionId) {
+    args.push('--resume', resumeSessionId)
   }
 
   proc = Bun.spawn(args, {
@@ -77,16 +123,15 @@ export function createSession(
   const decoder = new TextDecoder()
   async function readStdout() {
     const reader = stdout.getReader()
-    let buffer = ''
+    let ndjsonBuffer = ''
     try {
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() ?? ''
-        for (const line of lines) {
-          if (!line.trim()) continue
+        const chunk = decoder.decode(value, { stream: true })
+        const parsed = parseNdjsonBuffer(ndjsonBuffer, chunk)
+        ndjsonBuffer = parsed.buffer
+        for (const line of parsed.lines) {
           try {
             const msg = JSON.parse(line) as ClaudeMessage
             handleMessage(msg)
@@ -96,12 +141,12 @@ export function createSession(
         }
       }
       // Handle any remaining data in buffer
-      if (buffer.trim()) {
+      if (ndjsonBuffer.trim()) {
         try {
-          const msg = JSON.parse(buffer) as ClaudeMessage
+          const msg = JSON.parse(ndjsonBuffer) as ClaudeMessage
           handleMessage(msg)
         } catch {
-          console.error('[session] unparseable trailing:', buffer.slice(0, 200))
+          console.error('[session] unparseable trailing:', ndjsonBuffer.slice(0, 200))
         }
       }
     } catch (err) {
@@ -128,31 +173,17 @@ export function createSession(
   }
 
   function handleMessage(msg: ClaudeMessage) {
-    // Update state based on message type
-    switch (msg.type) {
-      case 'system':
-        if (msg.subtype === 'init') {
-          sessionId = msg.session_id
-          model = msg.model
-        }
-        break
+    // Log non-stream messages (stream events are too noisy)
+    if (msg.type !== 'stream_event') {
+      const detail = 'subtype' in msg ? `:${msg.subtype}` : ''
+      console.log(`[session] ${msg.type}${detail}`)
+    }
 
-      case 'stream_event':
-      case 'assistant':
-        if (state === 'starting' || state === 'ready') {
-          setState('processing')
-        }
-        break
-
-      case 'result':
-        numTurns = msg.num_turns
-        sessionId = msg.session_id
-        if (msg.is_error) {
-          setState('error', msg.error ?? 'Unknown error')
-        } else {
-          setState('ready')
-        }
-        break
+    // Update state via pure function
+    const next = applySessionMessage(info, msg)
+    if (next !== info) {
+      info = next
+      callbacks.onStateChange(info)
     }
 
     callbacks.onMessage(msg)
@@ -161,10 +192,11 @@ export function createSession(
   // Handle process exit
   proc.exited.then((code) => {
     if (code === 0) {
-      setState('exited')
+      info = { ...info, state: 'exited' }
     } else {
-      setState('error', `Process exited with code ${code}`)
+      info = { ...info, state: 'error', error: `Process exited with code ${code}` }
     }
+    callbacks.onStateChange(info)
     callbacks.onExit(code)
     proc = null
   })
@@ -192,5 +224,9 @@ export function createSession(
     }
   }
 
-  return { sendPrompt, kill, getInfo }
+  return {
+    sendPrompt,
+    kill,
+    getInfo: () => info,
+  }
 }
