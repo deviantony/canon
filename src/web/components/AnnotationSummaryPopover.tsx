@@ -1,5 +1,5 @@
 import { Eraser, FileText, MessageSquareShare, Trash2, X } from 'lucide-react'
-import { type Annotation, useAnnotations } from '../context/AnnotationContext'
+import { type CodeAnnotation, useAnnotations } from '../context/AnnotationContext'
 import { useLayout } from '../context/LayoutContext'
 import baseStyles from '../styles/base.module.css'
 import { formatLineBadge, sortAnnotations } from '../utils/annotationUtils'
@@ -42,7 +42,7 @@ export default function AnnotationSummaryPopover({
     onNavigate(file)
   }
 
-  function handleAnnotationClick(annotation: Annotation) {
+  function handleAnnotationClick(annotation: CodeAnnotation) {
     setSummaryPopoverOpen(false)
     onNavigate(annotation.file, annotation.lineStart)
   }

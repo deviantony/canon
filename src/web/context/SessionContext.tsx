@@ -117,8 +117,16 @@ export function processClaudeMessage(
       const blocks = msg.message.content
       const committed: ConversationEntry[] = []
 
-      // Flush streaming text that was built up from stream_event deltas
-      const text = state.streamingText.trim()
+      // Prefer streamed text, but fall back to text from content blocks
+      // (handles cases where stream_event deltas are absent or format changed)
+      let text = state.streamingText.trim()
+      if (!text) {
+        text = blocks
+          .filter((b): b is { type: 'text'; text: string } => b.type === 'text')
+          .map((b) => b.text)
+          .join('\n\n')
+          .trim()
+      }
       if (text) {
         committed.push({
           id: crypto.randomUUID(),

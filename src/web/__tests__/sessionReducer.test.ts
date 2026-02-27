@@ -122,13 +122,6 @@ describe('processClaudeMessage', () => {
       expect(state.messages[0].content).toBe('Hello world')
     })
 
-    it('clears streamingText after flush', () => {
-      let state = emptyState()
-      state = processClaudeMessage(state, textDelta('text'))
-      state = processClaudeMessage(state, assistantSnapshot([{ type: 'text', text: 'text' }]))
-      expect(state.streamingText).toBe('')
-    })
-
     it('commits only streamingText content, ignoring snapshot text blocks', () => {
       let state = emptyState()
       // Stream partial text
@@ -140,6 +133,46 @@ describe('processClaudeMessage', () => {
       )
       // The committed content should be the streamed text, not the snapshot
       expect(state.messages[0].content).toBe('streamed')
+    })
+
+    it('falls back to content blocks when no stream_event deltas arrived', () => {
+      const state = emptyState() // no streamingText
+      const result = processClaudeMessage(
+        state,
+        assistantSnapshot([{ type: 'text', text: 'Hello! How can I help?' }]),
+      )
+      expect(result.streamingText).toBe('')
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].type).toBe('assistant')
+      expect(result.messages[0].content).toBe('Hello! How can I help?')
+    })
+
+    it('falls back to content blocks joining multiple text blocks', () => {
+      const state = emptyState()
+      const result = processClaudeMessage(
+        state,
+        assistantSnapshot([
+          { type: 'text', text: 'First paragraph.' },
+          { type: 'text', text: 'Second paragraph.' },
+        ]),
+      )
+      expect(result.messages).toHaveLength(1)
+      expect(result.messages[0].content).toBe('First paragraph.\n\nSecond paragraph.')
+    })
+
+    it('falls back to content blocks with mixed text and tool_use', () => {
+      const state = emptyState()
+      const result = processClaudeMessage(
+        state,
+        assistantSnapshot([
+          { type: 'text', text: 'Let me check.' },
+          { type: 'tool_use', id: 'tu-1', name: 'Read', input: { path: '/a.ts' } },
+        ]),
+      )
+      expect(result.messages).toHaveLength(2)
+      expect(result.messages[0].type).toBe('assistant')
+      expect(result.messages[0].content).toBe('Let me check.')
+      expect(result.messages[1].type).toBe('tool-use')
     })
 
     it('flushes orphaned streamingText on result when assistant is absent', () => {
@@ -300,6 +333,32 @@ describe('sessionReducer', () => {
   })
 
   describe('integration scenario', () => {
+    it('full turn without streaming: assistant → result (Claude Code ≥2.1.59)', () => {
+      let state = stateWithInfo()
+
+      // User sends prompt
+      state = sessionReducer(state, { type: 'user-prompt', prompt: 'hello' })
+      expect(state.messages).toHaveLength(1)
+
+      // No stream_event deltas — assistant arrives directly with text in content blocks
+      state = sessionReducer(state, {
+        type: 'claude:message',
+        message: assistantSnapshot([{ type: 'text', text: 'Hello! How can I help you today?' }]),
+      })
+      expect(state.streamingText).toBe('')
+      expect(state.messages).toHaveLength(2)
+      expect(state.messages[1].type).toBe('assistant')
+      expect(state.messages[1].content).toBe('Hello! How can I help you today?')
+
+      // Result wraps up
+      state = sessionReducer(state, {
+        type: 'claude:message',
+        message: resultSuccess({ num_turns: 1 }),
+      })
+      expect(state.messages).toHaveLength(3)
+      expect(state.messages[2].type).toBe('result')
+    })
+
     it('full turn: stream deltas → assistant → user tool results → result', () => {
       let state = stateWithInfo()
 

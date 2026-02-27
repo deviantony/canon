@@ -9,16 +9,22 @@
 .centered {
   max-width: 860px;
   margin: 0 auto;
+  position: relative;
 }
 
 /* ─── Messages ─────────────────────────────────────────────────────────────── */
 
 .msg {
   padding: var(--space-4);
+  position: relative;
 }
 
 .msg + .msg {
   border-top: 1px solid var(--border-subtle);
+}
+
+.msgAnnotatable .mdContent ::selection {
+  background: var(--color-gold-alpha-15);
 }
 
 .msgRole {
@@ -36,10 +42,42 @@
 
 .roleAssistant {
   color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .roleError {
   color: var(--status-error);
+}
+
+/* ─── Role annotation button (pencil next to "Claude") ─────────────────────── */
+
+.roleAnn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: transparent;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.msgAnnotatable:hover .roleAnn {
+  color: var(--accent-gold-muted);
+  border-color: var(--color-gold-alpha-15);
+  background: var(--color-gold-alpha-04);
+}
+
+.msgAnnotatable .roleAnn:hover {
+  color: var(--accent-gold);
+  border-color: var(--color-gold-alpha-25);
+  background: var(--color-gold-alpha-08);
 }
 
 .msgText {
@@ -218,6 +256,36 @@
   margin: var(--space-2) var(--space-4);
 }
 
+.toolRowInner {
+  display: flex;
+  align-items: center;
+}
+
+.toolLeftAnn {
+  width: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--accent-gold-muted);
+  font-size: 9px;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-smooth);
+  padding: 0;
+}
+
+.toolRowInner:hover .toolLeftAnn {
+  width: 18px;
+  margin-right: var(--space-1);
+}
+
+.toolLeftAnn:hover {
+  color: var(--accent-gold);
+}
+
 .toolRowHeader {
   display: flex;
   align-items: center;
@@ -392,9 +460,8 @@
   padding: var(--space-1) 0;
 }
 
-.annotationFileChip {
+.annotationChip {
   font-family: var(--font-mono);
-  font-size: 10px;
   padding: 1px 6px;
   background: var(--color-gold-alpha-06);
   border: 1px solid var(--color-gold-alpha-15);
@@ -404,7 +471,18 @@
   flex-shrink: 0;
 }
 
-.annotationFileChipQuestion {
+.annotationFileChip {
+  font-size: 10px;
+}
+
+.annotationConvChip {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.annotationChipQuestion {
   background: var(--color-question-alpha-06);
   border-color: var(--color-question-alpha-15);
   color: var(--accent-question);
@@ -462,6 +540,329 @@
   50% {
     opacity: 0.3;
   }
+}
+
+/* ─── Selection toolbar ────────────────────────────────────────────────────── */
+
+.selBar {
+  position: absolute;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 2px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.12s,
+    transform 0.12s var(--ease-smooth);
+  transform: translateX(-50%) translateY(-4px);
+}
+
+.selBarShow {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.selBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  white-space: nowrap;
+}
+
+.selBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.selIco {
+  font-size: 11px;
+}
+
+.selIcoGold {
+  color: var(--accent-gold);
+}
+
+.selIcoBlue {
+  color: var(--accent-question);
+}
+
+.selSep {
+  width: 1px;
+  height: 16px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/* ─── Annotation widget (inline) ──────────────────────────────────────────── */
+
+.annSlot {
+  padding: 0 var(--space-4);
+}
+
+.annWidget {
+  margin: var(--space-3) 0 var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-gold-alpha-25);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-card);
+  animation: annIn 0.2s var(--ease-smooth);
+}
+
+.annWidgetQuestion {
+  border-color: var(--color-question-alpha-15);
+  background: radial-gradient(
+    ellipse 200px 120px at top left,
+    var(--color-question-alpha-06) 0%,
+    rgba(122, 159, 196, 0.02) 40%,
+    transparent 70%
+  );
+}
+
+@keyframes annIn {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.annWidgetHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.annBadge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--color-gold-alpha-08);
+  color: var(--accent-gold);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--duration-fast);
+  border: none;
+}
+
+.annBadge:hover {
+  background: var(--color-gold-alpha-15);
+}
+
+.annBadgeQuestion {
+  background: var(--color-question-alpha-08);
+  color: var(--accent-question);
+}
+
+.annBadgeQuestion:hover {
+  background: var(--color-question-alpha-15);
+}
+
+.annKind {
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--accent-gold);
+  flex-shrink: 0;
+}
+
+.annKindQuestion {
+  color: var(--accent-question);
+}
+
+.annQuote {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  padding: var(--space-1) var(--space-2);
+  margin-bottom: var(--space-2);
+  background: var(--bg-elevated);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid var(--color-gold-alpha-25);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.annInput {
+  width: 100%;
+  min-height: 36px;
+  max-height: 120px;
+  padding: 6px 10px;
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  resize: none;
+  outline: none;
+}
+
+.annInput::placeholder {
+  color: var(--text-muted);
+}
+
+.annInput:focus {
+  border-color: var(--accent-gold-muted);
+}
+
+.annFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+}
+
+.annKeys {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+}
+
+.annKeys kbd {
+  padding: 1px 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.annBtns {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btnCancel {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.btnCancel:hover {
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.btnSave {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--accent-gold);
+  color: var(--bg-void);
+  cursor: pointer;
+  transition: all var(--duration-fast);
+}
+
+.btnSave:hover {
+  background: var(--accent-gold-bright);
+}
+
+.btnSave:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ─── Saved annotation card ───────────────────────────────────────────────── */
+
+.annSaved {
+  margin: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-gold-alpha-15);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-card);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  animation: annIn 0.2s var(--ease-smooth);
+}
+
+.annSaved .annBadge {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.annSavedText {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.annSavedActions {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity var(--duration-fast);
+}
+
+.annSaved:hover .annSavedActions {
+  opacity: 1;
+}
+
+.annSavedBtn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 10px;
+  transition: all var(--duration-fast);
+}
+
+.annSavedBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.annSavedBtnDel:hover {
+  color: var(--status-error);
 }
 
 /* ─── Empty state ──────────────────────────────────────────────────────────── */

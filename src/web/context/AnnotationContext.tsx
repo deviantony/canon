@@ -1,49 +1,42 @@
-import { createContext, type ReactNode, useCallback, useContext, useState } from 'react'
+import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react'
 import type { AnnotationKind } from '../../shared/types'
-import { groupAnnotationsByFile, sortAnnotations } from '../utils/annotationUtils'
+import { groupAnnotationsByFile } from '../utils/annotationUtils'
+import { formatAnnotationsAsXml } from '../utils/annotationXml'
 
-function escapeXml(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
+// ─── Discriminated union annotation types ─────────────────────────────────────
 
-export interface Annotation {
+interface BaseAnnotation {
   id: string
-  file: string
-  lineStart: number
-  lineEnd?: number
   comment: string
   kind: AnnotationKind
 }
 
-function formatAnnotationXml(items: Annotation[], indent: string): string {
-  const byFile = groupAnnotationsByFile(items)
-  let xml = ''
-  for (const [file, fileAnnotations] of byFile) {
-    xml += `${indent}<file path="${escapeXml(file)}">\n`
-    const sorted = sortAnnotations(fileAnnotations)
-    for (const annotation of sorted) {
-      if (annotation.lineStart === 0) {
-        xml += `${indent}  <annotation type="file">\n`
-      } else if (annotation.lineEnd && annotation.lineEnd !== annotation.lineStart) {
-        xml += `${indent}  <annotation type="range" start="${annotation.lineStart}" end="${annotation.lineEnd}">\n`
-      } else {
-        xml += `${indent}  <annotation type="line" line="${annotation.lineStart}">\n`
-      }
-      xml += `${indent}    <comment>${escapeXml(annotation.comment)}</comment>\n`
-      xml += `${indent}  </annotation>\n`
-    }
-    xml += `${indent}</file>\n`
-  }
-  return xml
+export interface CodeAnnotation extends BaseAnnotation {
+  target: 'code'
+  file: string
+  lineStart: number
+  lineEnd?: number
 }
+
+export interface ConversationAnnotation extends BaseAnnotation {
+  target: 'conversation'
+  messageId: string
+  quote?: string
+}
+
+export interface ToolCallAnnotation extends BaseAnnotation {
+  target: 'tool-call'
+  toolUseId: string
+  toolLabel: string
+}
+
+export type Annotation = CodeAnnotation | ConversationAnnotation | ToolCallAnnotation
+
+// ─── Context interface ────────────────────────────────────────────────────────
 
 interface AnnotationContextValue {
   annotations: Annotation[]
+  codeAnnotations: CodeAnnotation[]
   addAnnotation: (
     file: string,
     lineStart: number,
@@ -51,13 +44,26 @@ interface AnnotationContextValue {
     lineEnd?: number,
     kind?: AnnotationKind,
   ) => void
+  addConversationAnnotation: (
+    messageId: string,
+    comment: string,
+    quote?: string,
+    kind?: AnnotationKind,
+  ) => void
+  addToolCallAnnotation: (
+    toolUseId: string,
+    toolLabel: string,
+    comment: string,
+    kind?: AnnotationKind,
+  ) => void
   updateAnnotation: (id: string, comment: string) => void
   updateAnnotationKind: (id: string, kind: AnnotationKind) => void
   removeAnnotation: (id: string) => void
   clearAllAnnotations: () => void
-  getAnnotationsForFile: (file: string) => Annotation[]
-  getAnnotationsGroupedByFile: () => Map<string, Annotation[]>
-  getFileAnnotation: (file: string) => Annotation | undefined
+  getAnnotationsForFile: (file: string) => CodeAnnotation[]
+  getAnnotationsGroupedByFile: () => Map<string, CodeAnnotation[]>
+  getFileAnnotation: (file: string) => CodeAnnotation | undefined
+  getAnnotationsForMessage: (messageId: string) => (ConversationAnnotation | ToolCallAnnotation)[]
   formatAsXml: () => string
 }
 
@@ -74,11 +80,42 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
       lineEnd?: number,
       kind: AnnotationKind = 'action',
     ) => {
-      const annotation: Annotation = {
+      const annotation: CodeAnnotation = {
         id: crypto.randomUUID(),
+        target: 'code',
         file,
         lineStart,
         lineEnd,
+        comment,
+        kind,
+      }
+      setAnnotations((prev) => [...prev, annotation])
+    },
+    [],
+  )
+
+  const addConversationAnnotation = useCallback(
+    (messageId: string, comment: string, quote?: string, kind: AnnotationKind = 'action') => {
+      const annotation: ConversationAnnotation = {
+        id: crypto.randomUUID(),
+        target: 'conversation',
+        messageId,
+        quote,
+        comment,
+        kind,
+      }
+      setAnnotations((prev) => [...prev, annotation])
+    },
+    [],
+  )
+
+  const addToolCallAnnotation = useCallback(
+    (toolUseId: string, toolLabel: string, comment: string, kind: AnnotationKind = 'action') => {
+      const annotation: ToolCallAnnotation = {
+        id: crypto.randomUUID(),
+        target: 'tool-call',
+        toolUseId,
+        toolLabel,
         comment,
         kind,
       }
@@ -103,57 +140,46 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
     setAnnotations([])
   }, [])
 
-  const getAnnotationsForFile = useCallback(
-    (file: string) => annotations.filter((a) => a.file === file),
+  const codeAnnotations = useMemo(
+    () => annotations.filter((a): a is CodeAnnotation => a.target === 'code'),
     [annotations],
+  )
+
+  const getAnnotationsForFile = useCallback(
+    (file: string) => codeAnnotations.filter((a) => a.file === file),
+    [codeAnnotations],
   )
 
   const getAnnotationsGroupedByFile = useCallback(
-    () => groupAnnotationsByFile(annotations),
-    [annotations],
+    () => groupAnnotationsByFile(codeAnnotations),
+    [codeAnnotations],
   )
 
   const getFileAnnotation = useCallback(
-    (file: string) => annotations.find((a) => a.file === file && a.lineStart === 0),
+    (file: string) => codeAnnotations.find((a) => a.file === file && a.lineStart === 0),
+    [codeAnnotations],
+  )
+
+  const getAnnotationsForMessage = useCallback(
+    (messageId: string): (ConversationAnnotation | ToolCallAnnotation)[] =>
+      annotations.filter(
+        (a): a is ConversationAnnotation | ToolCallAnnotation =>
+          (a.target === 'conversation' && a.messageId === messageId) ||
+          (a.target === 'tool-call' && a.toolUseId === messageId),
+      ),
     [annotations],
   )
 
-  const formatAsXml = useCallback(() => {
-    if (annotations.length === 0) return ''
-
-    const actions = annotations.filter((a) => a.kind !== 'question')
-    const questions = annotations.filter((a) => a.kind === 'question')
-
-    const byFile = groupAnnotationsByFile(annotations)
-    const actionCount = actions.length
-    const questionCount = questions.length
-    const fileCount = byFile.size
-
-    let xml = '<code-review-feedback>\n'
-
-    if (actionCount > 0) {
-      xml += '  <actions>\n'
-      xml += formatAnnotationXml(actions, '    ')
-      xml += '  </actions>\n'
-    }
-
-    if (questionCount > 0) {
-      xml += '  <questions>\n'
-      xml += formatAnnotationXml(questions, '    ')
-      xml += '  </questions>\n'
-    }
-
-    xml += `  <summary actions="${actionCount}" questions="${questionCount}" files="${fileCount}" />\n`
-    xml += '</code-review-feedback>'
-
-    return xml
-  }, [annotations])
+  const formatAsXml = useCallback(() => formatAnnotationsAsXml(annotations), [annotations])
 
   return (
     <AnnotationContext.Provider
       value={{
         annotations,
+        codeAnnotations,
         addAnnotation,
+        addConversationAnnotation,
+        addToolCallAnnotation,
         updateAnnotation,
         updateAnnotationKind,
         removeAnnotation,
@@ -161,6 +187,7 @@ export function AnnotationProvider({ children }: { children: ReactNode }) {
         getAnnotationsForFile,
         getAnnotationsGroupedByFile,
         getFileAnnotation,
+        getAnnotationsForMessage,
         formatAsXml,
       }}
     >

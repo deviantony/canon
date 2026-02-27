@@ -1,22 +1,4 @@
-import type {
-  Annotation,
-  CodeAnnotation,
-  ConversationAnnotation,
-} from '../context/AnnotationContext'
-
-/**
- * Type guard for code annotations
- */
-export function isCodeAnnotation(a: Annotation): a is CodeAnnotation {
-  return a.target === 'code'
-}
-
-/**
- * Type guard for conversation annotations
- */
-export function isConversationAnnotation(a: Annotation): a is ConversationAnnotation {
-  return a.target === 'conversation'
-}
+import type { CodeAnnotation } from '../context/AnnotationContext'
 
 /**
  * Format a line badge string for display (e.g., "File", "L42", "L10-15")
@@ -51,21 +33,6 @@ export function groupAnnotationsByFile(
     byFile.set(annotation.file, existing)
   }
   return byFile
-}
-
-/**
- * Group conversation annotations by messageId
- */
-export function groupConversationAnnotations(
-  annotations: ConversationAnnotation[],
-): Map<string, ConversationAnnotation[]> {
-  const byMessage = new Map<string, ConversationAnnotation[]>()
-  for (const annotation of annotations) {
-    const existing = byMessage.get(annotation.messageId) || []
-    existing.push(annotation)
-    byMessage.set(annotation.messageId, existing)
-  }
-  return byMessage
 }
 
 /**

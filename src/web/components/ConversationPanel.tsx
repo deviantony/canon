@@ -1,72 +1,15 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import type { AnnotationKind } from '../../shared/types'
+import {
+  type ConversationAnnotation,
+  type ToolCallAnnotation,
+  useAnnotations,
+} from '../context/AnnotationContext'
 import { type ConversationEntry, useSession } from '../context/SessionContext'
+import { isAuroreFeedback, type ParsedAnnotation, parseAnnotationXml } from '../utils/annotationXml'
 import styles from './ConversationPanel.module.css'
-
-// ─── XML annotation parser ───────────────────────────────────────────────────
-
-interface ParsedAnnotation {
-  file: string
-  line: string
-  type: string
-  comment: string
-}
-
-interface ParsedFeedback {
-  actions: ParsedAnnotation[]
-  questions: ParsedAnnotation[]
-  additionalContext: string
-  summary: { actions: number; questions: number; files: number }
-}
-
-function parseAnnotationXml(fullContent: string): ParsedFeedback | null {
-  if (!fullContent.includes('<code-review-feedback>')) return null
-
-  const xmlEndIdx = fullContent.indexOf('</code-review-feedback>')
-  const xml =
-    xmlEndIdx > -1
-      ? fullContent.slice(0, xmlEndIdx + '</code-review-feedback>'.length)
-      : fullContent
-  const additionalContext =
-    xmlEndIdx > -1 ? fullContent.slice(xmlEndIdx + '</code-review-feedback>'.length).trim() : ''
-
-  const doc = new DOMParser().parseFromString(xml, 'text/xml')
-  if (doc.querySelector('parsererror')) return null
-
-  const actions: ParsedAnnotation[] = []
-  const questions: ParsedAnnotation[] = []
-  const files = new Set<string>()
-
-  function parseSection(sectionName: string, target: ParsedAnnotation[]) {
-    const section = doc.querySelector(sectionName)
-    if (!section) return
-    for (const file of section.querySelectorAll('file')) {
-      const filePath = file.getAttribute('path') ?? ''
-      files.add(filePath)
-      for (const ann of file.querySelectorAll('annotation')) {
-        target.push({
-          file: filePath,
-          line: ann.getAttribute('line') ?? '',
-          type: ann.getAttribute('type') ?? '',
-          comment: ann.querySelector('comment')?.textContent?.trim() ?? '',
-        })
-      }
-    }
-  }
-
-  parseSection('actions', actions)
-  parseSection('questions', questions)
-
-  if (actions.length === 0 && questions.length === 0) return null
-
-  return {
-    actions,
-    questions,
-    additionalContext,
-    summary: { actions: actions.length, questions: questions.length, files: files.size },
-  }
-}
 
 function shortenPath(path: string): string {
   const parts = path.split('/')
@@ -75,7 +18,7 @@ function shortenPath(path: string): string {
 
 // ─── Tool call helpers ───────────────────────────────────────────────────────
 
-function getToolTarget(entry: ConversationEntry): string {
+function extractToolTarget(entry: ConversationEntry): string {
   if (!entry.toolInput) return ''
   const input = entry.toolInput
   return (
@@ -108,6 +51,28 @@ function getToolVerb(name: string): string {
       return 'Searched'
     default:
       return name
+  }
+}
+
+function getToolTarget(tool: MergedToolEntry): string {
+  if (tool.toolName === 'Bash') return tool.targets[0] ?? 'command'
+  if (tool.targets.length > 1)
+    return `${tool.targets.length} ${tool.toolName === 'Read' ? 'files' : 'targets'}`
+  return tool.targets[0] ? shortenPath(tool.targets[0]) : tool.toolName
+}
+
+function getToolLabel(tool: MergedToolEntry): string {
+  return `${getToolVerb(tool.toolName)} ${getToolTarget(tool)}`
+}
+
+function getStatusInfo(status: 'running' | 'done' | 'error'): { className: string; label: string } {
+  switch (status) {
+    case 'done':
+      return { className: styles.toolBadgeDone, label: 'Done' }
+    case 'error':
+      return { className: styles.toolBadgeError, label: 'Error' }
+    case 'running':
+      return { className: styles.toolBadgeRunning, label: 'Running' }
   }
 }
 
@@ -207,7 +172,7 @@ function mergeToolEntries(messages: ConversationEntry[]): (ConversationEntry | M
         messages[j].type === 'tool-use' &&
         messages[j].toolName === toolName
       ) {
-        targets.push(getToolTarget(messages[j]))
+        targets.push(extractToolTarget(messages[j]))
         if (messages[j].toolId) toolIds.push(messages[j].toolId as string)
         j++
       }
@@ -252,7 +217,142 @@ function mergeToolEntries(messages: ConversationEntry[]): (ConversationEntry | M
   return result
 }
 
+// ─── Annotation widget ───────────────────────────────────────────────────────
+
+interface AnnotationWidgetProps {
+  badge: string
+  quote?: string
+  initialKind?: AnnotationKind
+  onSave: (comment: string, kind: AnnotationKind) => void
+  onCancel: () => void
+}
+
+function AnnotationWidget({
+  badge,
+  quote,
+  initialKind = 'action',
+  onSave,
+  onCancel,
+}: AnnotationWidgetProps) {
+  const [comment, setComment] = useState('')
+  const [kind, setKind] = useState<AnnotationKind>(initialKind)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  useEffect(() => {
+    textareaRef.current?.focus()
+  }, [])
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      if (comment.trim()) onSave(comment.trim(), kind)
+    } else if (e.key === 'Escape') {
+      onCancel()
+    } else if (e.key === 'q' && comment === '' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault()
+      setKind((k) => (k === 'action' ? 'question' : 'action'))
+    }
+  }
+
+  const isQuestion = kind === 'question'
+
+  return (
+    <div className={`${styles.annWidget} ${isQuestion ? styles.annWidgetQuestion : ''}`}>
+      <div className={styles.annWidgetHead}>
+        <button
+          type="button"
+          className={`${styles.annBadge} ${isQuestion ? styles.annBadgeQuestion : ''}`}
+          onClick={() => setKind((k) => (k === 'action' ? 'question' : 'action'))}
+        >
+          {badge}
+        </button>
+        <span className={`${styles.annKind} ${isQuestion ? styles.annKindQuestion : ''}`}>
+          {isQuestion ? '?' : '\u270E'}
+        </span>
+      </div>
+      {quote && <div className={styles.annQuote}>{quote}</div>}
+      <textarea
+        ref={textareaRef}
+        className={styles.annInput}
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={isQuestion ? 'Ask a question...' : 'Add your comment...'}
+      />
+      <div className={styles.annFoot}>
+        <span className={styles.annKeys}>
+          <kbd>{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}</kbd>+<kbd>Enter</kbd> save
+          &middot; <kbd>Esc</kbd> cancel
+        </span>
+        <div className={styles.annBtns}>
+          <button type="button" className={styles.btnCancel} onClick={onCancel}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            className={styles.btnSave}
+            onClick={() => comment.trim() && onSave(comment.trim(), kind)}
+            disabled={!comment.trim()}
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Saved annotation card ───────────────────────────────────────────────────
+
+function SavedAnnotationCard({
+  annotation,
+  onDelete,
+}: {
+  annotation: ConversationAnnotation | ToolCallAnnotation
+  onDelete: (id: string) => void
+}) {
+  const badge = annotation.target === 'conversation' ? 'CONV' : annotation.toolLabel
+  const isQuestion = annotation.kind === 'question'
+
+  return (
+    <div className={styles.annSaved}>
+      <span className={`${styles.annBadge} ${isQuestion ? styles.annBadgeQuestion : ''}`}>
+        {badge}
+      </span>
+      <span className={styles.annSavedText}>{annotation.comment}</span>
+      <div className={styles.annSavedActions}>
+        <button
+          type="button"
+          className={`${styles.annSavedBtn} ${styles.annSavedBtnDel}`}
+          onClick={() => onDelete(annotation.id)}
+          title="Delete"
+        >
+          &#10005;
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ─── Message components ──────────────────────────────────────────────────────
+
+function AnnotationChip({ ann, isQuestion }: { ann: ParsedAnnotation; isQuestion: boolean }) {
+  const questionClass = isQuestion ? styles.annotationChipQuestion : ''
+  if (ann.source === 'code') {
+    return (
+      <span className={`${styles.annotationChip} ${styles.annotationFileChip} ${questionClass}`}>
+        {shortenPath(ann.file)}:{ann.line}
+      </span>
+    )
+  }
+  // Conversation or tool-call annotation
+  const label = ann.source === 'tool-call' ? 'Tool' : 'Conv'
+  return (
+    <span className={`${styles.annotationChip} ${styles.annotationConvChip} ${questionClass}`}>
+      {label}
+    </span>
+  )
+}
 
 function AnnotationMessage({ content }: { content: string }) {
   const parsed = parseAnnotationXml(content)
@@ -260,13 +360,21 @@ function AnnotationMessage({ content }: { content: string }) {
     return <div className={styles.msgText}>{content}</div>
   }
 
+  const { files, conversationAnnotations } = parsed.summary
+  const metaParts: string[] = []
+  if (files > 0) metaParts.push(`${files} ${files === 1 ? 'file' : 'files'}`)
+  if (conversationAnnotations > 0)
+    metaParts.push(
+      `${conversationAnnotations} conversation ${conversationAnnotations === 1 ? 'note' : 'notes'}`,
+    )
+
   return (
     <div className={styles.annotationFeedback}>
       <div className={styles.annotationHeader}>
         Review
-        <span className={styles.annotationMeta}>
-          {parsed.summary.files} {parsed.summary.files === 1 ? 'file' : 'files'}
-        </span>
+        {metaParts.length > 0 && (
+          <span className={styles.annotationMeta}>{metaParts.join(' \u00B7 ')}</span>
+        )}
       </div>
 
       {parsed.additionalContext && (
@@ -281,10 +389,8 @@ function AnnotationMessage({ content }: { content: string }) {
             <span className={styles.annotationCount}>{parsed.actions.length}</span>
           </div>
           {parsed.actions.map((a, i) => (
-            <div key={`action-${i}-${a.line}`} className={styles.annotationItem}>
-              <span className={styles.annotationFileChip}>
-                {shortenPath(a.file)}:{a.line}
-              </span>
+            <div key={`action-${i}-${a.line}-${a.source}`} className={styles.annotationItem}>
+              <AnnotationChip ann={a} isQuestion={false} />
               <span className={styles.annotationComment}>{a.comment}</span>
             </div>
           ))}
@@ -301,10 +407,8 @@ function AnnotationMessage({ content }: { content: string }) {
             </span>
           </div>
           {parsed.questions.map((q, i) => (
-            <div key={`question-${i}-${q.line}`} className={styles.annotationItem}>
-              <span className={`${styles.annotationFileChip} ${styles.annotationFileChipQuestion}`}>
-                {shortenPath(q.file)}:{q.line}
-              </span>
+            <div key={`question-${i}-${q.line}-${q.source}`} className={styles.annotationItem}>
+              <AnnotationChip ann={q} isQuestion />
               <span className={styles.annotationComment}>{q.comment}</span>
             </div>
           ))}
@@ -314,43 +418,45 @@ function AnnotationMessage({ content }: { content: string }) {
   )
 }
 
-function ToolRow({ tool }: { tool: MergedToolEntry }) {
+function ToolRow({
+  tool,
+  onAnnotate,
+}: {
+  tool: MergedToolEntry
+  onAnnotate: (toolId: string) => void
+}) {
   const [expanded, setExpanded] = useState(false)
   const verb = getToolVerb(tool.toolName)
+  const label = getToolTarget(tool)
   const count = tool.targets.length
-
-  let label: string
-  if (tool.toolName === 'Bash') {
-    label = tool.targets[0] ?? 'command'
-  } else if (count > 1) {
-    label = `${count} ${tool.toolName === 'Read' ? 'files' : 'targets'}`
-  } else {
-    label = tool.targets[0] ? shortenPath(tool.targets[0]) : ''
-  }
+  const statusInfo = getStatusInfo(tool.status)
 
   return (
     <div className={styles.toolRow}>
-      <button
-        className={styles.toolRowHeader}
-        type="button"
-        onClick={() => count > 1 && setExpanded(!expanded)}
-        style={{ cursor: count > 1 ? 'pointer' : 'default' }}
-      >
-        <span className={styles.toolVerb}>{verb}</span>
-        <span className={styles.toolLabel}>{label}</span>
-        {count > 1 && <span className={styles.toolExpand}>{expanded ? '\u25B4' : '\u25BE'}</span>}
-        <span
-          className={`${styles.toolBadge} ${
-            tool.status === 'done'
-              ? styles.toolBadgeDone
-              : tool.status === 'error'
-                ? styles.toolBadgeError
-                : styles.toolBadgeRunning
-          }`}
+      <div className={styles.toolRowInner}>
+        <button
+          type="button"
+          className={styles.toolLeftAnn}
+          onClick={(e) => {
+            e.stopPropagation()
+            onAnnotate(tool.id)
+          }}
+          title="Annotate this tool call"
         >
-          {tool.status === 'done' ? 'Done' : tool.status === 'error' ? 'Error' : 'Running'}
-        </span>
-      </button>
+          &#9998;
+        </button>
+        <button
+          className={styles.toolRowHeader}
+          type="button"
+          onClick={() => count > 1 && setExpanded(!expanded)}
+          style={{ cursor: count > 1 ? 'pointer' : 'default' }}
+        >
+          <span className={styles.toolVerb}>{verb}</span>
+          <span className={styles.toolLabel}>{label}</span>
+          {count > 1 && <span className={styles.toolExpand}>{expanded ? '\u25B4' : '\u25BE'}</span>}
+          <span className={`${styles.toolBadge} ${statusInfo.className}`}>{statusInfo.label}</span>
+        </button>
+      </div>
 
       {expanded && count > 1 && (
         <div className={styles.toolExpandedList}>
@@ -382,16 +488,156 @@ const MarkdownContent = memo(function MarkdownContent({ content }: { content: st
   )
 })
 
-function MessageEntry({ entry }: { entry: ConversationEntry | MergedToolEntry }) {
+// ─── Selection toolbar ───────────────────────────────────────────────────────
+
+function SelectionToolbar({
+  convRef,
+  onAnnotate,
+}: {
+  convRef: React.RefObject<HTMLDivElement | null>
+  onAnnotate: (quote: string, kind: AnnotationKind, messageId: string) => void
+}) {
+  const barRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  const selDataRef = useRef<{ quote: string; messageId: string } | null>(null)
+
+  const position = useCallback(() => {
+    const sel = window.getSelection()
+    if (!sel || sel.isCollapsed || !convRef.current || !barRef.current) {
+      setVisible(false)
+      return
+    }
+
+    // Check selection is inside an annotatable message body
+    const range = sel.getRangeAt(0)
+    const msgBody = (range.commonAncestorContainer as Element).closest
+      ? (range.commonAncestorContainer as Element).closest(`.${styles.mdContent}`)
+      : range.commonAncestorContainer.parentElement?.closest(`.${styles.mdContent}`)
+    if (!msgBody) {
+      setVisible(false)
+      return
+    }
+
+    // Walk up to find the message container with data-message-id
+    const msgEl = msgBody.closest(`[data-message-id]`)
+    if (!msgEl) {
+      setVisible(false)
+      return
+    }
+
+    const quote = sel.toString().trim()
+    if (!quote) {
+      setVisible(false)
+      return
+    }
+
+    const messageId = msgEl.getAttribute('data-message-id') as string
+    selDataRef.current = { quote, messageId }
+
+    const rects = range.getClientRects()
+    const firstRect = rects[0]
+    const convRect = convRef.current.getBoundingClientRect()
+
+    const bar = barRef.current
+    bar.style.left = `${firstRect.left - convRect.left + firstRect.width / 2}px`
+    bar.style.top = `${firstRect.top - convRect.top - 36}px`
+    setVisible(true)
+  }, [convRef])
+
+  useEffect(() => {
+    document.addEventListener('mouseup', position)
+    return () => document.removeEventListener('mouseup', position)
+  }, [position])
+
+  // Hide on scroll
+  useEffect(() => {
+    const el = convRef.current?.closest(`.${styles.panel}`)
+    if (!el) return
+    const hide = () => setVisible(false)
+    el.addEventListener('scroll', hide, { passive: true })
+    return () => el.removeEventListener('scroll', hide)
+  }, [convRef])
+
+  function handleClick(kind: AnnotationKind) {
+    if (!selDataRef.current) return
+    const { quote, messageId } = selDataRef.current
+    window.getSelection()?.removeAllRanges()
+    setVisible(false)
+    onAnnotate(quote, kind, messageId)
+  }
+
+  return (
+    <div ref={barRef} className={`${styles.selBar} ${visible ? styles.selBarShow : ''}`}>
+      <button type="button" className={styles.selBtn} onClick={() => handleClick('action')}>
+        <span className={`${styles.selIco} ${styles.selIcoGold}`}>&#9998;</span> Annotate
+      </button>
+      <div className={styles.selSep} />
+      <button type="button" className={styles.selBtn} onClick={() => handleClick('question')}>
+        <span className={`${styles.selIco} ${styles.selIcoBlue}`}>?</span> Question
+      </button>
+    </div>
+  )
+}
+
+// ─── Message entry with annotation support ───────────────────────────────────
+
+type OpenWidget =
+  | { type: 'msg'; id: string; quote?: string; kind?: AnnotationKind }
+  | { type: 'tool'; id: string }
+
+function MessageEntry({
+  entry,
+  openWidget,
+  onOpenWidget,
+  onCloseWidget,
+  onToolAnnotate,
+}: {
+  entry: ConversationEntry | MergedToolEntry
+  openWidget: OpenWidget | null
+  onOpenWidget: (id: string) => void
+  onCloseWidget: () => void
+  onToolAnnotate: (toolId: string) => void
+}) {
+  const {
+    addConversationAnnotation,
+    addToolCallAnnotation,
+    getAnnotationsForMessage,
+    removeAnnotation,
+  } = useAnnotations()
+
   if ('kind' in entry && entry.kind === 'tool') {
-    return <ToolRow tool={entry} />
+    const toolAnnotations = getAnnotationsForMessage(entry.id)
+    const showToolWidget = openWidget?.type === 'tool' && openWidget.id === entry.id
+
+    return (
+      <>
+        <ToolRow tool={entry} onAnnotate={onToolAnnotate} />
+        {showToolWidget && (
+          <div className={styles.annSlot}>
+            <AnnotationWidget
+              badge={getToolLabel(entry)}
+              onSave={(comment, kind) => {
+                addToolCallAnnotation(entry.id, getToolLabel(entry), comment, kind)
+                onCloseWidget()
+              }}
+              onCancel={onCloseWidget}
+            />
+          </div>
+        )}
+        {toolAnnotations.map((ann) => (
+          <div key={ann.id} className={styles.annSlot}>
+            <SavedAnnotationCard annotation={ann} onDelete={removeAnnotation} />
+          </div>
+        ))}
+      </>
+    )
   }
 
   const msg = entry as ConversationEntry
 
   switch (msg.type) {
     case 'user-prompt': {
-      const isAnnotation = msg.content.includes('<code-review-feedback>')
+      const isAnnotation = isAuroreFeedback(msg.content)
       return (
         <div className={styles.msg}>
           <div className={`${styles.msgRole} ${styles.roleUser}`}>You</div>
@@ -404,15 +650,52 @@ function MessageEntry({ entry }: { entry: ConversationEntry | MergedToolEntry })
       )
     }
 
-    case 'assistant':
+    case 'assistant': {
+      const messageAnnotations = getAnnotationsForMessage(msg.id)
+      const isThisMsg = openWidget?.type === 'msg' && openWidget.id === msg.id
+      const showWidget = isThisMsg && !openWidget.quote
+      const showQuoteWidget = isThisMsg && !!openWidget.quote
+      const widgetQuote = isThisMsg ? openWidget.quote : undefined
+      const widgetKind = isThisMsg ? (openWidget.kind ?? 'action') : 'action'
+
       return (
-        <div className={styles.msg}>
-          <div className={`${styles.msgRole} ${styles.roleAssistant}`}>Claude</div>
+        <div className={`${styles.msg} ${styles.msgAnnotatable}`} data-message-id={msg.id}>
+          <div className={`${styles.msgRole} ${styles.roleAssistant}`}>
+            Claude
+            <button
+              type="button"
+              className={styles.roleAnn}
+              title="Annotate this message"
+              onClick={() => onOpenWidget(msg.id)}
+            >
+              &#9998;
+            </button>
+          </div>
           <div className={styles.mdContent}>
             <MarkdownContent content={msg.content} />
           </div>
+          {(showWidget || showQuoteWidget) && (
+            <div className={styles.annSlot}>
+              <AnnotationWidget
+                badge="CONV"
+                quote={widgetQuote}
+                initialKind={showQuoteWidget ? widgetKind : 'action'}
+                onSave={(comment, kind) => {
+                  addConversationAnnotation(msg.id, comment, widgetQuote, kind)
+                  onCloseWidget()
+                }}
+                onCancel={onCloseWidget}
+              />
+            </div>
+          )}
+          {messageAnnotations.map((ann) => (
+            <div key={ann.id} className={styles.annSlot}>
+              <SavedAnnotationCard annotation={ann} onDelete={removeAnnotation} />
+            </div>
+          ))}
         </div>
       )
+    }
 
     case 'result':
       return (
@@ -445,6 +728,8 @@ function MessageEntry({ entry }: { entry: ConversationEntry | MergedToolEntry })
 export default function ConversationPanel() {
   const { messages, streamingText, sessionInfo } = useSession()
   const scrollRef = useRef<HTMLDivElement>(null)
+  const convRef = useRef<HTMLDivElement>(null)
+  const [openWidget, setOpenWidget] = useState<OpenWidget | null>(null)
 
   const merged = useMemo(() => mergeToolEntries(messages), [messages])
 
@@ -456,6 +741,25 @@ export default function ConversationPanel() {
       el.scrollTop = el.scrollHeight
     }
   }, [messages, streamingText])
+
+  const handleOpenWidget = useCallback((id: string) => {
+    setOpenWidget({ type: 'msg', id })
+  }, [])
+
+  const handleCloseWidget = useCallback(() => {
+    setOpenWidget(null)
+  }, [])
+
+  const handleToolAnnotate = useCallback((toolId: string) => {
+    setOpenWidget({ type: 'tool', id: toolId })
+  }, [])
+
+  const handleSelectionAnnotate = useCallback(
+    (quote: string, kind: AnnotationKind, messageId: string) => {
+      setOpenWidget({ type: 'msg', id: messageId, quote, kind })
+    },
+    [],
+  )
 
   if (!sessionInfo && messages.length === 0) {
     return (
@@ -471,9 +775,17 @@ export default function ConversationPanel() {
 
   return (
     <div className={styles.panel} ref={scrollRef}>
-      <div className={styles.centered}>
+      <div className={styles.centered} ref={convRef}>
+        <SelectionToolbar convRef={convRef} onAnnotate={handleSelectionAnnotate} />
         {merged.map((entry) => (
-          <MessageEntry key={entry.id} entry={entry} />
+          <MessageEntry
+            key={entry.id}
+            entry={entry}
+            openWidget={openWidget}
+            onOpenWidget={handleOpenWidget}
+            onCloseWidget={handleCloseWidget}
+            onToolAnnotate={handleToolAnnotate}
+          />
         ))}
         {streamingText && (
           <div className={styles.msg}>

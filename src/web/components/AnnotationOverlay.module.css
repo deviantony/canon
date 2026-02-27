@@ -126,6 +126,16 @@
   background: rgba(125, 159, 125, 0.1);
 }
 
+.cardPillarConv {
+  color: var(--accent-question);
+  background: var(--color-question-alpha-08);
+}
+
+.cardPillarTool {
+  color: var(--accent-gold);
+  background: var(--color-gold-alpha-08);
+}
+
 .cardLocation {
   font-family: var(--font-mono);
   font-size: 10px;

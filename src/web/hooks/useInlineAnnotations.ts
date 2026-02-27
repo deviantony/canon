@@ -17,21 +17,26 @@ interface UseInlineAnnotationsProps {
 }
 
 export function useInlineAnnotations({ filePath, onLineClick }: UseInlineAnnotationsProps) {
-  const { annotations, addAnnotation, updateAnnotation, updateAnnotationKind, removeAnnotation } =
-    useAnnotations()
+  const {
+    codeAnnotations,
+    addAnnotation,
+    updateAnnotation,
+    updateAnnotationKind,
+    removeAnnotation,
+  } = useAnnotations()
   const { selectedLines, setSelectedLines } = useLayout()
   const viewRef = useRef<EditorView | null>(null)
   const callbacksCompartment = useRef(new Compartment()).current
 
   // Store values in refs to avoid recreating callbacks that would trigger editor recreation
-  const annotationsRef = useRef(annotations)
+  const annotationsRef = useRef(codeAnnotations)
   const selectedLinesRef = useRef(selectedLines)
   const filePathRef = useRef(filePath)
   const callbacksRef = useRef<AnnotationCallbacks | null>(null)
 
   // Keep refs up to date
   useEffect(() => {
-    annotationsRef.current = annotations
+    annotationsRef.current = codeAnnotations
     selectedLinesRef.current = selectedLines
     filePathRef.current = filePath
   })
@@ -101,9 +106,9 @@ export function useInlineAnnotations({ filePath, onLineClick }: UseInlineAnnotat
   // Update annotations when they change
   useEffect(() => {
     if (viewRef.current && filePath) {
-      updateInlineAnnotations(viewRef.current, annotations, filePath)
+      updateInlineAnnotations(viewRef.current, codeAnnotations, filePath)
     }
-  }, [annotations, filePath])
+  }, [codeAnnotations, filePath])
 
   // Update selected lines when they change
   useEffect(() => {

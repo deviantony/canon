@@ -9,11 +9,28 @@ interface AnnotationOverlayProps {
 }
 
 function locationLabel(a: Annotation): string {
-  if (a.lineStart === 0) return a.file
-  if (a.lineEnd && a.lineEnd !== a.lineStart) {
-    return `${a.file}:${a.lineStart}-${a.lineEnd}`
+  if (a.target === 'code') {
+    if (a.lineStart === 0) return a.file
+    if (a.lineEnd && a.lineEnd !== a.lineStart) {
+      return `${a.file}:${a.lineStart}-${a.lineEnd}`
+    }
+    return `${a.file}:${a.lineStart}`
   }
-  return `${a.file}:${a.lineStart}`
+  if (a.target === 'conversation') {
+    return a.quote ? `"${a.quote.slice(0, 40)}${a.quote.length > 40 ? '...' : ''}"` : 'Message'
+  }
+  return a.toolLabel
+}
+
+function pillarBadge(a: Annotation): { label: string; className: string } {
+  switch (a.target) {
+    case 'code':
+      return { label: 'Code', className: styles.cardPillarCode }
+    case 'conversation':
+      return { label: 'Conv', className: styles.cardPillarConv }
+    case 'tool-call':
+      return { label: 'Tool', className: styles.cardPillarTool }
+  }
 }
 
 export default function AnnotationOverlay({ open, onClose, onSubmit }: AnnotationOverlayProps) {
@@ -24,7 +41,7 @@ export default function AnnotationOverlay({ open, onClose, onSubmit }: Annotatio
   // Focus compose textarea when overlay opens
   useEffect(() => {
     if (open) {
-      setTimeout(() => composeRef.current?.focus(), 100)
+      requestAnimationFrame(() => composeRef.current?.focus())
     }
   }, [open])
 
@@ -67,24 +84,27 @@ export default function AnnotationOverlay({ open, onClose, onSubmit }: Annotatio
           {annotations.length === 0 ? (
             <div className={styles.empty}>No annotations yet</div>
           ) : (
-            annotations.map((a) => (
-              <div key={a.id} className={styles.card}>
-                <div className={styles.cardSource}>
-                  <span className={`${styles.cardPillar} ${styles.cardPillarCode}`}>Code</span>
-                  <span className={styles.cardLocation}>{locationLabel(a)}</span>
+            annotations.map((a) => {
+              const badge = pillarBadge(a)
+              return (
+                <div key={a.id} className={styles.card}>
+                  <div className={styles.cardSource}>
+                    <span className={`${styles.cardPillar} ${badge.className}`}>{badge.label}</span>
+                    <span className={styles.cardLocation}>{locationLabel(a)}</span>
+                  </div>
+                  <div className={styles.cardText}>{a.comment}</div>
+                  <div className={styles.cardActions}>
+                    <button
+                      type="button"
+                      className={`${styles.cardBtn} ${styles.cardBtnDelete}`}
+                      onClick={() => removeAnnotation(a.id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
-                <div className={styles.cardText}>{a.comment}</div>
-                <div className={styles.cardActions}>
-                  <button
-                    type="button"
-                    className={`${styles.cardBtn} ${styles.cardBtnDelete}`}
-                    onClick={() => removeAnnotation(a.id)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
 

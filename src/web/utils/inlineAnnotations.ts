@@ -1,13 +1,13 @@
 import { type EditorState, Facet, StateEffect, StateField } from '@codemirror/state'
 import { Decoration, type DecorationSet, EditorView, WidgetType } from '@codemirror/view'
 import type { AnnotationKind } from '../../shared/types'
-import type { Annotation } from '../context/AnnotationContext'
+import type { CodeAnnotation } from '../context/AnnotationContext'
 import { formatLineBadge } from './annotationUtils'
 import { getModifierKey } from './keyboard'
 
 // Effects for managing annotations
 const setAnnotationsEffect = StateEffect.define<{
-  annotations: Annotation[]
+  annotations: CodeAnnotation[]
   filePath: string
 }>()
 
@@ -118,7 +118,7 @@ function updateMorphingBadge(badge: HTMLSpanElement, kind: AnnotationKind): void
 // Widget for displaying an existing annotation
 class AnnotationWidget extends WidgetType {
   constructor(
-    readonly annotation: Annotation,
+    readonly annotation: CodeAnnotation,
     readonly isHighlighted: boolean,
   ) {
     super()
@@ -371,7 +371,7 @@ class NewAnnotationWidget extends WidgetType {
 // Build decorations from annotations and selected lines
 function buildDecorations(
   state: EditorState,
-  annotations: Annotation[],
+  annotations: CodeAnnotation[],
   filePath: string,
   selectedLines: { start: number; end: number } | null,
 ): DecorationSet {
@@ -426,7 +426,7 @@ function buildDecorations(
 
 // State field to track annotations and selected lines
 interface InlineAnnotationState {
-  annotations: Annotation[]
+  annotations: CodeAnnotation[]
   filePath: string
   selectedLines: { start: number; end: number } | null
 }
@@ -473,7 +473,7 @@ const inlineAnnotationField = StateField.define<InlineAnnotationState>({
 // Helper to dispatch annotation updates to an editor view
 export function updateInlineAnnotations(
   view: EditorView,
-  annotations: Annotation[],
+  annotations: CodeAnnotation[],
   filePath: string,
 ) {
   view.dispatch({

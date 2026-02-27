@@ -97,6 +97,7 @@ export function createSession(
     'stream-json',
     '--input-format',
     'stream-json',
+    '--include-partial-messages',
   ]
 
   if (resumeSessionId) {
