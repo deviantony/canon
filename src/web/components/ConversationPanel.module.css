@@ -620,21 +620,16 @@
 
 .annWidget {
   margin: var(--space-3) 0 var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-gold-alpha-25);
+  padding: var(--space-4) var(--space-5) var(--space-5) var(--space-5);
+  border: 1px solid var(--accent-gold);
   border-radius: var(--radius-lg);
-  background: var(--gradient-card);
+  background: var(--gradient-card-active);
   animation: annIn 0.2s var(--ease-smooth);
 }
 
 .annWidgetQuestion {
-  border-color: var(--color-question-alpha-15);
-  background: radial-gradient(
-    ellipse 200px 120px at top left,
-    var(--color-question-alpha-06) 0%,
-    rgba(122, 159, 196, 0.02) 40%,
-    transparent 70%
-  );
+  border-color: var(--accent-question);
+  background: var(--gradient-card-question-active);
 }
 
 @keyframes annIn {
@@ -656,17 +651,23 @@
 }
 
 .annBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 3px;
-  background: var(--color-gold-alpha-08);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-gold-alpha-12);
+  border: 1px solid var(--accent-gold);
   color: var(--accent-gold);
   cursor: pointer;
   user-select: none;
   transition: all var(--duration-fast);
-  border: none;
 }
 
 .annBadge:hover {
@@ -674,27 +675,13 @@
 }
 
 .annBadgeQuestion {
-  background: var(--color-question-alpha-08);
+  background: var(--color-question-alpha-12);
+  border-color: var(--accent-question);
   color: var(--accent-question);
 }
 
 .annBadgeQuestion:hover {
   background: var(--color-question-alpha-15);
-}
-
-.annKind {
-  width: 14px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: var(--accent-gold);
-  flex-shrink: 0;
-}
-
-.annKindQuestion {
-  color: var(--accent-question);
 }
 
 .annQuote {
@@ -714,26 +701,37 @@
 
 .annInput {
   width: 100%;
-  min-height: 36px;
+  min-height: 48px;
   max-height: 120px;
-  padding: 6px 10px;
+  padding: 0;
+  margin-top: var(--space-2);
   font-family: var(--font-display);
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.8;
   color: var(--text-primary);
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  background: transparent;
+  border: none;
   resize: none;
   outline: none;
+  caret-color: var(--accent-gold);
 }
 
 .annInput::placeholder {
   color: var(--text-muted);
+  font-style: italic;
+  letter-spacing: 0.01em;
 }
 
-.annInput:focus {
-  border-color: var(--accent-gold-muted);
+.annInput::selection {
+  background: var(--color-gold-alpha-25);
+}
+
+.annWidgetQuestion .annInput {
+  caret-color: var(--accent-question);
+}
+
+.annWidgetQuestion .annInput::selection {
+  background: var(--color-question-alpha-25);
 }
 
 .annFoot {
@@ -764,68 +762,111 @@
 }
 
 .btnCancel {
-  font-family: var(--font-display);
-  font-size: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
   font-weight: 500;
-  padding: 4px 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 10px;
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-btn);
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: all 0.2s var(--ease-default);
 }
 
 .btnCancel:hover {
   border-color: var(--border-default);
   color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.btnCancel:active {
+  transform: scale(0.97);
 }
 
 .btnSave {
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 500;
-  padding: 4px 10px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--accent-gold);
-  color: var(--bg-void);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border: 1px solid var(--accent-gold-muted);
+  border-radius: var(--radius-btn);
+  background: transparent;
+  color: var(--accent-gold);
   cursor: pointer;
-  transition: all var(--duration-fast);
+  transition: all 0.2s var(--ease-default);
 }
 
-.btnSave:hover {
-  background: var(--accent-gold-bright);
+.btnSave:hover:not(:disabled) {
+  border-color: var(--accent-gold);
+  background: var(--color-gold-alpha-08);
+  color: var(--accent-gold-bright);
+}
+
+.btnSave:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btnSave:disabled {
-  opacity: 0.4;
-  cursor: default;
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.annWidgetQuestion .btnSave {
+  border-color: var(--accent-question-muted);
+  color: var(--accent-question);
+}
+
+.annWidgetQuestion .btnSave:hover:not(:disabled) {
+  border-color: var(--accent-question);
+  background: var(--color-question-alpha-08);
+  color: var(--accent-question-bright);
 }
 
 /* ─── Saved annotation card ───────────────────────────────────────────────── */
 
 .annSaved {
   margin: var(--space-2) 0;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-gold-alpha-15);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--accent-gold-muted);
   border-radius: var(--radius-lg);
   background: var(--gradient-card);
   display: flex;
   align-items: flex-start;
-  gap: var(--space-2);
+  gap: var(--space-3);
   animation: annIn 0.2s var(--ease-smooth);
+  transition: all var(--duration-normal) var(--ease-default);
+}
+
+.annSaved:hover {
+  border-color: var(--accent-gold);
+  background: var(--gradient-card-hover);
 }
 
 .annSaved .annBadge {
   flex-shrink: 0;
   margin-top: 1px;
+  border-color: var(--accent-gold-muted);
+  color: var(--accent-gold-muted);
+  background: var(--color-gold-alpha-08);
+}
+
+.annSaved:hover .annBadge {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+  background: var(--color-gold-alpha-12);
 }
 
 .annSavedText {
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.8;
   color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
   flex: 1;
 }
 

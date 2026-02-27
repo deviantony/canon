@@ -264,11 +264,8 @@ function AnnotationWidget({
           className={`${styles.annBadge} ${isQuestion ? styles.annBadgeQuestion : ''}`}
           onClick={() => setKind((k) => (k === 'action' ? 'question' : 'action'))}
         >
-          {badge}
+          {isQuestion ? '?' : '\u270E'} {badge}
         </button>
-        <span className={`${styles.annKind} ${isQuestion ? styles.annKindQuestion : ''}`}>
-          {isQuestion ? '?' : '\u270E'}
-        </span>
       </div>
       {quote && <div className={styles.annQuote}>{quote}</div>}
       <textarea
@@ -282,7 +279,6 @@ function AnnotationWidget({
       <div className={styles.annFoot}>
         <span className={styles.annKeys}>
           <kbd>{navigator.platform.includes('Mac') ? '\u2318' : 'Ctrl'}</kbd>+<kbd>Enter</kbd> save
-          &middot; <kbd>Esc</kbd> cancel
         </span>
         <div className={styles.annBtns}>
           <button type="button" className={styles.btnCancel} onClick={onCancel}>
