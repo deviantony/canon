@@ -11,6 +11,13 @@
   into your conversation as structured context.
 </p>
 
+> **AI Manifesto: Vibe-coding**
+>
+> This project is vibe-coded with AI. The associated code has undergone little to no review.
+> It is recommended to fork this project if you would like to see it evolve.
+>
+> [Read the full AI Manifesto →](https://deviantony.github.io/ai-manifesto)
+
 ---
 
 ## Install
